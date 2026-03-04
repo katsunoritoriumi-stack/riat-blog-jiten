@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIAT ブログ辞典</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #0a0a0f;
+            --bg2:      #111118;
+            --surface:  #16161f;
+            --surface2: #1e1e28;
+            --border:   #282836;
+            --border2:  #32324a;
+            --text:     #e8e8f0;
+            --text2:    #b0b0c8;
+            --muted:    #6b6b80;
+            --gold:     #c9a84c;
+            --gold-dim: rgba(201,168,76,0.1);
+            --gold-glow:rgba(201,168,76,0.25);
+            --user-bg:  #1a2438;
+            --sidebar-w:220px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { height: 100%; font-size: 16px; }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Header ── */
+        header {
+            background: linear-gradient(180deg, #16161f 0%, var(--bg2) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 12px; }
+
+        #sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        #sidebar-toggle:hover { color: var(--gold); }
+
+        .header-logo { display: flex; align-items: baseline; gap: 8px; }
+
+        .header-title {
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+        }
+
+        .header-sub {
+            color: var(--text2);
+            font-size: 0.73rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+
+        .blog-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.71rem;
+            letter-spacing: 0.06em;
+            border: 1px solid var(--border2);
+            padding: 5px 13px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+        .blog-link:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+            background: var(--gold-dim);
+        }
+
+        /* ── Layout ── */
+        #content-area {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        #sidebar {
+            width: var(--sidebar-w);
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: transform 0.28s ease;
+        }
+
+        .sidebar-header {
+            padding: 13px 16px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 0.66rem;
+            letter-spacing: 0.16em;
+            color: var(--gold);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        #clear-history-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        #clear-history-btn:hover { color: #e06060; background: rgba(224,96,96,0.1); }
+
+        #history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+        #history-list::-webkit-scrollbar { width: 3px; }
+        #history-list::-webkit-scrollbar-track { background: transparent; }
+        #history-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+        .history-item {
+            padding: 9px 16px;
+            font-size: 0.76rem;
+            color: var(--text2);
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.18s;
+            line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .history-item:hover {
+            color: var(--text);
+            border-left-color: var(--gold);
+            background: var(--gold-dim);
+        }
+
+        .history-empty {
+            padding: 24px 16px;
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        /* ── Main area ── */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* ── Chat scroll ── */
+        #chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 20px 16px;
+        }
+        #chat-scroll::-webkit-scrollbar { width: 4px; }
+        #chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        #chat-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        #chat-box {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* ── Message groups ── */
+        .msg-group { display: flex; flex-direction: column; gap: 6px; }
+        .msg-group.user { align-items: flex-end; }
+        .msg-group.ai   { align-items: flex-start; }
+
+        .msg-label {
+            font-size: 0.62rem;
+            color: var(--muted);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* ── Bubbles ── */
+        .bubble {
+            max-width: 76%;
+            padding: 14px 18px;
+            line-height: 1.95;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .bubble.user {
+            font-size: 1rem;
+            background: var(--user-bg);
+            color: var(--text);
+            border: 1px solid #263050;
+            border-radius: 16px 16px 4px 16px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+        }
+
+        .bubble.ai {
+            font-size: 1.0625rem; /* 17px */
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 16px 16px 16px 4px;
+            box-shadow: 0 2px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,168,76,0.04);
+        }
+
+        /* ── Source cards ── */
+        .sources-wrap { max-width: 76%; }
+
+        .sources-label {
+            font-size: 0.62rem;
+            color: var(--muted);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 9px;
+            padding-left: 2px;
+        }
+
+        .source-card {
+            display: block;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 8px;
+            overflow: hidden;
+            transition: all 0.22s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        }
+        .source-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-dim);
+            transform: translateY(-2px);
+        }
+
+        .source-card-bar {
+            height: 4px;
+            width: 100%;
+        }
+
+        .source-card-body {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+        }
+
+        .source-num {
+            font-size: 0.67rem;
+            color: var(--gold);
+            font-weight: 700;
+            width: 16px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .source-title {
+            flex: 1;
+            font-size: 0.81rem;
+            color: var(--text2);
+            font-weight: 500;
+            line-height: 1.45;
+            transition: color 0.2s;
+        }
+        .source-card:hover .source-title { color: var(--text); }
+
+        .source-arrow {
+            color: var(--muted);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .source-card:hover .source-arrow {
+            color: var(--gold);
+            transform: translate(2px, -2px);
+        }
+
+        /* ── UFO Loading ── */
+        .ufo-loading {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px 16px 16px 4px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+        }
+
+        /* UFO wrapper: ふわふわ上下 */
+        .ufo-wrap {
+            flex-shrink: 0;
+            perspective: 400px;
+            animation: ufo-hover 2.4s ease-in-out infinite;
+        }
+
+        /* UFO本体: Y軸自転 */
+        .ufo-body {
+            display: block;
+            animation: ufo-spin 3s linear infinite;
+        }
+
+        @keyframes ufo-spin {
+            from { transform: rotateY(0deg); }
+            to   { transform: rotateY(360deg); }
+        }
+
+        @keyframes ufo-hover {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-6px); }
+        }
+
+        .ufo-text {
+            font-size: 0.76rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            animation: text-pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes text-pulse {
+            0%, 100% { opacity: 0.5; }
+            50%       { opacity: 1;   }
+        }
+
+        /* ── Input area ── */
+        .input-area {
+            background: linear-gradient(0deg, #0e0e16 0%, var(--bg2) 100%);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px 16px;
+            flex-shrink: 0;
+        }
+
+        #chat-form {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #user-input {
+            flex: 1;
+            border: 1px solid var(--border2);
+            background: var(--surface);
+            padding: 12px 18px;
+            border-radius: 28px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s;
+        }
+        #user-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-dim);
+            background: var(--surface2);
+        }
+        #user-input::placeholder { color: var(--muted); }
+
+        #send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c9a84c 0%, #e8c868 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(201,168,76,0.35);
+        }
+        #send-btn:hover  { transform: scale(1.08); box-shadow: 0 4px 18px var(--gold-glow); }
+        #send-btn:active { transform: scale(0.95); }
+        #send-btn svg { width: 18px; height: 18px; fill: #0a0a0f; }
+
+        /* ── Sidebar overlay (mobile) ── */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 50;
+            backdrop-filter: blur(2px);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            #sidebar-toggle { display: block; }
+
+            #sidebar {
+                position: fixed;
+                top: 56px;
+                left: 0;
+                bottom: 0;
+                z-index: 60;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 28px rgba(0,0,0,0.6);
+            }
+            #sidebar.open { transform: translateX(0); }
+
+            #sidebar-overlay.visible { display: block; }
+
+            .bubble        { max-width: 90%; }
+            .sources-wrap  { max-width: 90%; }
+
+            #chat-scroll   { padding: 20px 12px 12px; }
+            .input-area    { padding: 10px 12px 14px; }
+
+            .header-sub    { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <button id="sidebar-toggle" aria-label="履歴パネルを開く">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+            </button>
+            <div class="header-logo">
+                <span class="header-title">RIAT</span>
+                <span class="header-sub">ブログ辞典</span>
+            </div>
+        </div>
+        <a href="https://seimeiron.com/blog-front/" target="_blank" class="blog-link">ブログを読む ↗</a>
+    </header>
+
+    <div id="sidebar-overlay"></div>
+
+    <div id="content-area">
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-title">質問履歴</span>
+                <button id="clear-history-btn">削除</button>
+            </div>
+            <div id="history-list">
+                <div class="history-empty">まだ質問がありません</div>
+            </div>
+        </nav>
+
+        <div id="main">
+            <div id="chat-scroll">
+                <div id="chat-box">
+                    <div class="msg-group ai">
+                        <div class="msg-label">RIAT</div>
+                        <div class="bubble ai">ようこそ、RIATブログ辞典へ。
+ブログの内容について、どのようなことでもお聞きください。</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <form id="chat-form">
+                    <input type="text" id="user-input" placeholder="質問を入力してください..." autocomplete="off">
+                    <button type="submit" id="send-btn">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatForm      = document.getElementById('chat-form');
+        const chatBox       = document.getElementById('chat-box');
+        const chatScroll    = document.getElementById('chat-scroll');
+        const input         = document.getElementById('user-input');
+        const sidebar       = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const overlay       = document.getElementById('sidebar-overlay');
+        const clearBtn      = document.getElementById('clear-history-btn');
+        const historyList   = document.getElementById('history-list');
+
+        // ── Source card gradients ──
+        const GRADIENTS = [
+            'linear-gradient(90deg, #c9a84c 0%, #f0d070 50%, #c9a84c 100%)',
+            'linear-gradient(90deg, #2d7a9a 0%, #4ab8d8 50%, #2d7a9a 100%)',
+            'linear-gradient(90deg, #6a3a9a 0%, #9a60c8 50%, #6a3a9a 100%)',
+        ];
+
+        // ── History ──
+        const HISTORY_KEY = 'riat_history';
+
+        function loadHistory() {
+            try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+            catch { return []; }
+        }
+
+        function saveHistory(h) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0, 20)));
+        }
+
+        function addToHistory(question, response, sources) {
+            const h = loadHistory().filter(x => x.question !== question);
+            h.unshift({ question, response, sources });
+            saveHistory(h);
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const h = loadHistory();
+            if (h.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">まだ質問がありません</div>';
+                return;
+            }
+            historyList.innerHTML = '';
+            h.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                el.textContent = item.question;
+                el.addEventListener('click', () => {
+                    addUserMessage(item.question);
+                    addAIMessage(item.response, item.sources);
+                    closeSidebar();
+                });
+                historyList.appendChild(el);
+            });
+        }
+
+        // ── Sidebar toggle ──
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        });
+        overlay.addEventListener('click', closeSidebar);
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        }
+
+        clearBtn.addEventListener('click', () => {
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+        });
+
+        // ── Utilities ──
+        function scrollToBottom() {
+            chatScroll.scrollTop = chatScroll.scrollHeight;
+        }
+
+        // 指定要素の先頭が見えるようにスクロール
+        function scrollToGroupTop(el) {
+            const top = el.getBoundingClientRect().top
+                      - chatScroll.getBoundingClientRect().top
+                      + chatScroll.scrollTop
+                      - 16;
+            chatScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function cleanResponse(text) {
+            // "RIATブログの専門家として、" が冒頭に出た場合に除去
+            return text.replace(/^RIATブログの専門家として[、,]?\s*/m, '');
+        }
+
+        // ── Message rendering ──
+        function addUserMessage(text) {
+            const g = document.createElement('div');
+            g.className = 'msg-group user';
+            g.innerHTML = `
+                <div class="msg-label">あなた</div>
+                <div class="bubble user">${escapeHtml(text)}</div>
+            `;
+            chatBox.appendChild(g);
+            scrollToBottom();
+        }
+
+        function showLoading() {
+            const g = document.createElement('div');
+            g.className = 'msg-group ai';
+            g.id = 'loading-group';
+            g.innerHTML = `
+                <div class="msg-label">RIAT</div>
+                <div class="ufo-loading">
+                    <div class="ufo-wrap">
+                        <svg class="ufo-body" width="54" height="36" viewBox="0 0 80 52" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="40" cy="32" rx="30" ry="8" fill="#c9a84c" opacity="0.78"/>
+                            <ellipse cx="40" cy="25" rx="14" ry="10" fill="#1a1a28"/>
+                            <ellipse cx="40" cy="25" rx="11" ry="7.5" fill="#242436" opacity="0.95"/>
+                            <circle cx="22" cy="33" r="2.4" fill="#ffe066" opacity="0.95"/>
+                            <circle cx="32" cy="36"  r="2.4" fill="#66ffcc" opacity="0.95"/>
+                            <circle cx="48" cy="36"  r="2.4" fill="#ff88cc" opacity="0.95"/>
+                            <circle cx="58" cy="33" r="2.4" fill="#88aaff" opacity="0.95"/>
+                            <polygon points="29,40 51,40 45,52 35,52" fill="#c9a84c" opacity="0.13"/>
+                        </svg>
+                    </div>
+                    <span class="ufo-text">思考中...</span>
+                </div>
+            `;
+            chatBox.appendChild(g);
+            scrollToBottom();
+        }
+
+        function hideLoading() {
+            const el = document.getElementById('loading-group');
+            if (el) el.remove();
+        }
+
+        function addAIMessage(text, sources) {
+            const g = document.createElement('div');
+            g.className = 'msg-group ai';
+
+            let html = `
+                <div class="msg-label">RIAT</div>
+                <div class="bubble ai">${escapeHtml(cleanResponse(text))}</div>
+            `;
+
+            if (sources && sources.length > 0) {
+                html += `<div class="sources-wrap"><div class="sources-label">参考記事</div>`;
+                sources.forEach((src, i) => {
+                    const grad = GRADIENTS[i % GRADIENTS.length];
+                    html += `
+                        <a class="source-card" href="${escapeHtml(src.url)}" target="_blank" rel="noopener noreferrer">
+                            <div class="source-card-bar" style="background:${grad}"></div>
+                            <div class="source-card-body">
+                                <span class="source-num">${i + 1}</span>
+                                <span class="source-title">${escapeHtml(src.title)}</span>
+                                <span class="source-arrow">↗</span>
+                            </div>
+                        </a>`;
+                });
+                html += `</div>`;
+            }
+
+            g.innerHTML = html;
+            chatBox.appendChild(g);
+            // 回答先頭が見えるようにスクロール
+            requestAnimationFrame(() => scrollToGroupTop(g));
+        }
+
+        // ── Form submit ──
+        chatForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            input.value = '';
+            input.disabled = true;
+            showLoading();
+
+            try {
+                const res = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                hideLoading();
+                addAIMessage(data.response, data.sources || []);
+                addToHistory(message, data.response, data.sources || []);
+            } catch (err) {
+                hideLoading();
+                addAIMessage('エラーが発生しました。もう一度お試しください。', []);
+            }
+
+            input.disabled = false;
+            input.focus();
+        };
+
+        // ── Init ──
+        renderHistory();
+    </script>
+</body>
+</html>
