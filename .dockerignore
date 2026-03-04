@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.log
+scraper.py
+upload_data.py
+upload_to_db.py
