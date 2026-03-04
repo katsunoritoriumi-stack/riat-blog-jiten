@@ -1,9 +1,9 @@
 services:
   - type: web
     name: riat-blog-jiten
-    env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --timeout 120
+    startCommand: gunicorn server:app
     envVars:
       - key: GENAI_API_KEY
         sync: false
