@@ -1220,9 +1220,23 @@
             requestAnimationFrame(() => scrollToGroupTop(g));
         }
 
+        // ── Speech recognition state (shared with onsubmit) ──
+        let recog = null;
+        let isRecording = false;
+
         // ── Form submit ──
         chatForm.onsubmit = async (e) => {
             e.preventDefault();
+
+            // 音声認識が動いていたら停止する
+            if (recog && isRecording) {
+                recog.stop();
+                isRecording = false;
+                micBtn.classList.remove('recording');
+                micBtn.setAttribute('aria-label', '音声入力');
+                input.classList.remove('interim');
+            }
+
             const message = input.value.trim();
             if (!message) return;
 
@@ -1270,12 +1284,11 @@
                 setTimeout(() => { micNotice.style.display = 'none'; }, 3000);
             });
         } else {
-            const recog = new SpeechRecognition();
+            recog = new SpeechRecognition();
             recog.lang = 'ja-JP';
             recog.continuous = true;
             recog.interimResults = true;
 
-            let isRecording = false;
             let finalText = '';
 
             micBtn.addEventListener('click', () => {
