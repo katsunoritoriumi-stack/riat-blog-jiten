@@ -34,6 +34,11 @@ url_to_article = {a["url"]: a for a in all_articles}
 logging.info("%d articles loaded", len(all_articles))
 
 
+@app.route("/warmup", methods=["GET"])
+def warmup():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/")
 def home():
     return send_file("index.html")
