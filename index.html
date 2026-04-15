@@ -466,6 +466,42 @@
             flex-shrink: 0;
         }
 
+        /* ── Suggestion buttons ── */
+        .suggest-row {
+            max-width: 760px;
+            margin: 0 auto 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .suggest-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .suggest-btn {
+            flex-shrink: 0;
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            color: var(--text2);
+            font-family: inherit;
+            font-size: 0.78rem;
+            padding: 6px 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+        }
+
+        .suggest-btn:hover {
+            background: var(--gold-dim);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
         #chat-form {
             max-width: 760px;
             margin: 0 auto;
@@ -525,6 +561,106 @@
             width: 18px;
             height: 18px;
             fill: #0a0a0f;
+        }
+
+        #send-btn:disabled {
+            background: var(--border2);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #send-btn:disabled svg {
+            fill: var(--muted);
+        }
+
+        /* ── Mic button ── */
+        #mic-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+
+        #mic-btn:hover:not(:disabled) {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        #mic-btn.recording {
+            background: rgba(224, 96, 96, 0.15);
+            border-color: #e06060;
+            color: #e06060;
+            animation: mic-pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes mic-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(224, 96, 96, 0.5); }
+            50%       { box-shadow: 0 0 0 7px rgba(224, 96, 96, 0); }
+        }
+
+        #mic-btn:disabled {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--border2);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* ── Mic notice ── */
+        #mic-notice {
+            max-width: 760px;
+            margin: 0 auto 6px;
+            font-size: 0.74rem;
+            color: #e06060;
+            padding: 0 4px;
+            min-height: 0;
+            display: none;
+        }
+
+        /* ── Interim text color ── */
+        #user-input.interim {
+            color: var(--muted);
+        }
+
+        /* ── Markdown in AI bubble ── */
+        .bubble.ai h1, .bubble.ai h2, .bubble.ai h3 {
+            color: var(--gold);
+            font-weight: 700;
+            margin: 0.9em 0 0.4em;
+            line-height: 1.4;
+        }
+
+        .bubble.ai h1 { font-size: 1.15rem; }
+        .bubble.ai h2 { font-size: 1.05rem; }
+        .bubble.ai h3 { font-size: 0.97rem; }
+
+        .bubble.ai ul {
+            padding-left: 1.3em;
+            margin: 0.4em 0;
+        }
+
+        .bubble.ai li {
+            margin: 0.25em 0;
+            line-height: 1.75;
+        }
+
+        .bubble.ai strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .bubble.ai em {
+            color: var(--text2);
+            font-style: italic;
         }
 
         /* ── Sidebar overlay (mobile) ── */
@@ -805,8 +941,20 @@
             </div>
 
             <div class="input-area">
+                <div class="suggest-row">
+                    <button type="button" class="suggest-btn">RIATとは何ですか？</button>
+                    <button type="button" class="suggest-btn">生命論とはどういう考え方ですか？</button>
+                    <button type="button" class="suggest-btn">ブログのテーマや内容を教えてください</button>
+                    <button type="button" class="suggest-btn">おすすめの記事はありますか？</button>
+                </div>
+                <div id="mic-notice"></div>
                 <form id="chat-form">
                     <input type="text" id="user-input" placeholder="質問を入力してください..." autocomplete="off">
+                    <button type="button" id="mic-btn" aria-label="音声入力">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V20H9v2h6v-2h-2v-2.07A7 7 0 0 0 19 11h-2z"/>
+                        </svg>
+                    </button>
                     <button type="submit" id="send-btn">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -849,6 +997,23 @@
         const chatBox = document.getElementById('chat-box');
         const chatScroll = document.getElementById('chat-scroll');
         const input = document.getElementById('user-input');
+
+        // ── Send button state ──
+        const sendBtn = document.getElementById('send-btn');
+        function updateSendBtn() {
+            sendBtn.disabled = !input.value.trim();
+        }
+        input.addEventListener('input', updateSendBtn);
+        updateSendBtn();
+
+        // ── Suggestion buttons ──
+        document.querySelectorAll('.suggest-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                input.value = btn.textContent;
+                input.focus();
+                updateSendBtn();
+            });
+        });
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const overlay = document.getElementById('sidebar-overlay');
@@ -893,6 +1058,7 @@
                 el.className = 'history-item';
                 el.textContent = item.question;
                 el.addEventListener('click', () => {
+                    chatBox.innerHTML = '';
                     addUserMessage(item.question);
                     addAIMessage(item.response, item.sources);
                     closeSidebar();
@@ -940,6 +1106,27 @@
                 .replace(/"/g, '&quot;');
         }
 
+        function renderMarkdown(text) {
+            // まず全体をエスケープしてからMarkdownを変換する
+            let s = escapeHtml(text);
+            // ## 見出し（行頭）
+            s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            s = s.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
+            s = s.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+            // **太字**
+            s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // *斜体*
+            s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            // - 箇条書き
+            s = s.replace(/^[-・]\s+(.+)$/gm, '<li>$1</li>');
+            s = s.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+            // 連続する </ul><ul> を結合
+            s = s.replace(/<\/ul>\s*<ul>/g, '');
+            // 改行を <br> に（ただしブロック要素の周囲はスキップ）
+            s = s.replace(/(?<!>)\n(?!<)/g, '<br>');
+            return s;
+        }
+
         function cleanResponse(text) {
             // "RIATブログの専門家として、" が冒頭に出た場合に除去
             return text.replace(/^RIATブログの専門家として[、,]?\s*/m, '');
@@ -956,6 +1143,8 @@
             chatBox.appendChild(g);
             scrollToBottom();
         }
+
+        let slowNoticeTimer = null;
 
         function showLoading() {
             const g = document.createElement('div');
@@ -978,12 +1167,22 @@
                     </div>
                     <span class="ufo-text">思考中...</span>
                 </div>
+                <div id="slow-notice" style="display:none; font-size:0.75rem; color:var(--muted); margin-top:6px; padding-left:2px;">
+                    ※ サーバーの起動中です。しばらくお待ちください（最大60秒）
+                </div>
             `;
             chatBox.appendChild(g);
             scrollToBottom();
+
+            slowNoticeTimer = setTimeout(() => {
+                const el = document.getElementById('slow-notice');
+                if (el) el.style.display = 'block';
+            }, 5000);
         }
 
         function hideLoading() {
+            clearTimeout(slowNoticeTimer);
+            slowNoticeTimer = null;
             const el = document.getElementById('loading-group');
             if (el) el.remove();
         }
@@ -994,7 +1193,7 @@
 
             let html = `
                 <div class="msg-label">RIAT</div>
-                <div class="bubble ai">${escapeHtml(cleanResponse(text))}</div>
+                <div class="bubble ai">${renderMarkdown(cleanResponse(text))}</div>
             `;
 
             if (sources && sources.length > 0) {
@@ -1032,23 +1231,106 @@
             showLoading();
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
                 const res = await fetch('/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ message }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
                 const data = await res.json();
                 hideLoading();
                 addAIMessage(data.response, data.sources || []);
                 addToHistory(message, data.response, data.sources || []);
             } catch (err) {
                 hideLoading();
-                addAIMessage('エラーが発生しました。もう一度お試しください。', []);
+                const msg = err.name === 'AbortError'
+                    ? 'サーバーへの接続がタイムアウトしました。ページを再読み込みして、もう一度お試しください。'
+                    : 'エラーが発生しました。もう一度お試しください。';
+                addAIMessage(msg, []);
             }
 
             input.disabled = false;
             input.focus();
         };
+
+        // ── Speech Input ──
+        const micBtn = document.getElementById('mic-btn');
+        const micNotice = document.getElementById('mic-notice');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            micBtn.disabled = true;
+            micBtn.addEventListener('click', () => {
+                micNotice.textContent = 'お使いのブラウザは音声入力に対応していません';
+                micNotice.style.display = 'block';
+                setTimeout(() => { micNotice.style.display = 'none'; }, 3000);
+            });
+        } else {
+            const recog = new SpeechRecognition();
+            recog.lang = 'ja-JP';
+            recog.continuous = true;
+            recog.interimResults = true;
+
+            let isRecording = false;
+            let finalText = '';
+
+            micBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    finalText = input.value;
+                    recog.start();
+                } else {
+                    recog.stop();
+                }
+            });
+
+            recog.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micBtn.setAttribute('aria-label', '録音停止');
+            };
+
+            recog.onend = () => {
+                isRecording = false;
+                micBtn.classList.remove('recording');
+                micBtn.setAttribute('aria-label', '音声入力');
+                input.classList.remove('interim');
+                updateSendBtn();
+            };
+
+            recog.onresult = (e) => {
+                let interim = '';
+                let newFinal = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const t = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) {
+                        newFinal += t;
+                    } else {
+                        interim += t;
+                    }
+                }
+                if (newFinal) finalText += newFinal;
+
+                if (interim) {
+                    input.value = finalText + interim;
+                    input.classList.add('interim');
+                } else {
+                    input.value = finalText;
+                    input.classList.remove('interim');
+                }
+                updateSendBtn();
+            };
+
+            recog.onerror = (e) => {
+                if (e.error !== 'aborted') {
+                    micNotice.textContent = '音声入力でエラーが発生しました: ' + e.error;
+                    micNotice.style.display = 'block';
+                    setTimeout(() => { micNotice.style.display = 'none'; }, 3000);
+                }
+            };
+        }
 
         // ── Init ──
         renderHistory();
