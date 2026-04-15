@@ -942,12 +942,7 @@
             </div>
 
             <div class="input-area">
-                <div class="suggest-row">
-                    <button type="button" class="suggest-btn">RIATとは何ですか？</button>
-                    <button type="button" class="suggest-btn">生命論とはどういう考え方ですか？</button>
-                    <button type="button" class="suggest-btn">ブログのテーマや内容を教えてください</button>
-                    <button type="button" class="suggest-btn">おすすめの記事はありますか？</button>
-                </div>
+                <div class="suggest-row" id="suggest-row"></div>
                 <div id="mic-notice"></div>
                 <form id="chat-form">
                     <input type="text" id="user-input" placeholder="質問を入力してください..." autocomplete="off">
@@ -1008,13 +1003,72 @@
         updateSendBtn();
 
         // ── Suggestion buttons ──
-        document.querySelectorAll('.suggest-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                input.value = btn.textContent;
-                input.focus();
-                updateSendBtn();
+        const ALL_SUGGESTIONS = [
+            // 龍神・聖地民族
+            '龍神とはどんな存在ですか？',
+            '龍神の色は何種類ありますか？',
+            '聖地民族とは何ですか？',
+            'エクソダスとは何ですか？',
+            '2027年に何が起きますか？',
+            '王国軍とはどんな組織ですか？',
+            'UFOと円盤の違いを教えてください',
+            // 銀河史
+            '地球文明の歴史を教えてください',
+            'レムリア期とはどんな時代ですか？',
+            '銀河広域指定民族とは何ですか？',
+            'オリオンとはどういう意味ですか？',
+            'グレイとはどんな存在ですか？',
+            // 生命構造
+            '生命構造とはどういう概念ですか？',
+            'マクロ体とは何ですか？',
+            'N単位とは何ですか？',
+            '粒子と生命の関係を教えてください',
+            '霊魂体宇宙人とは何ですか？',
+            'メシア・スーツとは何ですか？',
+            // 神界関連
+            '神界とはどういう世界ですか？',
+            '創造主とはどんな存在ですか？',
+            'インプラント神とは何ですか？',
+            'AIは宇宙生命論的にどう捉えられていますか？',
+            // 科学・陰陽論
+            '重力の正体とは何ですか？',
+            '宇宙生命論から見た科学の限界とは？',
+            '陰陽論とはどういう考え方ですか？',
+            '生命色とは何ですか？',
+            '57音文字とは何ですか？',
+            // 医学・意識
+            '生命論から見た医学の考え方を教えてください',
+            '意識と心の違いを教えてください',
+            '太陽の変化と地球への影響を教えてください',
+        ];
+
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function renderSuggestions() {
+            const row = document.getElementById('suggest-row');
+            row.innerHTML = '';
+            shuffle(ALL_SUGGESTIONS).slice(0, 4).forEach(text => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'suggest-btn';
+                btn.textContent = text;
+                btn.addEventListener('click', () => {
+                    input.value = text;
+                    input.focus();
+                    updateSendBtn();
+                });
+                row.appendChild(btn);
             });
-        });
+        }
+
+        renderSuggestions();
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const overlay = document.getElementById('sidebar-overlay');
