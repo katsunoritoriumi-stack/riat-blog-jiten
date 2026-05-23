@@ -316,6 +316,7 @@
         /* ── Source cards ── */
         .sources-wrap {
             max-width: 76%;
+            margin-top: 4px;
         }
 
         .sources-label {
@@ -349,6 +350,7 @@
         .source-card-bar {
             height: 4px;
             width: 100%;
+            background: var(--gold);
         }
 
         .source-card-body {
@@ -390,72 +392,6 @@
         .source-card:hover .source-arrow {
             color: var(--gold);
             transform: translate(2px, -2px);
-        }
-
-        /* ── UFO Loading ── */
-        .ufo-loading {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px 16px 16px 4px;
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        /* UFO wrapper: ふわふわ上下 */
-        .ufo-wrap {
-            flex-shrink: 0;
-            perspective: 400px;
-            animation: ufo-hover 2.4s ease-in-out infinite;
-        }
-
-        /* UFO本体: Y軸自転 */
-        .ufo-body {
-            display: block;
-            animation: ufo-spin 3s linear infinite;
-        }
-
-        @keyframes ufo-spin {
-            from {
-                transform: rotateY(0deg);
-            }
-
-            to {
-                transform: rotateY(360deg);
-            }
-        }
-
-        @keyframes ufo-hover {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-6px);
-            }
-        }
-
-        .ufo-text {
-            font-size: 0.76rem;
-            color: var(--muted);
-            letter-spacing: 0.1em;
-            animation: text-pulse 2.4s ease-in-out infinite;
-        }
-
-        @keyframes text-pulse {
-
-            0%,
-            100% {
-                opacity: 0.5;
-            }
-
-            50% {
-                opacity: 1;
-            }
         }
 
         /* ── Input area ── */
@@ -895,13 +831,11 @@
 </head>
 
 <body>
-    <!-- Galaxy background -->
     <div id="galaxy-bg" aria-hidden="true">
         <div class="nebula"></div>
         <div class="s1"></div>
         <div class="s2"></div>
         <div class="s3"></div>
-        <!-- Individually twinkling prominent stars -->
         <span class="ts" style="--x:12%;--y:18%;--d:0s;  --s:3px"></span>
         <span class="ts" style="--x:67%;--y:8%; --d:1.2s;--s:2px"></span>
         <span class="ts" style="--x:34%;--y:45%;--d:2.5s;--s:3px"></span>
@@ -975,442 +909,267 @@
     </div>
 
     <script>
-        // ── Debug Logger ──
-        const debugConsole = document.getElementById('debug-console');
-        function logDebug(msg, isError = false) {
-            console.log(msg);
-            const div = document.createElement('div');
-            div.style.color = isError ? '#f00' : '#0f0';
-            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            debugConsole.appendChild(div);
-            debugConsole.scrollTop = debugConsole.scrollHeight;
-            if (isError) debugConsole.style.display = 'block';
-        }
-
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            logDebug(`ERR: ${msg} at ${lineNo}:${columnNo}`, true);
-            return false;
-        };
-
-        window.addEventListener('unhandledrejection', function (event) {
-            logDebug(`PROMISE ERR: ${event.reason}`, true);
-        });
-
-        logDebug('App initialized');
+        // ── 1. アプリの初期化と変数定義 ──
+        let allArticles = [];
+        let searchHistory = [];
 
         const chatForm = document.getElementById('chat-form');
         const chatBox = document.getElementById('chat-box');
         const chatScroll = document.getElementById('chat-scroll');
         const input = document.getElementById('user-input');
-
-        // ── Send button state ──
         const sendBtn = document.getElementById('send-btn');
-        function updateSendBtn() {
-            sendBtn.disabled = !input.value.trim();
-        }
-        input.addEventListener('input', updateSendBtn);
-        updateSendBtn();
-
-        // ── Suggestion buttons ──
-        const ALL_SUGGESTIONS = [
-            // 龍神・聖地民族
-            '龍神とはどんな存在ですか？',
-            '龍神の色は何種類ありますか？',
-            '聖地民族とは何ですか？',
-            'エクソダスとは何ですか？',
-            '2027年に何が起きますか？',
-            '王国軍とはどんな組織ですか？',
-            'UFOと円盤の違いを教えてください',
-            // 銀河史
-            '地球文明の歴史を教えてください',
-            'レムリア期とはどんな時代ですか？',
-            '銀河広域指定民族とは何ですか？',
-            'オリオンとはどういう意味ですか？',
-            'グレイとはどんな存在ですか？',
-            // 生命構造
-            '生命構造とはどういう概念ですか？',
-            'マクロ体とは何ですか？',
-            'N単位とは何ですか？',
-            '粒子と生命の関係を教えてください',
-            '霊魂体宇宙人とは何ですか？',
-            'メシア・スーツとは何ですか？',
-            // 神界関連
-            '神界とはどういう世界ですか？',
-            '創造主とはどんな存在ですか？',
-            'インプラント神とは何ですか？',
-            'AIは宇宙生命論的にどう捉えられていますか？',
-            // 科学・陰陽論
-            '重力の正体とは何ですか？',
-            '宇宙生命論から見た科学の限界とは？',
-            '陰陽論とはどういう考え方ですか？',
-            '生命色とは何ですか？',
-            '57音文字とは何ですか？',
-            // 医学・意識
-            '生命論から見た医学の考え方を教えてください',
-            '意識と心の違いを教えてください',
-            '太陽の変化と地球への影響を教えてください',
-        ];
-
-        function shuffle(arr) {
-            const a = arr.slice();
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-
-        function renderSuggestions() {
-            const row = document.getElementById('suggest-row');
-            row.innerHTML = '';
-            shuffle(ALL_SUGGESTIONS).slice(0, 4).forEach(text => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'suggest-btn';
-                btn.textContent = text;
-                btn.addEventListener('click', () => {
-                    input.value = text;
-                    input.focus();
-                    updateSendBtn();
-                });
-                row.appendChild(btn);
-            });
-        }
-
-        renderSuggestions();
+        const micBtn = document.getElementById('mic-btn');
+        const micNotice = document.getElementById('mic-notice');
+        const suggestRow = document.getElementById('suggest-row');
+        const historyList = document.getElementById('history-list');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebar-toggle');
-        const overlay = document.getElementById('sidebar-overlay');
-        const clearBtn = document.getElementById('clear-history-btn');
-        const historyList = document.getElementById('history-list');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // ── Source card gradients ──
-        const GRADIENTS = [
-            'linear-gradient(90deg, #c9a84c 0%, #f0d070 50%, #c9a84c 100%)',
-            'linear-gradient(90deg, #2d7a9a 0%, #4ab8d8 50%, #2d7a9a 100%)',
-            'linear-gradient(90deg, #6a3a9a 0%, #9a60c8 50%, #6a3a9a 100%)',
-        ];
+        // ── サジェスト用キーワード ──
+        const SUGGEST_KEYWORDS = ["生命論", "AI", "意識", "テクノロジー", "自然", "アート"];
 
-        // ── History ──
-        const HISTORY_KEY = 'riat_history';
-
-        function loadHistory() {
-            try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
-            catch { return []; }
-        }
-
-        function saveHistory(h) {
-            localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0, 20)));
-        }
-
-        function addToHistory(question, response, sources) {
-            const h = loadHistory().filter(x => x.question !== question);
-            h.unshift({ question, response, sources });
-            saveHistory(h);
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const h = loadHistory();
-            if (h.length === 0) {
-                historyList.innerHTML = '<div class="history-empty">まだ質問がありません</div>';
-                return;
+        // ── 2. ローカルデータ（JSON）の読み込み ──
+        async function loadBlogData() {
+            try {
+                const response = await fetch('./blog_data.json');
+                if (!response.ok) throw new Error('JSONファイルの読み込みに失敗しました');
+                allArticles = await response.json();
+                console.log(`データロード完了: ${allArticles.length} 件の記事`);
+            } catch (e) {
+                console.error(e);
+                appendMessage("ai", "データの読み込みに失敗しました。`blog_data.json` が正しい場所にあるか確認してください。");
             }
-            historyList.innerHTML = '';
-            h.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'history-item';
-                el.textContent = item.question;
-                el.addEventListener('click', () => {
-                    chatBox.innerHTML = '';
-                    addUserMessage(item.question);
-                    addAIMessage(item.response, item.sources);
-                    closeSidebar();
-                });
-                historyList.appendChild(el);
+        }
+
+        // ── 3. ブラウザ内爆速検索コア ──
+        function searchBlog(keyword) {
+            const cleanKeyword = keyword.toLowerCase().trim();
+            if (!cleanKeyword) return [];
+
+            // タイトル、概要、本文からキーワードを含む記事をフィルタリング
+            return allArticles.filter(article => {
+                const titleMatch = (article.title || '').toLowerCase().includes(cleanKeyword);
+                const contentMatch = (article.content || '').toLowerCase().includes(cleanKeyword);
+                const excerptMatch = (article.excerpt || '').toLowerCase().includes(cleanKeyword);
+                return titleMatch || contentMatch || excerptMatch;
             });
         }
 
-        // ── Sidebar toggle ──
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('visible');
-        });
-        overlay.addEventListener('click', closeSidebar);
+        // ── 4. 検索処理の実行とUI反映 ──
+        function handleSearch(keyword) {
+            if (!keyword.trim()) return;
 
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('visible');
+            // ユーザーの発言を画面に追加
+            appendMessage("user", keyword);
+            input.value = "";
+
+            // 履歴に追加
+            saveHistory(keyword);
+
+            // 擬似的なAIタイピング感を出すためのラグ（一瞬で終わる）
+            setTimeout(() => {
+                const results = searchBlog(keyword);
+
+                if (results.length === 0) {
+                    appendMessage("ai", `「${keyword}」に関する記事は見つかりませんでした。\n別のキーワードをお試しください。`);
+                    return;
+                }
+
+                // 見つかった場合は記事数を伝える
+                let answerText = `「${keyword}」に関する記事が ${results.length} 件見つかりました。`;
+                appendMessage("ai", answerText);
+
+                // カード型UIとして出力（元のリッチなソースデザインを完全踏襲）
+                appendSources(results);
+            }, 300);
         }
 
-        clearBtn.addEventListener('click', () => {
-            localStorage.removeItem(HISTORY_KEY);
-            renderHistory();
-        });
+        // ── 5. メッセージ・カード追加用の補助関数 ──
+        function appendMessage(role, text) {
+            const group = document.createElement("div");
+            group.className = `msg-group ${role}`;
 
-        // ── Utilities ──
+            const label = document.createElement("div");
+            label.className = "msg-label";
+            label.textContent = role === "ai" ? "RIAT" : "YOU";
+
+            const bubble = document.createElement("div");
+            bubble.className = `bubble ${role}`;
+            bubble.textContent = text;
+
+            group.appendChild(label);
+            group.appendChild(bubble);
+            chatBox.appendChild(group);
+            scrollToBottom();
+        }
+
+        function appendSources(articles) {
+            const wrap = document.createElement("div");
+            wrap.className = "sources-wrap";
+
+            const label = document.createElement("div");
+            label.className = "sources-label";
+            label.textContent = "参考記事";
+            wrap.appendChild(label);
+
+            articles.forEach((article, index) => {
+                const card = document.createElement("a");
+                card.className = "source-card";
+                card.href = article.link || "#";
+                card.target = "_blank";
+
+                card.innerHTML = `
+                    <div class="source-card-bar"></div>
+                    <div class="source-card-body">
+                        <div class="source-num">${String(index + 1).padStart(2, '0')}</div>
+                        <div class="source-title">${article.title}</div>
+                        <div class="source-arrow">↗</div>
+                    </div>
+                `;
+                wrap.appendChild(card);
+            });
+
+            chatBox.appendChild(wrap);
+            scrollToBottom();
+        }
+
         function scrollToBottom() {
             chatScroll.scrollTop = chatScroll.scrollHeight;
         }
 
-        // 指定要素の先頭が見えるようにスクロール
-        function scrollToGroupTop(el) {
-            const top = el.getBoundingClientRect().top
-                - chatScroll.getBoundingClientRect().top
-                + chatScroll.scrollTop
-                - 16;
-            chatScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        function renderMarkdown(text) {
-            // まず全体をエスケープしてからMarkdownを変換する
-            let s = escapeHtml(text);
-            // ## 見出し（行頭）
-            s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-            s = s.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
-            s = s.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
-            // **太字**
-            s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            // *斜体*
-            s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
-            // - 箇条書き
-            s = s.replace(/^[-・]\s+(.+)$/gm, '<li>$1</li>');
-            s = s.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
-            // 連続する </ul><ul> を結合
-            s = s.replace(/<\/ul>\s*<ul>/g, '');
-            // 改行を <br> に（ただしブロック要素の周囲はスキップ）
-            s = s.replace(/(?<!>)\n(?!<)/g, '<br>');
-            return s;
-        }
-
-        function cleanResponse(text) {
-            // "RIATブログの専門家として、" が冒頭に出た場合に除去
-            return text.replace(/^RIATブログの専門家として[、,]?\s*/m, '');
-        }
-
-        // ── Message rendering ──
-        function addUserMessage(text) {
-            const g = document.createElement('div');
-            g.className = 'msg-group user';
-            g.innerHTML = `
-                <div class="msg-label">あなた</div>
-                <div class="bubble user">${escapeHtml(text)}</div>
-            `;
-            chatBox.appendChild(g);
-            scrollToBottom();
-        }
-
-        let slowNoticeTimer = null;
-
-        function showLoading() {
-            const g = document.createElement('div');
-            g.className = 'msg-group ai';
-            g.id = 'loading-group';
-            g.innerHTML = `
-                <div class="msg-label">RIAT</div>
-                <div class="ufo-loading">
-                    <div class="ufo-wrap">
-                        <svg class="ufo-body" width="54" height="36" viewBox="0 0 80 52" xmlns="http://www.w3.org/2000/svg">
-                            <ellipse cx="40" cy="32" rx="30" ry="8" fill="#c9a84c" opacity="0.78"/>
-                            <ellipse cx="40" cy="25" rx="14" ry="10" fill="#1a1a28"/>
-                            <ellipse cx="40" cy="25" rx="11" ry="7.5" fill="#242436" opacity="0.95"/>
-                            <circle cx="22" cy="33" r="2.4" fill="#ffe066" opacity="0.95"/>
-                            <circle cx="32" cy="36"  r="2.4" fill="#66ffcc" opacity="0.95"/>
-                            <circle cx="48" cy="36"  r="2.4" fill="#ff88cc" opacity="0.95"/>
-                            <circle cx="58" cy="33" r="2.4" fill="#88aaff" opacity="0.95"/>
-                            <polygon points="29,40 51,40 45,52 35,52" fill="#c9a84c" opacity="0.13"/>
-                        </svg>
-                    </div>
-                    <span class="ufo-text">思考中...</span>
-                </div>
-                <div id="slow-notice" style="display:none; font-size:0.75rem; color:var(--muted); margin-top:6px; padding-left:2px;">
-                    ※ サーバーの起動中です。しばらくお待ちください（最大60秒）
-                </div>
-            `;
-            chatBox.appendChild(g);
-            scrollToBottom();
-
-            slowNoticeTimer = setTimeout(() => {
-                const el = document.getElementById('slow-notice');
-                if (el) el.style.display = 'block';
-            }, 5000);
-        }
-
-        function hideLoading() {
-            clearTimeout(slowNoticeTimer);
-            slowNoticeTimer = null;
-            const el = document.getElementById('loading-group');
-            if (el) el.remove();
-        }
-
-        function addAIMessage(text, sources) {
-            const g = document.createElement('div');
-            g.className = 'msg-group ai';
-
-            let html = `
-                <div class="msg-label">RIAT</div>
-                <div class="bubble ai">${renderMarkdown(cleanResponse(text))}</div>
-            `;
-
-            if (sources && sources.length > 0) {
-                html += `<div class="sources-wrap"><div class="sources-label">参考記事</div>`;
-                sources.forEach((src, i) => {
-                    const grad = GRADIENTS[i % GRADIENTS.length];
-                    html += `
-                        <a class="source-card" href="${escapeHtml(src.url)}" target="_blank" rel="noopener noreferrer">
-                            <div class="source-card-bar" style="background:${grad}"></div>
-                            <div class="source-card-body">
-                                <span class="source-num">${i + 1}</span>
-                                <span class="source-title">${escapeHtml(src.title)}</span>
-                                <span class="source-arrow">↗</span>
-                            </div>
-                        </a>`;
-                });
-                html += `</div>`;
-            }
-
-            g.innerHTML = html;
-            chatBox.appendChild(g);
-            // 回答先頭が見えるようにスクロール
-            requestAnimationFrame(() => scrollToGroupTop(g));
-        }
-
-        // ── Speech recognition state (shared with onsubmit) ──
-        let recog = null;
-        let isRecording = false;
-
-        // ── Form submit ──
-        chatForm.onsubmit = async (e) => {
-            e.preventDefault();
-
-            // 音声認識が動いていたら停止する
-            if (recog && isRecording) {
-                recog.stop();
-                isRecording = false;
-                micBtn.classList.remove('recording');
-                micBtn.setAttribute('aria-label', '音声入力');
-                input.classList.remove('interim');
-            }
-
-            const message = input.value.trim();
-            if (!message) return;
-
-            addUserMessage(message);
-            input.value = '';
-            input.disabled = true;
-            showLoading();
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
-                const res = await fetch('/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                const data = await res.json();
-                hideLoading();
-                addAIMessage(data.response, data.sources || []);
-                addToHistory(message, data.response, data.sources || []);
-            } catch (err) {
-                hideLoading();
-                const msg = err.name === 'AbortError'
-                    ? 'サーバーへの接続がタイムアウトしました。ページを再読み込みして、もう一度お試しください。'
-                    : 'エラーが発生しました。もう一度お試しください。';
-                addAIMessage(msg, []);
-            }
-
-            input.disabled = false;
-            input.focus();
-        };
-
-        // ── Speech Input ──
-        const micBtn = document.getElementById('mic-btn');
-        const micNotice = document.getElementById('mic-notice');
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        if (!SpeechRecognition) {
-            micBtn.disabled = true;
-            micBtn.addEventListener('click', () => {
-                micNotice.textContent = 'お使いのブラウザは音声入力に対応していません';
-                micNotice.style.display = 'block';
-                setTimeout(() => { micNotice.style.display = 'none'; }, 3000);
+        // ── 6. サジェスト機能の初期化 ──
+        function initSuggestions() {
+            suggestRow.innerHTML = "";
+            SUGGEST_KEYWORDS.forEach(word => {
+                const btn = document.createElement("button");
+                btn.className = "suggest-btn";
+                btn.type = "button";
+                btn.textContent = word;
+                btn.addEventListener("click", () => handleSearch(word));
+                suggestRow.appendChild(btn);
             });
-        } else {
-            recog = new SpeechRecognition();
-            recog.lang = 'ja-JP';
-            recog.continuous = true;
-            recog.interimResults = true;
+        }
 
-            let finalText = '';
+        // ── 7. 履歴管理（Local Storage） ──
+        function loadHistory() {
+            const stored = localStorage.getItem("riat_search_history");
+            searchHistory = stored ? JSON.parse(stored) : [];
+            renderHistory();
+        }
 
-            micBtn.addEventListener('click', () => {
-                if (!isRecording) {
-                    finalText = input.value;
-                    recog.start();
-                } else {
-                    recog.stop();
-                }
+        function saveHistory(keyword) {
+            // 重複を排除して先頭に追加
+            searchHistory = [keyword, ...searchHistory.filter(w => w !== keyword)].slice(0, 20);
+            localStorage.setItem("riat_search_history", JSON.stringify(searchHistory));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = "";
+            if (searchHistory.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">まだ質問がありません</div>';
+                return;
+            }
+            searchHistory.forEach(word => {
+                const item = document.createElement("div");
+                item.className = "history-item";
+                item.textContent = word;
+                item.addEventListener("click", () => {
+                    handleSearch(word);
+                    closeSidebar();
+                });
+                historyList.appendChild(item);
             });
+        }
 
-            recog.onstart = () => {
-                isRecording = true;
+        clearHistoryBtn.addEventListener("click", () => {
+            searchHistory = [];
+            localStorage.removeItem("riat_search_history");
+            renderHistory();
+        });
+
+        // ── 8. 音声入力（Speech Recognition） ──
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechObj = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechObj();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = true;
+            recognition.continuous = false;
+
+            recognition.onstart = () => {
                 micBtn.classList.add('recording');
-                micBtn.setAttribute('aria-label', '録音停止');
+                micNotice.style.display = 'none';
+                input.placeholder = "音声認識中...";
             };
 
-            recog.onend = () => {
-                isRecording = false;
-                micBtn.classList.remove('recording');
-                micBtn.setAttribute('aria-label', '音声入力');
-                input.classList.remove('interim');
-                updateSendBtn();
-            };
-
-            recog.onresult = (e) => {
-                let interim = '';
-                let newFinal = '';
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    const t = e.results[i][0].transcript;
-                    if (e.results[i].isFinal) {
-                        newFinal += t;
-                    } else {
-                        interim += t;
-                    }
+            recognition.onresult = (event) => {
+                let resultText = "";
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    resultText += event.results[i][0].transcript;
                 }
-                if (newFinal) finalText += newFinal;
-
-                if (interim) {
-                    input.value = finalText + interim;
-                    input.classList.add('interim');
-                } else {
-                    input.value = finalText;
-                    input.classList.remove('interim');
-                }
-                updateSendBtn();
+                input.value = resultText;
             };
 
-            recog.onerror = (e) => {
-                if (e.error !== 'aborted') {
-                    micNotice.textContent = '音声入力でエラーが発生しました: ' + e.error;
-                    micNotice.style.display = 'block';
-                    setTimeout(() => { micNotice.style.display = 'none'; }, 3000);
+            recognition.onerror = (e) => {
+                console.error(e);
+                micNotice.textContent = "音声認識エラーが発生しました。";
+                micNotice.style.display = 'block';
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                stopRecording();
+                if (input.value.trim()) {
+                    handleSearch(input.value);
                 }
             };
+        } else {
+            micBtn.disabled = true;
+            micBtn.style.display = 'none';
         }
 
-        // ── Init ──
-        renderHistory();
+        function stopRecording() {
+            micBtn.classList.remove('recording');
+            input.placeholder = "質問を入力してください...";
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            if (micBtn.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                input.value = "";
+                recognition.start();
+            }
+        });
+
+        // ── 9. サイドバー・レスポンシブ制御 ──
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('visible');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('visible');
+        }
+
+        sidebarToggle.addEventListener('click', openSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // ── 10. フォーム送信イベント ──
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleSearch(input.value);
+        });
+
+        // ── 11. アプリ起動 ──
+        loadBlogData();
+        initSuggestions();
+        loadHistory();
     </script>
 </body>
 
