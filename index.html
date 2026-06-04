@@ -784,6 +784,22 @@
             }
         }
 
+        /* ── Loading Animation ── */
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+        .loading-dots span:nth-child(2) {
+            animation-delay: .2s;
+        }
+        .loading-dots span:nth-child(3) {
+            animation-delay: .4s;
+        }
+        @keyframes blink {
+            0% { opacity: .2; }
+            20% { opacity: 1; }
+            100% { opacity: .2; }
+        }
+
         @media (max-width: 600px) {
             #sidebar-toggle {
                 display: block;
@@ -828,6 +844,8 @@
             }
         }
     </style>
+    <!-- Markdown パーサーの読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -885,7 +903,6 @@
             </div>
 
             <div class="input-area">
-                <div class="suggest-row" id="suggest-row"></div>
                 <div id="mic-notice"></div>
                 <form id="chat-form">
                     <input type="text" id="user-input" placeholder="質問を入力してください..." autocomplete="off">
@@ -935,7 +952,9 @@
             try {
                 const response = await fetch('./blog_data.json');
                 if (!response.ok) throw new Error('JSONファイルの読み込みに失敗しました');
-                allArticles = await response.json();
+                const text = await response.text();
+                const cleanText = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+                allArticles = JSON.parse(cleanText);
                 console.log(`データロード完了: ${allArticles.length} 件の記事`);
             } catch (e) {
                 console.error(e);
@@ -958,32 +977,75 @@
         }
 
         // ── 4. 検索処理の実行とUI反映 ──
-        function handleSearch(keyword) {
+        async function handleSearch(keyword) {
             if (!keyword.trim()) return;
 
             // ユーザーの発言を画面に追加
-            appendMessage("user", keyword);
+            const userGroup = appendMessage("user", keyword);
             input.value = "";
 
             // 履歴に追加
             saveHistory(keyword);
 
-            // 擬似的なAIタイピング感を出すためのラグ（一瞬で終わる）
-            setTimeout(() => {
-                const results = searchBlog(keyword);
+            // ユーザーメッセージが一番上に来るようにスクロール
+            scrollToElement(userGroup);
 
-                if (results.length === 0) {
-                    appendMessage("ai", `「${keyword}」に関する記事は見つかりませんでした。\n別のキーワードをお試しください。`);
-                    return;
+            // ローディングメッセージを追加
+            const loadingGroup = appendLoadingMessage();
+
+            try {
+                // Flaskサーバーの /ask にPOSTリクエスト（絶対URL指定）
+                const response = await fetch('http://127.0.0.1:5000/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: keyword })
+                });
+
+                // ローディングメッセージを消去
+                if (loadingGroup) loadingGroup.remove();
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.response || 'サーバーエラーが発生しました');
                 }
 
-                // 見つかった場合は記事数を伝える
-                let answerText = `「${keyword}」に関する記事が ${results.length} 件見つかりました。`;
-                appendMessage("ai", answerText);
+                const data = await response.json();
+                
+                // AIの回答を追加
+                const aiGroup = appendMessage("ai", data.response);
 
-                // カード型UIとして出力（元のリッチなソースデザインを完全踏襲）
-                appendSources(results);
-            }, 300);
+                // 参考記事の追加
+                if (data.sources && data.sources.length > 0) {
+                    const normalizedSources = data.sources.map(s => ({
+                        title: s.title,
+                        link: s.url
+                    }));
+                    appendSources(normalizedSources);
+                }
+
+                // AI回答の先頭が見えるようにスクロール
+                scrollToElement(aiGroup);
+
+            } catch (e) {
+                if (loadingGroup) loadingGroup.remove();
+                console.error(e);
+                
+                // サーバーエラー時はローカルのキーワード検索にフォールバックする
+                console.log("サーバー通信失敗。ローカル検索にフォールバックします。");
+                const results = searchBlog(keyword);
+                if (results.length === 0) {
+                    appendMessage("ai", `「${keyword}」に関する回答を取得できませんでした。(詳細: ${e.message || e})\nローカル検索でも該当する記事は見つかりませんでした。`);
+                } else {
+                    appendMessage("ai", `サーバーエラーが発生したため、ローカル検索結果を表示します。\n「${keyword}」に関する記事が ${results.length} 件見つかりました。`);
+                    const normalizedSources = results.map(r => ({
+                        title: r.title,
+                        link: r.link
+                    }));
+                    appendSources(normalizedSources);
+                }
+            }
         }
 
         // ── 5. メッセージ・カード追加用の補助関数 ──
@@ -997,12 +1059,45 @@
 
             const bubble = document.createElement("div");
             bubble.className = `bubble ${role}`;
-            bubble.textContent = text;
+            
+            if (role === "ai" && typeof marked !== 'undefined') {
+                bubble.innerHTML = marked.parse(text);
+            } else {
+                bubble.textContent = text;
+            }
+
+            group.appendChild(label);
+            group.appendChild(bubble);
+            chatBox.appendChild(group);
+            return group;
+        }
+
+        function appendLoadingMessage() {
+            const group = document.createElement("div");
+            group.className = "msg-group ai loading-msg";
+
+            const label = document.createElement("div");
+            label.className = "msg-label";
+            label.textContent = "RIAT";
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble ai";
+            bubble.innerHTML = `<span class="loading-dots">考え中<span>.</span><span>.</span><span>.</span></span>`;
 
             group.appendChild(label);
             group.appendChild(bubble);
             chatBox.appendChild(group);
             scrollToBottom();
+            return group;
+        }
+
+        function scrollToElement(el) {
+            if (!el) return;
+            // 少し遅延させてDOMが確定してからスクロール
+            requestAnimationFrame(() => {
+                const top = el.offsetTop - 20;
+                chatScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            });
         }
 
         function appendSources(articles) {
@@ -1039,18 +1134,15 @@
             chatScroll.scrollTop = chatScroll.scrollHeight;
         }
 
-        // ── 6. サジェスト機能の初期化 ──
-        function initSuggestions() {
-            suggestRow.innerHTML = "";
-            SUGGEST_KEYWORDS.forEach(word => {
-                const btn = document.createElement("button");
-                btn.className = "suggest-btn";
-                btn.type = "button";
-                btn.textContent = word;
-                btn.addEventListener("click", () => handleSearch(word));
-                suggestRow.appendChild(btn);
-            });
+        function scrollToLatestAI() {
+            // AIの最後の回答グループの先頭が見えるようにスクロール
+            const groups = chatBox.querySelectorAll('.msg-group.ai:not(.loading-msg)');
+            if (groups.length > 0) {
+                scrollToElement(groups[groups.length - 1]);
+            }
         }
+
+        // ── 6. サジェスト機能は削除済み ──
 
         // ── 7. 履歴管理（Local Storage） ──
         function loadHistory() {
@@ -1168,7 +1260,6 @@
 
         // ── 11. アプリ起動 ──
         loadBlogData();
-        initSuggestions();
         loadHistory();
     </script>
 </body>

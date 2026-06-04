@@ -25,9 +25,13 @@ client = genai.Client(api_key=GENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index("seimeiron-blog")
 
+import re
+
 logging.info("loading...")
 with open("blog_data.json", "r", encoding="utf-8") as fl:
-    all_articles = json.load(fl)
+    content = fl.read()
+clean_content = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', content)
+all_articles = json.loads(clean_content)
 
 # URL をキーにした高速検索用辞書
 url_to_article = {a["url"]: a for a in all_articles}
@@ -103,4 +107,4 @@ def ask():
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(host="0.0.0.0", port=5000)
