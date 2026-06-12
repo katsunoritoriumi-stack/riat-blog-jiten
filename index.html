@@ -994,8 +994,9 @@
             const loadingGroup = appendLoadingMessage();
 
             try {
-                // Flaskサーバーの /ask にPOSTリクエスト（絶対URL指定）
-                const response = await fetch('http://127.0.0.1:5000/ask', {
+                // Flaskサーバーの /ask にPOSTリクエスト（ホストを動的に取得）
+                const apiUrl = window.location.origin + '/ask';
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

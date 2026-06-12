@@ -48,6 +48,11 @@ def home():
     return send_file("index.html")
 
 
+@app.route("/blog_data.json")
+def blog_data():
+    return send_file("blog_data.json", mimetype="application/json")
+
+
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json
