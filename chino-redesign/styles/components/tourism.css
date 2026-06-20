@@ -1,0 +1,101 @@
+#tourism { background: var(--color-bg); }
+
+.tourism-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.tourism-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 320px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+}
+
+.tourism-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s ease;
+}
+
+.tourism-card:hover .tourism-bg { transform: scale(1.08); }
+
+.tourism-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
+  transition: background var(--transition);
+}
+
+.tourism-card:hover .tourism-overlay {
+  background: linear-gradient(to top, rgba(27,67,50,0.85) 0%, rgba(27,67,50,0.3) 50%, transparent 100%);
+}
+
+.tourism-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.tourism-num {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+  margin-bottom: 0.25rem;
+}
+
+.tourism-name {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.tourism-desc {
+  font-size: 0.8rem;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.35s ease;
+  line-height: 1.6;
+}
+
+.tourism-card:hover .tourism-desc {
+  opacity: 0.9;
+  max-height: 80px;
+  margin-bottom: 0.75rem;
+}
+
+.tourism-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-accent);
+  color: #fff;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease 0.05s;
+}
+
+.tourism-card:hover .tourism-btn { opacity: 1; transform: translateY(0); }
+
+.tourism-bg-yatsu   { background: linear-gradient(160deg, #1B4332 0%, #40916C 50%, #74C69D 100%); }
+.tourism-bg-tateshi { background: linear-gradient(160deg, #1B3060 0%, #2563EB 50%, #60A5FA 100%); }
+.tourism-bg-shirakaba{ background: linear-gradient(160deg, #4A2040 0%, #9D4EDD 50%, #C77DFF 100%); }
+
+@media (max-width: 768px) {
+  .tourism-grid { grid-template-columns: 1fr; }
+  .tourism-card { height: 260px; }
+}

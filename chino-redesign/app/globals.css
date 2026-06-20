@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* ─── Tailwind v4 theme (CSS-first) ─── */
+@theme {
+  /* フォント */
+  --font-sans:    "Inter", "Noto Sans JP", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+
+  /* forest palette */
+  --color-forest-50:  #F0F7F3;
+  --color-forest-100: #D9EEE3;
+  --color-forest-200: #B3DDC8;
+  --color-forest-300: #7DC4A4;
+  --color-forest-400: #4DA880;
+  --color-forest-500: #2D8B63;
+  --color-forest-600: #1E6F4E;
+  --color-forest-700: #165A3E;
+  --color-forest-800: #0F4530;
+  --color-forest-900: #093020;
+  --color-forest-950: #051A11;
+
+  /* water palette */
+  --color-water-50:  #EFF9F8;
+  --color-water-100: #D5F1EE;
+  --color-water-200: #A8E3DD;
+  --color-water-300: #6DCDC6;
+  --color-water-400: #38B2AB;
+  --color-water-500: #1D9690;
+  --color-water-600: #137A76;
+  --color-water-700: #0E605D;
+  --color-water-800: #0A4C4A;
+  --color-water-900: #073A38;
+  --color-water-950: #042523;
+
+  /* sky palette */
+  --color-sky-50:  #EDF6FF;
+  --color-sky-100: #D4EAFF;
+  --color-sky-200: #A8D5FF;
+  --color-sky-300: #6CB9FF;
+  --color-sky-400: #3097F5;
+  --color-sky-500: #1578D8;
+  --color-sky-600: #0C5EB8;
+  --color-sky-700: #094A97;
+  --color-sky-800: #073A78;
+  --color-sky-900: #052B5C;
+  --color-sky-950: #031B3C;
+
+  /* stone palette */
+  --color-stone-50:  #F9F8F6;
+  --color-stone-100: #F0EDE8;
+  --color-stone-200: #DDD8CF;
+  --color-stone-300: #C4BDB0;
+  --color-stone-400: #A89E90;
+  --color-stone-500: #8C8174;
+  --color-stone-600: #726759;
+  --color-stone-700: #5A5145;
+  --color-stone-800: #3D3831;
+  --color-stone-900: #25211C;
+  --color-stone-950: #141210;
+
+  /* gold palette */
+  --color-gold-50:  #FFFBEB;
+  --color-gold-100: #FEF3C7;
+  --color-gold-200: #FDE68A;
+  --color-gold-300: #FCD34D;
+  --color-gold-400: #F5BC2A;
+  --color-gold-500: #E9A23B;
+  --color-gold-600: #D08020;
+  --color-gold-700: #B06015;
+  --color-gold-800: #8C460E;
+  --color-gold-900: #6A320A;
+  --color-gold-950: #3F1C04;
+
+  /* animations */
+  --animate-fade-up: fade-up 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
+/* ─── Semantic tokens ─── */
+:root {
+  --bg:            44 18% 97%;
+  --surface:       0 0% 100%;
+  --border:        44 12% 86%;
+  --border-strong: 44 14% 72%;
+  --text:          155 12% 14%;
+  --text-muted:    155  6% 42%;
+  --text-subtle:   155  4% 60%;
+  --primary:       155 50% 26%;
+  --accent:        38 78% 57%;
+}
+
+.dark {
+  --bg:            155 22% 8%;
+  --surface:       155 20% 12%;
+  --border:        155 16% 22%;
+  --border-strong: 155 18% 32%;
+  --text:          44 12% 92%;
+  --text-muted:    155  8% 62%;
+  --text-subtle:   155  6% 44%;
+  --primary:       155 55% 42%;
+  --accent:        38 85% 62%;
+}
+
+/* ─── Base ─── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.65;
+  }
+}

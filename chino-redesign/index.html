@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>茅野市 — 八ヶ岳の麓のまち</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/variables.css">
+  <link rel="stylesheet" href="styles/grid.css">
+  <link rel="stylesheet" href="styles/components/alert.css">
+  <link rel="stylesheet" href="styles/components/header.css">
+  <link rel="stylesheet" href="styles/components/hero.css">
+  <link rel="stylesheet" href="styles/components/quick-access.css">
+  <link rel="stylesheet" href="styles/components/emergency.css">
+  <link rel="stylesheet" href="styles/components/life-event.css">
+  <link rel="stylesheet" href="styles/components/pickup.css">
+  <link rel="stylesheet" href="styles/components/news.css">
+  <link rel="stylesheet" href="styles/components/tourism.css">
+  <link rel="stylesheet" href="styles/components/banners.css">
+  <link rel="stylesheet" href="styles/components/footer.css">
+</head>
+<body>
+
+<!-- ===== ALERT BANNER ===== -->
+<div id="alert-banner">
+  <div class="container">
+    <div class="alert-inner">
+      <div class="alert-item active" data-idx="0">
+        <span class="alert-tag">🚧 通行止め</span>
+        <span class="alert-text">国道152号線 大門街道区間 路面補修工事のため通行止め（6/20〜6/25）</span>
+        <a href="#" class="alert-link">詳細 →</a>
+      </div>
+      <div class="alert-item" data-idx="1">
+        <span class="alert-tag">⚠️ 注意</span>
+        <span class="alert-text">市名を騙る不審なメールが確認されています。身に覚えのないURLはクリックしないでください。</span>
+        <a href="#" class="alert-link">詳細 →</a>
+      </div>
+      <div class="alert-item" data-idx="2">
+        <span class="alert-tag">🏥 休日当番</span>
+        <span class="alert-text">6月22日（日）休日急病診療所 9:00〜17:00 茅野市民病院</span>
+        <a href="#" class="alert-link">一覧 →</a>
+      </div>
+      <div class="alert-nav">
+        <button id="alert-prev" aria-label="前へ">‹</button>
+        <button id="alert-next" aria-label="次へ">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header id="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="#" class="site-logo">
+        <div class="logo-mark">茅</div>
+        <div class="logo-text">
+          <div class="ja">茅野市</div>
+          <div class="en">CHINO CITY</div>
+        </div>
+      </a>
+      <nav class="header-nav" aria-label="メインナビゲーション">
+        <ul class="nav-list">
+          <li><a href="#">くらし・手続き</a></li>
+          <li><a href="#">子育て・教育</a></li>
+          <li><a href="#">しごと・産業</a></li>
+          <li><a href="#">観光・魅力</a></li>
+          <li><a href="#">市政情報</a></li>
+        </ul>
+      </nav>
+      <div class="header-search">
+        <form class="search-form" role="search">
+          <input type="search" placeholder="サイト内を検索" aria-label="サイト内検索">
+          <button type="submit" aria-label="検索">🔍</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section id="hero" aria-label="ヒーローバナー">
+  <div class="hero-slides">
+    <div class="hero-slide hero-slide-1 active"></div>
+    <div class="hero-slide hero-slide-2"></div>
+    <div class="hero-slide hero-slide-3"></div>
+  </div>
+
+  <div class="hero-overlay">
+    <div class="container">
+      <div class="hero-content">
+        <p class="hero-eyebrow">Chino City, Nagano, Japan</p>
+        <h1 class="hero-title">八ヶ岳の麓<br>自然と暮らす、茅野市</h1>
+        <p class="hero-subtitle">標高900メートルの高原のまちで、<br>豊かな自然と活気ある市民生活が共存しています。</p>
+        <div class="hero-cta">
+          <a href="#" class="btn btn-primary">🏠 くらし・手続き</a>
+          <a href="#" class="btn btn-outline">🗻 観光情報</a>
+          <a href="#" class="btn btn-outline">📋 最新のお知らせ</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-stat-strip">
+    <div class="container">
+      <div class="stat-strip-inner">
+        <div class="stat-item"><div class="stat-num">約5.4万人</div><div class="stat-label">人口</div></div>
+        <div class="stat-item"><div class="stat-num">266.8 km²</div><div class="stat-label">面積</div></div>
+        <div class="stat-item"><div class="stat-num">900 m</div><div class="stat-label">平均標高</div></div>
+        <div class="stat-item"><div class="stat-num">八ヶ岳</div><div class="stat-label">自然のシンボル</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-dots">
+    <button class="hero-dot active" data-idx="0" aria-label="スライド1"></button>
+    <button class="hero-dot" data-idx="1" aria-label="スライド2"></button>
+    <button class="hero-dot" data-idx="2" aria-label="スライド3"></button>
+  </div>
+</section>
+
+<!-- ===== QUICK ACCESS ===== -->
+<section id="quick-access" aria-label="分野別クイックアクセス">
+  <div class="container">
+    <div class="quick-grid">
+      <a href="#" class="quick-card">
+        <div class="quick-icon quick-icon-life">🏘️</div>
+        <div class="quick-label">くらし・手続き</div>
+        <div class="quick-sub">住民票・税・福祉</div>
+      </a>
+      <a href="#" class="quick-card">
+        <div class="quick-icon quick-icon-kids">👶</div>
+        <div class="quick-label">子育て・教育</div>
+        <div class="quick-sub">保育・学校・文化</div>
+      </a>
+      <a href="#" class="quick-card">
+        <div class="quick-icon quick-icon-work">💼</div>
+        <div class="quick-label">しごと・産業</div>
+        <div class="quick-sub">産業振興・入札</div>
+      </a>
+      <a href="#" class="quick-card">
+        <div class="quick-icon quick-icon-tourism">🗻</div>
+        <div class="quick-label">観光・魅力</div>
+        <div class="quick-sub">八ヶ岳・蓼科</div>
+      </a>
+      <a href="#" class="quick-card">
+        <div class="quick-icon quick-icon-city">🏛️</div>
+        <div class="quick-label">市政情報</div>
+        <div class="quick-sub">市長・市議会・計画</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EMERGENCY ===== -->
+<section id="emergency" aria-label="緊急情報">
+  <div class="container">
+    <div class="emergency-header">
+      <h2>🛡️ いざというときに</h2>
+    </div>
+    <div class="emergency-grid">
+      <a href="#" class="emergency-card">
+        <div class="emergency-icon">🛡️</div>
+        <div class="emergency-info">
+          <h3>防災情報</h3>
+          <p>避難情報・ハザードマップ・防災マニュアル</p>
+        </div>
+      </a>
+      <a href="#" class="emergency-card">
+        <div class="emergency-icon">🏥</div>
+        <div class="emergency-info">
+          <h3>休日当番医</h3>
+          <p>日曜・祝日の急病診療所一覧</p>
+        </div>
+      </a>
+      <a href="#" class="emergency-card">
+        <div class="emergency-icon">📻</div>
+        <div class="emergency-info">
+          <h3>防災行政無線</h3>
+          <p>放送内容の確認・再確認サービス</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIFE EVENT NAV ===== -->
+<section id="life-event">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Life Stages</div>
+      <h2 class="section-title">こんなときは</h2>
+    </div>
+
+    <div class="life-tabs" role="tablist">
+      <button class="life-tab active" data-target="tab-birth" role="tab" aria-selected="true">🤰 妊娠・出産</button>
+      <button class="life-tab" data-target="tab-child" role="tab">👶 育児</button>
+      <button class="life-tab" data-target="tab-school" role="tab">🎒 入園・入学</button>
+      <button class="life-tab" data-target="tab-job" role="tab">💼 就職</button>
+      <button class="life-tab" data-target="tab-move" role="tab">🏠 引越し</button>
+      <button class="life-tab" data-target="tab-marriage" role="tab">💍 結婚・離婚</button>
+      <button class="life-tab" data-target="tab-death" role="tab">🕯️ おくやみ</button>
+    </div>
+
+    <div id="tab-birth" class="life-links active" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">📋</span>妊娠届・母子手帳<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">💰</span>出産育児一時金<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏥</span>産前・産後サポート<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">👩‍⚕️</span>妊婦健康診査<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🍼</span>赤ちゃん訪問<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">📝</span>出生届の提出<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-child" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">🏠</span>保育所・認定こども園<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">💊</span>乳幼児健康診査<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">💰</span>児童手当<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">📚</span>子育て支援センター<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-school" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">🎒</span>小学校入学手続き<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏫</span>就学援助制度<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🍱</span>学校給食<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-job" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">💼</span>ハローワーク茅野<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏢</span>市内企業情報<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">💡</span>創業支援<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-move" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">📋</span>転入届<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏠</span>住民票の異動<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🚗</span>車庫証明<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🌳</span>移住支援制度<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-marriage" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">💍</span>婚姻届<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">📝</span>離婚届<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏠</span>住所変更<span class="life-link-arrow">›</span></a>
+    </div>
+    <div id="tab-death" class="life-links" role="tabpanel">
+      <a href="#" class="life-link"><span class="life-link-icon">📋</span>死亡届<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">💰</span>葬祭費の申請<span class="life-link-arrow">›</span></a>
+      <a href="#" class="life-link"><span class="life-link-icon">🏛️</span>遺族年金<span class="life-link-arrow">›</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PICKUP ===== -->
+<section id="pickup">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Featured</div>
+      <h2 class="section-title">ピックアップ</h2>
+    </div>
+    <div class="pickup-bento">
+      <!-- Main card -->
+      <a href="#" class="pickup-card pickup-card-main">
+        <div class="pickup-img pickup-bg-move"></div>
+        <div class="pickup-overlay"></div>
+        <div class="pickup-content">
+          <span class="pickup-tag">移住・定住</span>
+          <h3 class="pickup-title">八ヶ岳のふもとで、<br>新しいくらしを始めませんか</h3>
+          <p class="pickup-desc">茅野市への移住を応援する支援制度・住まい情報・先輩移住者の声をまとめました。</p>
+          <span class="pickup-cta">くわしく見る →</span>
+        </div>
+      </a>
+      <!-- Small card 1 -->
+      <a href="#" class="pickup-card pickup-card-sm">
+        <div class="pickup-img pickup-bg-dx"></div>
+        <div class="pickup-overlay"></div>
+        <div class="pickup-content">
+          <span class="pickup-tag">DX・GX</span>
+          <h3 class="pickup-title">デジタル手続き<br>で便利に</h3>
+          <span class="pickup-cta">くわしく見る →</span>
+        </div>
+      </a>
+      <!-- Small card 2 -->
+      <a href="#" class="pickup-card pickup-card-sm">
+        <div class="pickup-img pickup-bg-kids"></div>
+        <div class="pickup-overlay"></div>
+        <div class="pickup-content">
+          <span class="pickup-tag">子育て</span>
+          <h3 class="pickup-title">子育ち応援<br>サイト</h3>
+          <span class="pickup-cta">くわしく見る →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEWS ===== -->
+<section id="news">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Information</div>
+      <h2 class="section-title">新着・お知らせ</h2>
+    </div>
+    <div class="news-layout">
+      <div class="news-main">
+        <div class="news-tabs" role="tablist">
+          <button class="news-tab active" data-news-target="news-all" role="tab">すべて</button>
+          <button class="news-tab" data-news-target="news-life" role="tab">くらし</button>
+          <button class="news-tab" data-news-target="news-kids" role="tab">子育て</button>
+          <button class="news-tab" data-news-target="news-city" role="tab">市政</button>
+          <button class="news-tab" data-news-target="news-event" role="tab">イベント</button>
+        </div>
+
+        <ul class="news-list" id="news-all">
+          <li class="news-item">
+            <span class="news-date">2026.06.20</span>
+            <span class="news-cat cat-disaster">防災</span>
+            <a href="#" class="news-title">令和6年度 避難行動要支援者名簿の更新について</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.19</span>
+            <span class="news-cat cat-life">くらし</span>
+            <a href="#" class="news-title">マイナンバーカードの申請受付時間延長のお知らせ（6月・7月）</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.18</span>
+            <span class="news-cat cat-event">イベント</span>
+            <a href="#" class="news-title">第47回 茅野市民まつり 出演者・出店者募集のご案内</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.17</span>
+            <span class="news-cat cat-kids">子育て</span>
+            <a href="#" class="news-title">令和6年度 放課後児童クラブ（学童保育）追加募集について</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.16</span>
+            <span class="news-cat cat-city">市政</span>
+            <a href="#" class="news-title">第6次茅野市総合計画 中間評価報告書（令和5年度版）を公開しました</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.15</span>
+            <span class="news-cat cat-life">くらし</span>
+            <a href="#" class="news-title">国民健康保険税 令和6年度分 納税通知書を送付しました</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.14</span>
+            <span class="news-cat cat-event">イベント</span>
+            <a href="#" class="news-title">茅野市図書館 おはなし会（6月・7月分）のご案内</a>
+          </li>
+          <li class="news-item">
+            <span class="news-date">2026.06.13</span>
+            <span class="news-cat cat-city">市政</span>
+            <a href="#" class="news-title">令和6年第3回茅野市議会定例会 日程のお知らせ</a>
+          </li>
+        </ul>
+        <a href="#" class="news-more">お知らせ一覧を見る →</a>
+      </div>
+
+      <aside class="news-sidebar">
+        <h3 class="sidebar-title">📅 近日開催のイベント</h3>
+
+        <div class="event-mini-card">
+          <div class="event-mini-date">6月22日（日）</div>
+          <div class="event-mini-body">
+            <div class="event-mini-title">縄文文化フェスティバル</div>
+            <div class="event-mini-loc">📍 尖石縄文考古館</div>
+          </div>
+        </div>
+        <div class="event-mini-card">
+          <div class="event-mini-date">6月28日（土）</div>
+          <div class="event-mini-body">
+            <div class="event-mini-title">八ヶ岳トレイルランニング大会</div>
+            <div class="event-mini-loc">📍 蓼科高原スタート</div>
+          </div>
+        </div>
+        <div class="event-mini-card">
+          <div class="event-mini-date">7月5日（土）</div>
+          <div class="event-mini-body">
+            <div class="event-mini-title">市民農園 夏野菜収穫体験</div>
+            <div class="event-mini-loc">📍 ちの農業公園</div>
+          </div>
+        </div>
+        <div class="event-mini-card">
+          <div class="event-mini-date">7月12日（土）〜13日（日）</div>
+          <div class="event-mini-body">
+            <div class="event-mini-title">御柱祭 関連行事</div>
+            <div class="event-mini-loc">📍 諏訪大社 前宮</div>
+          </div>
+        </div>
+
+        <a href="#" class="news-more" style="margin-top:0.75rem">イベント一覧 →</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TOURISM ===== -->
+<section id="tourism">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Tourism</div>
+      <h2 class="section-title">観光・地域資源</h2>
+    </div>
+    <div class="tourism-grid">
+      <a href="#" class="tourism-card">
+        <div class="tourism-bg tourism-bg-yatsu"></div>
+        <div class="tourism-overlay"></div>
+        <div class="tourism-content">
+          <div class="tourism-num">01</div>
+          <div class="tourism-name">八ヶ岳</div>
+          <div class="tourism-desc">長野・山梨にまたがる山塊。赤岳（2,899m）を主峰に、登山・トレッキング・山岳ガイドツアーが楽しめます。</div>
+          <span class="tourism-btn">くわしく見る →</span>
+        </div>
+      </a>
+      <a href="#" class="tourism-card">
+        <div class="tourism-bg tourism-bg-tateshi"></div>
+        <div class="tourism-overlay"></div>
+        <div class="tourism-content">
+          <div class="tourism-num">02</div>
+          <div class="tourism-name">蓼科高原</div>
+          <div class="tourism-desc">標高1,000〜1,900mに広がる高原リゾート。温泉・美術館・ハイキングコースが点在します。</div>
+          <span class="tourism-btn">くわしく見る →</span>
+        </div>
+      </a>
+      <a href="#" class="tourism-card">
+        <div class="tourism-bg tourism-bg-shirakaba"></div>
+        <div class="tourism-overlay"></div>
+        <div class="tourism-content">
+          <div class="tourism-num">03</div>
+          <div class="tourism-name">白樺湖</div>
+          <div class="tourism-desc">標高1,416mの高原湖。四季折々の絶景と白樺並木が広がる人気のリゾートエリアです。</div>
+          <span class="tourism-btn">くわしく見る →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INSTITUTION BANNERS ===== -->
+<section id="banners">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Links</div>
+      <h2 class="section-title">関連リンク</h2>
+    </div>
+    <div class="banners-grid">
+      <a href="#" class="banner-card">
+        <div class="banner-icon">📰</div>
+        <div class="banner-text"><strong>広報ちの</strong><span>最新号・バックナンバーを公開中</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+      <a href="#" class="banner-card">
+        <div class="banner-icon">🎁</div>
+        <div class="banner-text"><strong>ふるさと納税</strong><span>茅野市の返礼品一覧</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+      <a href="#" class="banner-card">
+        <div class="banner-icon">👤</div>
+        <div class="banner-text"><strong>市長の部屋</strong><span>メッセージ・施政方針・対話</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+      <a href="#" class="banner-card">
+        <div class="banner-icon">🏛️</div>
+        <div class="banner-text"><strong>市議会</strong><span>会議録・議員名簿・傍聴案内</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+      <a href="#" class="banner-card">
+        <div class="banner-icon">🌐</div>
+        <div class="banner-text"><strong>ビーナネットChino</strong><span>市民情報・地域コミュニティ</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+      <a href="#" class="banner-card">
+        <div class="banner-icon">🧑‍💼</div>
+        <div class="banner-text"><strong>職員採用情報</strong><span>茅野市で働きませんか</span></div>
+        <span class="banner-arrow">›</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer id="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-mark">茅</div>
+          <span class="footer-logo-text">茅野市</span>
+        </div>
+        <p class="footer-tagline">〒391-8501<br>長野県茅野市塚原二丁目6番1号<br>電話: 0266-72-2101（代表）<br>受付: 平日 8:30〜17:15</p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn" aria-label="Instagram">📷</a>
+          <a href="#" class="social-btn" aria-label="Facebook">f</a>
+          <a href="#" class="social-btn" aria-label="X(Twitter)">𝕏</a>
+          <a href="#" class="social-btn" aria-label="YouTube">▶</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>くらし・手続き</h4>
+        <ul class="footer-links">
+          <li><a href="#">住民票・戸籍</a></li>
+          <li><a href="#">税金</a></li>
+          <li><a href="#">防災・安全</a></li>
+          <li><a href="#">福祉・介護</a></li>
+          <li><a href="#">医療・健康</a></li>
+          <li><a href="#">ごみ・環境</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>市政情報</h4>
+        <ul class="footer-links">
+          <li><a href="#">市の概要・統計</a></li>
+          <li><a href="#">市長の部屋</a></li>
+          <li><a href="#">市議会</a></li>
+          <li><a href="#">計画・ビジョン</a></li>
+          <li><a href="#">予算・決算</a></li>
+          <li><a href="#">人事・採用</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>サポート</h4>
+        <ul class="footer-links">
+          <li><a href="#">お問い合わせ</a></li>
+          <li><a href="#">アクセス</a></li>
+          <li><a href="#">サイトマップ</a></li>
+          <li><a href="#">アクセシビリティ</a></li>
+          <li><a href="#">個人情報保護</a></li>
+          <li><a href="#">著作権・免責</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2024 Chino City. All Rights Reserved. 法人番号: 4000020202142</p>
+      <div class="footer-policies">
+        <a href="#">個人情報保護方針</a>
+        <a href="#">著作権</a>
+        <a href="#">リンク・RSS</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== Alert Banner Carousel ===== */
+(function() {
+  const items = document.querySelectorAll('.alert-item');
+  let cur = 0;
+  const go = (n) => {
+    items[cur].classList.remove('active');
+    cur = (n + items.length) % items.length;
+    items[cur].classList.add('active');
+  };
+  document.getElementById('alert-prev').addEventListener('click', () => go(cur - 1));
+  document.getElementById('alert-next').addEventListener('click', () => go(cur + 1));
+  setInterval(() => go(cur + 1), 5000);
+})();
+
+/* ===== Hero Slideshow ===== */
+(function() {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots   = document.querySelectorAll('.hero-dot');
+  let cur = 0;
+  const go = (n) => {
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('active');
+  };
+  dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
+  setInterval(() => go(cur + 1), 6000);
+})();
+
+/* ===== Life Event Tabs ===== */
+(function() {
+  const tabs  = document.querySelectorAll('.life-tab');
+  const panels= document.querySelectorAll('.life-links');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t  => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected','true');
+      document.getElementById(tab.dataset.target)?.classList.add('active');
+    });
+  });
+})();
+
+/* ===== News Tabs ===== */
+(function() {
+  const tabs = document.querySelectorAll('.news-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      // In a real implementation, filter news items here
+    });
+  });
+})();
+</script>
+</body>
+</html>

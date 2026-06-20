@@ -1,0 +1,105 @@
+#pickup {
+  background: var(--color-bg);
+}
+
+.pickup-bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 280px 280px;
+  gap: 1rem;
+}
+
+.pickup-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+}
+
+.pickup-card:hover .pickup-img { transform: scale(1.05); }
+.pickup-card:hover .pickup-cta { opacity: 1; transform: translateY(0); }
+
+.pickup-card-main { grid-column: span 7; grid-row: span 2; }
+.pickup-card-sm   { grid-column: span 5; }
+
+.pickup-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease;
+}
+
+.pickup-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+}
+
+.pickup-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.pickup-tag {
+  display: inline-block;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.pickup-title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 0.4rem;
+}
+
+.pickup-card-main .pickup-title { font-size: 1.6rem; }
+
+.pickup-desc {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.pickup-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all var(--transition);
+}
+
+/* gradient bg for cards without photos */
+.pickup-bg-move    { background: linear-gradient(135deg, #1a3a2a, #2D6A4F); }
+.pickup-bg-dx      { background: linear-gradient(135deg, #1a2a4a, #2563EB); }
+.pickup-bg-kids    { background: linear-gradient(135deg, #4a2010, #D97706); }
+.pickup-bg-plan    { background: linear-gradient(135deg, #2a1a4a, #7C3AED); }
+
+@media (max-width: 768px) {
+  .pickup-bento { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .pickup-card-main { grid-column: span 2; grid-row: auto; height: 260px; }
+  .pickup-card-sm   { grid-column: span 1; height: 200px; }
+}
+
+@media (max-width: 480px) {
+  .pickup-bento { grid-template-columns: 1fr; }
+  .pickup-card-main, .pickup-card-sm { grid-column: span 1; height: 220px; }
+}

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>茅野市 Design System — Color & Typography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── CSS Variables (mirrors globals.css) ── */
+    :root {
+      --font-sans:    "Inter", "Noto Sans JP", sans-serif;
+      --font-display: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+
+      --bg:           #F9F8F6;
+      --bg-subtle:    #F2EFE9;
+      --bg-muted:     #E8E4DD;
+      --bg-inverted:  #0D3321;
+      --surface:      #FFFFFF;
+      --border:       #DDD8D0;
+      --border-strong:#C2BAB0;
+      --text:         #1D2922;
+      --text-muted:   #626E69;
+      --text-subtle:  #939B97;
+      --text-inverted:#FFFFFF;
+      --text-accent:  #1D6642;
+      --primary:      #1E6645;
+      --primary-hover:#185438;
+      --accent:       #E9A23B;
+      --danger:       #E53E2E;
+      --water-mid:    #258F8A;
+      --sky-mid:      #2080D8;
+      --shadow: 0 4px 16px -4px rgba(13,50,33,0.12), 0 2px 4px -2px rgba(13,50,33,0.06);
+    }
+
+    .dark {
+      --bg:           #0D1C15;
+      --bg-subtle:    #121F18;
+      --bg-muted:     #1A2B22;
+      --bg-inverted:  #F9F8F6;
+      --surface:      #141F1A;
+      --border:       #27382E;
+      --border-strong:#3A5446;
+      --text:         #EDEAE5;
+      --text-muted:   #909E98;
+      --text-subtle:  #636F6A;
+      --text-accent:  #5DC98A;
+      --primary:      #2DA863;
+      --primary-hover:#32BE70;
+      --accent:       #F0AC45;
+      --danger:       #F45444;
+      --water-mid:    #3DB8B2;
+      --sky-mid:      #4A9CE8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+    section { padding: 3.5rem 0; border-bottom: 1px solid var(--border); }
+    section:last-child { border-bottom: none; }
+
+    /* ── Header ── */
+    .ds-header {
+      background: var(--bg-inverted);
+      color: var(--text-inverted);
+      padding: 3rem 0 2.5rem;
+    }
+    .ds-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+    .ds-header p { opacity: 0.65; font-size: 0.95rem; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0 0;
+    }
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50px;
+      padding: 0.35rem 1rem;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: var(--font-sans);
+      transition: background 0.2s;
+    }
+    .mode-toggle:hover { background: rgba(255,255,255,0.18); }
+
+    /* ── Section titles ── */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Swatch grid ── */
+    .swatch-group { margin-bottom: 2rem; }
+    .swatch-group-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      font-family: var(--font-display);
+      letter-spacing: 0.04em;
+    }
+    .swatch-row {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      height: 72px;
+    }
+    .swatch {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6px 8px;
+      transition: flex 0.25s ease;
+      cursor: default;
+    }
+    .swatch:hover { flex: 1.8; }
+    .swatch-step {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .swatch:hover .swatch-step { opacity: 1; }
+    .swatch-hex {
+      font-size: 0.6rem;
+      opacity: 0;
+      transition: opacity 0.15s;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .swatch:hover .swatch-hex { opacity: 0.8; }
+
+    /* ── Semantic token grid ── */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .token-card {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .token-swatch {
+      height: 56px;
+      transition: height 0.2s;
+    }
+    .token-card:hover .token-swatch { height: 72px; }
+    .token-info {
+      padding: 0.5rem 0.75rem;
+      background: var(--surface);
+    }
+    .token-name  { font-size: 0.72rem; font-weight: 700; color: var(--text); font-family: monospace; }
+    .token-desc  { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+    /* ── Typography specimens ── */
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .type-meta {
+      width: 120px;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .type-specimen { color: var(--text); }
+
+    /* ── Font comparison ── */
+    .font-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .font-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .font-box-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .font-box-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .font-specimen-large {
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .font-specimen-body {
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: var(--text-muted);
+    }
+
+    /* ── Component demos ── */
+    .demo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-accent  { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border-strong); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-ghost   { background: var(--bg-subtle); color: var(--text-muted); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-water   { background: var(--water-mid); color: #fff; }
+    .btn-sky     { background: var(--sky-mid); color: #fff; }
+    .btn-sm  { padding: 0.38rem 0.85rem; font-size: 0.75rem; border-radius: 6px; }
+    .btn-lg  { padding: 0.8rem 2rem; font-size: 1rem; border-radius: 10px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .input-demo {
+      width: 100%;
+      max-width: 360px;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-demo:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+    }
+    .input-demo::placeholder { color: var(--text-subtle); }
+
+    .card-demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      width: 220px;
+    }
+    .card-demo:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px -8px rgba(13,50,33,0.18);
+      border-color: var(--primary);
+    }
+    .card-demo-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .card-demo h4 { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .card-demo p  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
+
+    .glass-demo {
+      background: linear-gradient(135deg, #0D3321, #1E6645 50%, #258F8A);
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .glass-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      color: #fff;
+      flex: 1;
+      min-width: 150px;
+    }
+    .glass-card-title { font-size: 0.75rem; opacity: 0.65; margin-bottom: 0.25rem; font-weight: 500; }
+    .glass-card-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; }
+
+    /* ── Shadow demos ── */
+    .shadow-row { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    .shadow-demo {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      cursor: default;
+    }
+
+    /* ── Gradient demos ── */
+    .grad-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grad-box {
+      height: 100px;
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-end;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+    .grad-forest { background: linear-gradient(135deg, #093020 0%, #1E6645 50%, #258F8A 100%); }
+    .grad-sky    { background: linear-gradient(160deg, #052B5C 0%, #1578D8 60%, #258F8A 100%); }
+    .grad-dawn   { background: linear-gradient(135deg, #0D1C15 0%, #1A2B22 40%, #3D2A08 100%); }
+
+    @media (max-width: 640px) {
+      .font-compare { grid-template-columns: 1fr; }
+      .grad-row { grid-template-columns: 1fr 1fr; }
+      .swatch-row { height: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="ds-header">
+  <div class="container">
+    <h1>茅野市 Design System</h1>
+    <p>Color &amp; Typography — Inspired by Mt. Yatsugatake, Crystal Waters &amp; Alpine Skies</p>
+    <div class="toggle-row">
+      <span style="font-size:0.75rem;opacity:0.5">tailwind.config.ts &amp; app/globals.css</span>
+      <button class="mode-toggle" id="themeToggle" onclick="toggleDark()">
+        <span id="themeIcon">🌙</span> <span id="themeLabel">ダークモード</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Color Palettes ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Color Palettes</div>
+
+    <!-- Forest -->
+    <div class="swatch-group">
+      <div class="swatch-group-label">forest — 八ヶ岳の深い緑</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#F0F7F3"><span class="swatch-step" style="color:#1A4030">50</span><span class="swatch-hex" style="color:#1A4030">#F0F7F3</span></div>
+        <div class="swatch" style="background:#D9EEE3"><span class="swatch-step" style="color:#1A4030">100</span><span class="swatch-hex" style="color:#1A4030">#D9EEE3</span></div>
+        <div class="swatch" style="background:#B3DDC8"><span class="swatch-step" style="color:#1A4030">200</span><span class="swatch-hex" style="color:#1A4030">#B3DDC8</span></div>
+        <div class="swatch" style="background:#7DC4A4"><span class="swatch-step" style="color:#fff">300</span><span class="swatch-hex" style="color:#fff">#7DC4A4</span></div>
+        <div class="swatch" style="background:#4DA880"><span class="swatch-step" style="color:#fff">400</span><span class="swatch-hex" style="color:#fff">#4DA880</span></div>
+        <div class="swatch" style="background:#2D8B63"><span class="swatch-step" style="color:#fff">500</span><span class="swatch-hex" style="color:#fff">#2D8B63</span></div>
+        <div class="swatch" style="background:#1E6F4E"><span class="swatch-step" style="color:#fff">600</span><span class="swatch-hex" style="color:#fff">#1E6F4E</span></div>
+        <div class="swatch" style="background:#165A3E"><span class="swatch-step" style="color:#fff">700 ★</span><span class="swatch-hex" style="color:#fff">#165A3E</span></div>
+        <div class="swatch" style="background:#0F4530"><span class="swatch-step" style="color:#fff">800</span><span class="swatch-hex" style="color:#fff">#0F4530</span></div>
+        <div class="swatch" style="background:#093020"><span class="swatch-step" style="color:#fff">900</span><span class="swatch-hex" style="color:#fff">#093020</span></div>
+        <div class="swatch" style="background:#051A11"><span class="swatch-step" style="color:#fff">950</span><span class="swatch-hex" style="color:#fff">#051A11</span></div>
+      </div>
+    </div>
+
+    <!-- Water -->
+    <div class="swatch-group">
+      <div class="swatch-group-label">water — 御射鹿池・山麓湧水の青緑</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#EFF9F8"><span class="swatch-step" style="color:#073A38">50</span><span class="swatch-hex" style="color:#073A38">#EFF9F8</span></div>
+        <div class="swatch" style="background:#D5F1EE"><span class="swatch-step" style="color:#073A38">100</span><span class="swatch-hex" style="color:#073A38">#D5F1EE</span></div>
+        <div class="swatch" style="background:#A8E3DD"><span class="swatch-step" style="color:#073A38">200</span><span class="swatch-hex" style="color:#073A38">#A8E3DD</span></div>
+        <div class="swatch" style="background:#6DCDC6"><span class="swatch-step" style="color:#fff">300</span><span class="swatch-hex" style="color:#fff">#6DCDC6</span></div>
+        <div class="swatch" style="background:#38B2AB"><span class="swatch-step" style="color:#fff">400</span><span class="swatch-hex" style="color:#fff">#38B2AB</span></div>
+        <div class="swatch" style="background:#1D9690"><span class="swatch-step" style="color:#fff">500</span><span class="swatch-hex" style="color:#fff">#1D9690</span></div>
+        <div class="swatch" style="background:#137A76"><span class="swatch-step" style="color:#fff">600 ★</span><span class="swatch-hex" style="color:#fff">#137A76</span></div>
+        <div class="swatch" style="background:#0E605D"><span class="swatch-step" style="color:#fff">700</span><span class="swatch-hex" style="color:#fff">#0E605D</span></div>
+        <div class="swatch" style="background:#0A4C4A"><span class="swatch-step" style="color:#fff">800</span><span class="swatch-hex" style="color:#fff">#0A4C4A</span></div>
+        <div class="swatch" style="background:#073A38"><span class="swatch-step" style="color:#fff">900</span><span class="swatch-hex" style="color:#fff">#073A38</span></div>
+        <div class="swatch" style="background:#042523"><span class="swatch-step" style="color:#fff">950</span><span class="swatch-hex" style="color:#fff">#042523</span></div>
+      </div>
+    </div>
+
+    <!-- Sky -->
+    <div class="swatch-group">
+      <div class="swatch-group-label">sky — 信州高原の澄んだ空</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#EDF6FF"><span class="swatch-step" style="color:#031B3C">50</span><span class="swatch-hex" style="color:#031B3C">#EDF6FF</span></div>
+        <div class="swatch" style="background:#D4EAFF"><span class="swatch-step" style="color:#031B3C">100</span><span class="swatch-hex" style="color:#031B3C">#D4EAFF</span></div>
+        <div class="swatch" style="background:#A8D5FF"><span class="swatch-step" style="color:#031B3C">200</span><span class="swatch-hex" style="color:#031B3C">#A8D5FF</span></div>
+        <div class="swatch" style="background:#6CB9FF"><span class="swatch-step" style="color:#fff">300</span><span class="swatch-hex" style="color:#fff">#6CB9FF</span></div>
+        <div class="swatch" style="background:#3097F5"><span class="swatch-step" style="color:#fff">400</span><span class="swatch-hex" style="color:#fff">#3097F5</span></div>
+        <div class="swatch" style="background:#1578D8"><span class="swatch-step" style="color:#fff">500 ★</span><span class="swatch-hex" style="color:#fff">#1578D8</span></div>
+        <div class="swatch" style="background:#0C5EB8"><span class="swatch-step" style="color:#fff">600</span><span class="swatch-hex" style="color:#fff">#0C5EB8</span></div>
+        <div class="swatch" style="background:#094A97"><span class="swatch-step" style="color:#fff">700</span><span class="swatch-hex" style="color:#fff">#094A97</span></div>
+        <div class="swatch" style="background:#073A78"><span class="swatch-step" style="color:#fff">800</span><span class="swatch-hex" style="color:#fff">#073A78</span></div>
+        <div class="swatch" style="background:#052B5C"><span class="swatch-step" style="color:#fff">900</span><span class="swatch-hex" style="color:#fff">#052B5C</span></div>
+        <div class="swatch" style="background:#031B3C"><span class="swatch-step" style="color:#fff">950</span><span class="swatch-hex" style="color:#fff">#031B3C</span></div>
+      </div>
+    </div>
+
+    <!-- Stone -->
+    <div class="swatch-group">
+      <div class="swatch-group-label">stone — 溶岩・山肌のニュートラル</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#F9F8F6"><span class="swatch-step" style="color:#141210">50</span><span class="swatch-hex" style="color:#141210">#F9F8F6</span></div>
+        <div class="swatch" style="background:#F0EDE8"><span class="swatch-step" style="color:#141210">100</span><span class="swatch-hex" style="color:#141210">#F0EDE8</span></div>
+        <div class="swatch" style="background:#DDD8CF"><span class="swatch-step" style="color:#141210">200</span><span class="swatch-hex" style="color:#141210">#DDD8CF</span></div>
+        <div class="swatch" style="background:#C4BDB0"><span class="swatch-step" style="color:#141210">300</span><span class="swatch-hex" style="color:#141210">#C4BDB0</span></div>
+        <div class="swatch" style="background:#A89E90"><span class="swatch-step" style="color:#fff">400</span><span class="swatch-hex" style="color:#fff">#A89E90</span></div>
+        <div class="swatch" style="background:#8C8174"><span class="swatch-step" style="color:#fff">500</span><span class="swatch-hex" style="color:#fff">#8C8174</span></div>
+        <div class="swatch" style="background:#726759"><span class="swatch-step" style="color:#fff">600</span><span class="swatch-hex" style="color:#fff">#726759</span></div>
+        <div class="swatch" style="background:#5A5145"><span class="swatch-step" style="color:#fff">700</span><span class="swatch-hex" style="color:#fff">#5A5145</span></div>
+        <div class="swatch" style="background:#3D3831"><span class="swatch-step" style="color:#fff">800</span><span class="swatch-hex" style="color:#fff">#3D3831</span></div>
+        <div class="swatch" style="background:#25211C"><span class="swatch-step" style="color:#fff">900</span><span class="swatch-hex" style="color:#fff">#25211C</span></div>
+        <div class="swatch" style="background:#141210"><span class="swatch-step" style="color:#fff">950</span><span class="swatch-hex" style="color:#fff">#141210</span></div>
+      </div>
+    </div>
+
+    <!-- Gold -->
+    <div class="swatch-group" style="margin-bottom:0">
+      <div class="swatch-group-label">gold — 秋の落葉・茅の穂アクセント</div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#FFFBEB"><span class="swatch-step" style="color:#3F1C04">50</span><span class="swatch-hex" style="color:#3F1C04">#FFFBEB</span></div>
+        <div class="swatch" style="background:#FEF3C7"><span class="swatch-step" style="color:#3F1C04">100</span><span class="swatch-hex" style="color:#3F1C04">#FEF3C7</span></div>
+        <div class="swatch" style="background:#FDE68A"><span class="swatch-step" style="color:#3F1C04">200</span><span class="swatch-hex" style="color:#3F1C04">#FDE68A</span></div>
+        <div class="swatch" style="background:#FCD34D"><span class="swatch-step" style="color:#3F1C04">300</span><span class="swatch-hex" style="color:#3F1C04">#FCD34D</span></div>
+        <div class="swatch" style="background:#F5BC2A"><span class="swatch-step" style="color:#3F1C04">400</span><span class="swatch-hex" style="color:#3F1C04">#F5BC2A</span></div>
+        <div class="swatch" style="background:#E9A23B"><span class="swatch-step" style="color:#fff">500 ★</span><span class="swatch-hex" style="color:#fff">#E9A23B</span></div>
+        <div class="swatch" style="background:#D08020"><span class="swatch-step" style="color:#fff">600</span><span class="swatch-hex" style="color:#fff">#D08020</span></div>
+        <div class="swatch" style="background:#B06015"><span class="swatch-step" style="color:#fff">700</span><span class="swatch-hex" style="color:#fff">#B06015</span></div>
+        <div class="swatch" style="background:#8C460E"><span class="swatch-step" style="color:#fff">800</span><span class="swatch-hex" style="color:#fff">#8C460E</span></div>
+        <div class="swatch" style="background:#6A320A"><span class="swatch-step" style="color:#fff">900</span><span class="swatch-hex" style="color:#fff">#6A320A</span></div>
+        <div class="swatch" style="background:#3F1C04"><span class="swatch-step" style="color:#fff">950</span><span class="swatch-hex" style="color:#fff">#3F1C04</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Semantic Tokens ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Semantic Tokens (Light / Dark)</div>
+    <div class="token-grid">
+      <div class="token-card"><div class="token-swatch" style="background:var(--bg)"></div><div class="token-info"><div class="token-name">--bg</div><div class="token-desc">ページ背景</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--bg-subtle)"></div><div class="token-info"><div class="token-name">--bg-subtle</div><div class="token-desc">カード背景</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--bg-muted)"></div><div class="token-info"><div class="token-name">--bg-muted</div><div class="token-desc">区切り面</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--bg-inverted)"></div><div class="token-info"><div class="token-name">--bg-inverted</div><div class="token-desc">ヒーロー・フッター</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--surface)"></div><div class="token-info"><div class="token-name">--surface</div><div class="token-desc">カード・モーダル</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--border)"></div><div class="token-info"><div class="token-name">--border</div><div class="token-desc">通常ボーダー</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--primary)"></div><div class="token-info"><div class="token-name">--primary</div><div class="token-desc">主要アクション</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--accent)"></div><div class="token-info"><div class="token-name">--accent</div><div class="token-desc">強調・CTA</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--text)"></div><div class="token-info"><div class="token-name">--text</div><div class="token-desc">本文テキスト</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--text-muted)"></div><div class="token-info"><div class="token-name">--text-muted</div><div class="token-desc">補助テキスト</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--danger)"></div><div class="token-info"><div class="token-name">--danger</div><div class="token-desc">エラー・警告</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--water-mid)"></div><div class="token-info"><div class="token-name">--water-mid</div><div class="token-desc">水系アクセント</div></div></div>
+      <div class="token-card"><div class="token-swatch" style="background:var(--sky-mid)"></div><div class="token-info"><div class="token-name">--sky-mid</div><div class="token-desc">空系アクセント</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Typography ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Typography</div>
+
+    <div class="font-compare">
+      <div class="font-box">
+        <div class="font-box-label">UI Sans</div>
+        <div class="font-box-name">Inter + Noto Sans JP — var(--font-sans)</div>
+        <div class="font-specimen-large" style="font-family:'Inter','Noto Sans JP',sans-serif">
+          八ヶ岳の麓
+        </div>
+        <div class="font-specimen-body" style="font-family:'Inter','Noto Sans JP',sans-serif">
+          茅野市は長野県中部に位置し、八ヶ岳・蓼科山・車山など雄大な自然に囲まれた高原のまちです。標高900メートルの澄んだ空気と豊かな水が暮らしを彩ります。
+        </div>
+      </div>
+      <div class="font-box">
+        <div class="font-box-label">Display</div>
+        <div class="font-box-name">Plus Jakarta Sans + Noto Sans JP — var(--font-display)</div>
+        <div class="font-specimen-large" style="font-family:'Plus Jakarta Sans','Noto Sans JP',sans-serif">
+          八ヶ岳の麓
+        </div>
+        <div class="font-specimen-body" style="font-family:'Plus Jakarta Sans','Noto Sans JP',sans-serif">
+          茅野市は長野県中部に位置し、八ヶ岳・蓼科山・車山など雄大な自然に囲まれた高原のまちです。標高900メートルの澄んだ空気と豊かな水が暮らしを彩ります。
+        </div>
+      </div>
+    </div>
+
+    <!-- Scale -->
+    <div class="type-row" style="border-top:1px solid var(--border)">
+      <div class="type-meta">8xl / 6rem</div>
+      <div class="type-specimen" style="font-family:var(--font-display);font-size:3.5rem;font-weight:800;letter-spacing:-0.03em;line-height:1">茅野</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">5xl / 3rem</div>
+      <div class="type-specimen" style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;letter-spacing:-0.025em;line-height:1.1">八ヶ岳の麓</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">4xl / 2.25rem</div>
+      <div class="type-specimen" style="font-family:var(--font-display);font-size:2rem;font-weight:700;letter-spacing:-0.02em">自然と暮らすまち</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">3xl / 1.875rem</div>
+      <div class="type-specimen" style="font-family:var(--font-display);font-size:1.7rem;font-weight:700">観光・移住・市民生活</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">2xl / 1.5rem</div>
+      <div class="type-specimen" style="font-size:1.4rem;font-weight:600">新着・お知らせ一覧</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">xl / 1.25rem</div>
+      <div class="type-specimen" style="font-size:1.2rem;font-weight:600">くらし・手続き・防災情報</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">lg / 1.125rem</div>
+      <div class="type-specimen" style="font-size:1.05rem">令和6年度 市税の納付期限について</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">base / 1rem</div>
+      <div class="type-specimen" style="font-size:1rem">茅野市への移住を検討されている方向けに、支援制度・住まい情報をまとめました。</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">sm / 0.875rem</div>
+      <div class="type-specimen" style="font-size:0.875rem;color:var(--text-muted)">2026年6月20日 ― 防災・安全</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">xs / 0.75rem</div>
+      <div class="type-specimen" style="font-size:0.75rem;color:var(--text-subtle);letter-spacing:0.12em;text-transform:uppercase;font-weight:700">Chino City, Nagano</div>
+    </div>
+
+    <!-- Weight scale -->
+    <div style="margin-top:2.5rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+      <div>
+        <div style="font-size:0.68rem;color:var(--text-muted);margin-bottom:0.4rem;font-weight:700;letter-spacing:0.1em">WEIGHT SCALE</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem">
+          <span style="font-weight:300;font-size:1rem">Light 300 — 八ヶ岳</span>
+          <span style="font-weight:400;font-size:1rem">Regular 400 — 八ヶ岳</span>
+          <span style="font-weight:500;font-size:1rem">Medium 500 — 八ヶ岳</span>
+          <span style="font-weight:600;font-size:1rem">SemiBold 600 — 八ヶ岳</span>
+          <span style="font-weight:700;font-size:1rem">Bold 700 — 八ヶ岳</span>
+          <span style="font-weight:800;font-size:1rem;font-family:var(--font-display)">ExtraBold 800 — 八ヶ岳</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Components ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Components</div>
+
+    <div style="margin-bottom:2rem">
+      <div class="swatch-group-label" style="margin-bottom:0.75rem">Buttons</div>
+      <div class="demo-row">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-accent">Accent / Gold</button>
+        <button class="btn btn-water">Water</button>
+        <button class="btn btn-sky">Sky</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Danger</button>
+      </div>
+      <div class="demo-row">
+        <button class="btn btn-primary btn-sm">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-primary btn-lg">Large</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:2rem">
+      <div class="swatch-group-label" style="margin-bottom:0.75rem">Badges</div>
+      <div class="demo-row">
+        <span class="badge" style="background:#D9EEE3;color:#0F4530">🌲 防災</span>
+        <span class="badge" style="background:#D5F1EE;color:#073A38">💧 水道</span>
+        <span class="badge" style="background:#D4EAFF;color:#052B5C">☁️ 市政</span>
+        <span class="badge" style="background:#FEF3C7;color:#6A320A">🍂 イベント</span>
+        <span class="badge" style="background:#FEE2E2;color:#7F1D1D">⚠️ 緊急</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:2rem">
+      <div class="swatch-group-label" style="margin-bottom:0.75rem">Input</div>
+      <input class="input-demo" type="text" placeholder="キーワードを入力（例：住民票、防災、観光）">
+    </div>
+
+    <div style="margin-bottom:2rem">
+      <div class="swatch-group-label" style="margin-bottom:0.75rem">Cards</div>
+      <div style="display:flex;flex-wrap:wrap;gap:1rem">
+        <div class="card-demo">
+          <div class="card-demo-icon">🛡️</div>
+          <h4>防災情報</h4>
+          <p>ハザードマップ・避難場所・緊急連絡先</p>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-icon">🗻</div>
+          <h4>観光案内</h4>
+          <p>八ヶ岳・蓼科・白樺湖の観光情報</p>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-icon">🏠</div>
+          <h4>移住支援</h4>
+          <p>住まい・仕事・子育て環境のご案内</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="swatch-group-label" style="margin-bottom:0.75rem">Glass surfaces (on deep forest gradient)</div>
+      <div class="glass-demo">
+        <div class="glass-card">
+          <div class="glass-card-title">人口</div>
+          <div class="glass-card-value">54,200人</div>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card-title">面積</div>
+          <div class="glass-card-value">266.8 km²</div>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card-title">標高</div>
+          <div class="glass-card-value">900 m</div>
+        </div>
+        <div class="glass-card">
+          <div class="glass-card-title">観光地</div>
+          <div class="glass-card-value">八ヶ岳</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Gradients ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Gradients</div>
+    <div class="grad-row">
+      <div class="grad-box grad-forest">bg-forest-gradient<br><span style="font-weight:400;opacity:0.6;font-size:0.65rem">Forest → Water</span></div>
+      <div class="grad-box grad-sky">bg-sky-gradient<br><span style="font-weight:400;opacity:0.6;font-size:0.65rem">Navy → Sky → Water</span></div>
+      <div class="grad-box grad-dawn">bg-dawn-gradient<br><span style="font-weight:400;opacity:0.6;font-size:0.65rem">Dark Forest → Gold</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Shadows ── -->
+<section>
+  <div class="container">
+    <div class="section-title">Shadows</div>
+    <div class="shadow-row">
+      <div class="shadow-demo" style="box-shadow:0 1px 2px rgba(13,50,33,0.05)">shadow-xs</div>
+      <div class="shadow-demo" style="box-shadow:0 1px 3px rgba(13,50,33,0.08),0 1px 2px rgba(13,50,33,0.06)">shadow-sm</div>
+      <div class="shadow-demo" style="box-shadow:0 4px 6px rgba(13,50,33,0.08),0 2px 4px rgba(13,50,33,0.06)">shadow</div>
+      <div class="shadow-demo" style="box-shadow:0 6px 16px rgba(13,50,33,0.10),0 2px 4px rgba(13,50,33,0.06)">shadow-md</div>
+      <div class="shadow-demo" style="box-shadow:0 12px 32px rgba(13,50,33,0.12),0 4px 8px rgba(13,50,33,0.06)">shadow-lg</div>
+      <div class="shadow-demo" style="box-shadow:0 20px 48px rgba(13,50,33,0.18),0 8px 16px rgba(13,50,33,0.08)">shadow-xl</div>
+      <div class="shadow-demo" style="box-shadow:0 0 20px 4px rgba(30,102,69,0.35)">glow-sm<br><span style="font-size:0.65rem;color:var(--primary);font-weight:600">forest glow</span></div>
+      <div class="shadow-demo" style="box-shadow:0 0 20px 4px rgba(19,122,118,0.30)">glow-water<br><span style="font-size:0.65rem;color:var(--water-mid);font-weight:600">water glow</span></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function toggleDark() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark');
+    document.getElementById('themeIcon').textContent  = isDark ? '☀️' : '🌙';
+    document.getElementById('themeLabel').textContent = isDark ? 'ライトモード' : 'ダークモード';
+  }
+</script>
+</body>
+</html>

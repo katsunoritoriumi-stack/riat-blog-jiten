@@ -1,0 +1,58 @@
+#alert-banner {
+  background: var(--color-danger);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0.6rem 0;
+}
+
+.alert-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.alert-tag {
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+  padding: 0.15rem 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.alert-text { flex: 1; }
+
+.alert-link {
+  color: #fff;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.alert-nav {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.alert-nav button {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+
+.alert-nav button:hover { background: rgba(255,255,255,0.35); }
+
+.alert-item { display: none; align-items: center; gap: 0.75rem; width: 100%; }
+.alert-item.active { display: flex; }

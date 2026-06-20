@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beautiful Aging｜荻原彩子のジェロントロジー講座</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAFAF8;
+      --bg-warm: #F4F0EA;
+      --text: #2C2C2C;
+      --text-light: #6B6560;
+      --accent: #8B7355;
+      --accent-light: #C4B49A;
+      --border: #E0D9CE;
+      --white: #FFFFFF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 300;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 3rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    header.scrolled {
+      background: rgba(250, 250, 248, 0.96);
+      border-color: var(--border);
+      backdrop-filter: blur(8px);
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    nav a {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      color: var(--text-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--accent); }
+
+    .nav-contact {
+      padding: 0.4rem 1.2rem;
+      border: 1px solid var(--accent);
+      color: var(--accent) !important;
+      border-radius: 0;
+      letter-spacing: 0.1em;
+      transition: background 0.2s, color 0.2s !important;
+    }
+    .nav-contact:hover {
+      background: var(--accent);
+      color: var(--white) !important;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      background: var(--bg);
+      position: relative;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, var(--accent-light), transparent);
+    }
+
+    .hero-en {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero-ja {
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      color: var(--text-light);
+      margin-bottom: 3rem;
+    }
+
+    .hero-tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--accent);
+      line-height: 1.7;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Section common ── */
+    section {
+      padding: 7rem 2rem;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 400;
+      line-height: 1.4;
+      margin-bottom: 2.5rem;
+    }
+    .section-title span {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    /* ── Concerns ── */
+    .concerns { background: var(--bg-warm); }
+    .concerns-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 640px;
+    }
+    .concerns-list li {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .concerns-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 3px;
+      height: 1.4em;
+      background: var(--accent);
+      margin-top: 0.15em;
+    }
+
+    /* ── Topics ── */
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .topic-card {
+      background: var(--bg);
+      padding: 2.5rem;
+    }
+    .topic-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--accent-light);
+      font-weight: 300;
+      display: block;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+    .topic-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.7;
+    }
+
+    /* ── About ── */
+    .about { background: var(--bg); }
+    .about-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    .about-text p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 2;
+      margin-bottom: 2rem;
+    }
+
+    /* ── CTA link ── */
+    .link-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent-light);
+      padding-bottom: 0.2rem;
+      transition: gap 0.2s, border-color 0.2s;
+    }
+    .link-arrow:hover {
+      gap: 1rem;
+      border-color: var(--accent);
+    }
+    .link-arrow::after { content: '→'; }
+
+    /* ── Course ── */
+    .course { background: var(--bg-warm); }
+    .course-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .course-text p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 2;
+      margin-bottom: 2rem;
+    }
+    .course-accent {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--accent);
+      line-height: 1.9;
+      padding-left: 1.5rem;
+      border-left: 2px solid var(--accent-light);
+    }
+
+    /* ── Profile ── */
+    .profile { background: var(--bg); }
+    .profile-inner {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .profile-photo {
+      aspect-ratio: 3/4;
+      background: var(--bg-warm);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .profile-photo span {
+      font-size: 0.7rem;
+      color: var(--accent-light);
+      letter-spacing: 0.1em;
+    }
+    .profile-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.3rem;
+    }
+    .profile-meta {
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      margin-bottom: 1.5rem;
+    }
+    .profile-text p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 2;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      padding: 4rem 3rem 3rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.1em;
+    }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 2rem;
+    }
+    .footer-nav a {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-nav a:hover { color: rgba(255,255,255,0.9); }
+    .footer-copy {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      header { padding: 0 1.5rem; }
+      nav { gap: 1rem; }
+      nav a:not(.nav-contact) { display: none; }
+      section { padding: 5rem 1.5rem; }
+
+      .topics-grid { grid-template-columns: 1fr; }
+      .about-body,
+      .course-inner,
+      .profile-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .profile-photo { max-width: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header id="header">
+  <a href="https://preview.studio.site/live/9YWywgrQqM/" class="logo">Beautiful Aging</a>
+  <nav>
+    <a href="https://preview.studio.site/live/9YWywgrQqM/1">プロフィール</a>
+    <a href="https://preview.studio.site/live/9YWywgrQqM/1-1">ジェロントロジーとは</a>
+    <a href="https://preview.studio.site/live/9YWywgrQqM/1-2">講座紹介</a>
+    <a href="https://preview.studio.site/live/9YWywgrQqM/1-3" class="nav-contact">お問い合わせ</a>
+  </nav>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <p class="hero-ja">荻原彩子のジェロントロジー講座</p>
+  <h1 class="hero-en">Beautiful Aging</h1>
+  <p class="hero-tagline">
+    年齢を重ねる美しさを感じて<br>
+    ジェロントロジーが描く希望の未来
+  </p>
+</section>
+
+<!-- ── Concerns ── -->
+<section class="concerns">
+  <div class="container">
+    <p class="section-label">こんな思いはありませんか？</p>
+    <h2 class="section-title">あなたの<span>想い</span>に<br>寄り添います</h2>
+    <ul class="concerns-list">
+      <li>美しく楽しく、歳を重ねたい</li>
+      <li>健康的に年を重ねるにはどうすればいいのか知りたい</li>
+      <li>「老い」とは何か。親の介護について学びたい</li>
+      <li>高齢の家族とのコミュニケーションに悩んでいる</li>
+      <li>様々な年代層の人とのつながりを大切にしたい</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── Topics ── -->
+<section>
+  <div class="container">
+    <p class="section-label">ジェロントロジーがあなたを導きます</p>
+    <h2 class="section-title">学びの<span>4つの柱</span></h2>
+    <div class="topics-grid">
+      <div class="topic-card">
+        <span class="topic-num">01</span>
+        <p>高齢化の社会理論</p>
+      </div>
+      <div class="topic-card">
+        <span class="topic-num">02</span>
+        <p>老化の生物学的理論</p>
+      </div>
+      <div class="topic-card">
+        <span class="topic-num">03</span>
+        <p>老化防止の運動実践</p>
+      </div>
+      <div class="topic-card">
+        <span class="topic-num">04</span>
+        <p>老いの美しさ</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── About Gerontology ── -->
+<section class="about">
+  <div class="container">
+    <div class="about-body">
+      <div>
+        <p class="section-label">Gerontology</p>
+        <h2 class="section-title">ジェロントロジー<br><span>とは</span></h2>
+      </div>
+      <div class="about-text">
+        <p>
+          「ジェロントロジー」とは、ギリシャ語で「老齢学」を意味する言葉です。<br>
+          私たちは今、100〜120年生きる時代を迎えています。
+        </p>
+        <p>
+          あなたは、人生の後半をどのように生きたいですか？<br>
+          「Beautiful Aging（美しく歳を重ねる）」――<br>
+          そんな未来の自分を想像してみましょう。
+        </p>
+        <a href="https://preview.studio.site/live/9YWywgrQqM/1-1" class="link-arrow">さらに詳しく知る</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Course ── -->
+<section class="course">
+  <div class="container">
+    <div class="course-inner">
+      <div>
+        <p class="section-label">Course</p>
+        <h2 class="section-title">講座<span>紹介</span></h2>
+        <div class="course-text">
+          <p>
+            本講座では、3名の専門講師が「健康・心・社会」の3つの視点から、豊かな人生を送るための知識と実践方法をお伝えします。
+          </p>
+          <p>
+            あなたらしく、美しく歳を重ねるために――この機会にジェロントロジーを学び、未来の自分をもっと輝かせてみませんか？
+          </p>
+          <a href="https://preview.studio.site/live/9YWywgrQqM/1-2" class="link-arrow">講座の詳細はこちら</a>
+        </div>
+      </div>
+      <div>
+        <p class="course-accent">
+          健康・心・社会<br>
+          3つの視点から<br>
+          豊かな人生を<br>
+          送るために
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Profile ── -->
+<section class="profile">
+  <div class="container">
+    <div class="profile-inner">
+      <div class="profile-photo">
+        <span>Photo</span>
+      </div>
+      <div>
+        <p class="section-label">Profile</p>
+        <h2 class="profile-name">荻原 彩子</h2>
+        <p class="profile-meta">80歳（1945年生まれ）／八ヶ岳在住</p>
+        <div class="profile-text">
+          <p>
+            30年間食育コンシェルジュとして活動。2021年8月に南カリフォルニア大学ジェロントロジー学部通信教育にてジェロントロジストの資格を取得。その後講座を開催し、ジェロントロジーを広めるための活動を行っている。
+          </p>
+          <a href="https://preview.studio.site/live/9YWywgrQqM/1" class="link-arrow">詳しくはこちら</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Beautiful Aging</div>
+    <nav class="footer-nav">
+      <a href="https://preview.studio.site/live/9YWywgrQqM/">HOME</a>
+      <a href="https://preview.studio.site/live/9YWywgrQqM/1">プロフィール</a>
+      <a href="https://preview.studio.site/live/9YWywgrQqM/1-1">ジェロントロジーとは</a>
+      <a href="https://preview.studio.site/live/9YWywgrQqM/1-2">講座紹介</a>
+      <a href="https://preview.studio.site/live/9YWywgrQqM/1-2#voice">講座生の声</a>
+      <a href="https://www.instagram.com/mitayako?igsh=c2hzaGxtc2czY3Fo" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://preview.studio.site/live/9YWywgrQqM/1-3">お問い合わせ</a>
+    </nav>
+    <p class="footer-copy">&copy; Beautiful Aging｜荻原彩子のジェロントロジー講座</p>
+  </div>
+</footer>
+
+<script>
+  const header = document.getElementById('header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+</script>
+</body>
+</html>

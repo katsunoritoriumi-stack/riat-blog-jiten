@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>講座紹介｜Beautiful Aging</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#FAFAF8;--bg-warm:#F4F0EA;--text:#2C2C2C;--text-light:#6B6560;--accent:#8B7355;--accent-light:#C4B49A;--border:#E0D9CE;--white:#FFFFFF}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;font-size:18px}
+    body{font-family:'Noto Sans JP',sans-serif;font-weight:400;font-size:1.1rem;background:var(--bg);color:var(--text);line-height:1.9;-webkit-font-smoothing:antialiased}
+
+    header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 3rem;height:72px;display:flex;align-items:center;justify-content:space-between;transition:background 0.4s,border-color 0.4s;border-bottom:1px solid transparent}
+    header.scrolled{background:rgba(250,250,248,0.96);border-color:var(--border);backdrop-filter:blur(8px)}
+    .logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;color:var(--text);text-decoration:none;letter-spacing:0.08em}
+    nav{display:flex;align-items:center;gap:2rem}
+    nav a{font-size:1rem;letter-spacing:0.08em;color:var(--text-light);text-decoration:none;transition:color 0.2s}
+    nav a:hover,nav a.cur{color:var(--accent)}
+    .nav-cta{padding:0.5rem 1.4rem;border:1px solid var(--accent);color:var(--accent)!important;transition:background 0.2s,color 0.2s!important}
+    .nav-cta:hover{background:var(--accent);color:var(--white)!important}
+
+    .page-hero{padding:10rem 2rem 5rem;background:var(--bg);text-align:center;position:relative}
+    .page-hero::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:1px;height:60px;background:linear-gradient(to bottom,var(--accent-light),transparent)}
+    .page-hero-label{font-size:0.8rem;letter-spacing:0.3em;color:var(--accent);margin-bottom:1rem}
+    .page-hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:300;letter-spacing:0.05em}
+
+    section{padding:6rem 2rem}
+    .bg-warm{background:var(--bg-warm)}
+    .container{max-width:900px;margin:0 auto}
+    .section-label{font-size:0.8rem;letter-spacing:0.3em;color:var(--accent);margin-bottom:1rem}
+    .section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:400;line-height:1.4;margin-bottom:2.5rem}
+    .section-title em{font-style:italic;color:var(--accent)}
+    .body-text p{font-size:1.1rem;color:var(--text-light);line-height:1.95;margin-bottom:1.5rem}
+    .link-arrow{display:inline-flex;align-items:center;gap:0.6rem;font-size:1rem;letter-spacing:0.12em;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-light);padding-bottom:0.2rem;margin-top:1.5rem;transition:gap 0.2s,border-color 0.2s}
+    .link-arrow:hover{gap:1rem;border-color:var(--accent)}
+    .link-arrow::after{content:'→'}
+
+    /* テーマ */
+    .theme-list{list-style:none;margin-bottom:4rem;max-width:700px}
+    .theme-item{display:flex;align-items:flex-start;gap:1rem;padding:1.4rem 0;border-bottom:1px solid var(--border);font-size:1.1rem;line-height:1.8}
+    .theme-check{color:var(--accent);font-size:1.2rem;flex-shrink:0;margin-top:0.05em}
+
+    /* 講座概要 */
+    .course-info{background:var(--bg-warm);border:1px solid var(--border);padding:3rem;margin-bottom:4rem}
+    .course-info h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:400;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+    .info-grid{display:grid;grid-template-columns:auto 1fr;gap:0.9rem 2.5rem;align-items:start}
+    .info-label{font-size:0.85rem;letter-spacing:0.15em;color:var(--accent);white-space:nowrap;padding-top:0.15em}
+    .info-val{font-size:1.1rem;color:var(--text-light);line-height:1.8}
+
+    /* カリキュラム */
+    .curriculum{list-style:none;margin-bottom:3rem}
+    .curriculum-item{padding:2.5rem 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:start}
+    .curriculum-tag{background:var(--accent);color:var(--white);font-size:0.8rem;letter-spacing:0.08em;padding:0.35rem 0.9rem;white-space:nowrap;margin-top:0.2em}
+    .curriculum-item h3{font-size:1.25rem;font-weight:500;margin-bottom:0.5rem}
+    .curriculum-item p{font-size:1.1rem;color:var(--text-light);line-height:1.9}
+
+    /* 講師 */
+    .instructor-list{list-style:none;display:flex;flex-direction:column;gap:3.5rem}
+    .instructor-item{display:grid;grid-template-columns:120px 1fr;gap:2.5rem;align-items:start;padding-bottom:3.5rem;border-bottom:1px solid var(--border)}
+    .instructor-item:last-child{border-bottom:none;padding-bottom:0}
+    .instructor-photo{aspect-ratio:1;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .instructor-photo span{font-size:0.7rem;color:var(--accent-light)}
+    .instructor-name{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:400;margin-bottom:0.2rem}
+    .instructor-name-en{font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-style:italic;color:var(--accent);margin-bottom:0.4rem}
+    .instructor-role{font-size:0.9rem;color:var(--text-light);letter-spacing:0.06em;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+    .instructor-item p{font-size:1.1rem;color:var(--text-light);line-height:1.9}
+
+    /* 受講生の声 */
+    .voice-list{list-style:none;display:flex;flex-direction:column;gap:2.5rem}
+    .voice-item{background:var(--bg-warm);border:1px solid var(--border);padding:2.5rem;position:relative}
+    .voice-item::before{content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--accent-light);position:absolute;top:1rem;left:1.5rem;line-height:1;opacity:0.5}
+    .voice-text{font-size:1.1rem;line-height:1.95;color:var(--text);padding-top:1.5rem;margin-bottom:1.5rem}
+    .voice-attr{font-size:0.95rem;color:var(--accent);letter-spacing:0.12em;text-align:right}
+
+    .cta-band{background:var(--text);color:var(--white);text-align:center;padding:5rem 2rem}
+    .cta-band p{font-size:1.25rem;margin-bottom:2rem;line-height:1.8;color:rgba(255,255,255,0.8)}
+    .cta-btn{display:inline-block;padding:1rem 3rem;border:1px solid rgba(255,255,255,0.6);color:var(--white);text-decoration:none;font-size:1.1rem;letter-spacing:0.15em;transition:background 0.2s,border-color 0.2s}
+    .cta-btn:hover{background:rgba(255,255,255,0.1);border-color:var(--white)}
+
+    footer{background:var(--text);color:rgba(255,255,255,0.5);padding:4rem 3rem 3rem}
+    .footer-inner{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:2.5rem}
+    .footer-logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:rgba(255,255,255,0.9);letter-spacing:0.1em}
+    .footer-nav{display:flex;flex-wrap:wrap;gap:0.6rem 2.2rem}
+    .footer-nav a{font-size:1rem;letter-spacing:0.1em;color:rgba(255,255,255,0.55);text-decoration:none;transition:color 0.2s}
+    .footer-nav a:hover{color:rgba(255,255,255,0.9)}
+    .footer-copy{font-size:0.85rem}
+
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.75s cubic-bezier(0.4,0,0.2,1),transform 0.75s cubic-bezier(0.4,0,0.2,1)}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+
+    @media(max-width:768px){
+      header{padding:0 1.5rem}
+      nav a:not(.nav-cta){display:none}
+      section{padding:4rem 1.5rem}
+      .curriculum-item{grid-template-columns:1fr;gap:0.8rem}
+      .instructor-item{grid-template-columns:80px 1fr;gap:1.5rem}
+      .info-grid{grid-template-columns:1fr;gap:0.4rem}
+      footer{padding:3rem 1.5rem 2rem}
+    }
+  </style>
+</head>
+<body>
+
+<header id="hdr">
+  <a href="/index.html" class="logo">Beautiful Aging</a>
+  <nav>
+    <a href="/profile.html">プロフィール</a>
+    <a href="/gerontology.html">ジェロントロジーとは</a>
+    <a href="/course.html" class="cur">講座紹介</a>
+    <a href="/contact.html" class="nav-cta">お問い合わせ</a>
+  </nav>
+</header>
+
+<div class="page-hero">
+  <p class="page-hero-label">Course</p>
+  <h1 class="page-hero-title">講座紹介</h1>
+</div>
+
+<section>
+  <div class="container">
+    <p class="section-label">ビューティフルエイジング —美齢学—</p>
+    <h2 class="section-title">わたしたちの<em>テーマ</em></h2>
+    <ul class="theme-list">
+      <li class="theme-item"><span class="theme-check">✔</span><span><strong>老化の仕組みを知る</strong>：体と心の生理学的変化を理解する</span></li>
+      <li class="theme-item"><span class="theme-check">✔</span><span><strong>生活の質（QOL）の向上</strong>：より健康で活力のある生活を目指す</span></li>
+      <li class="theme-item"><span class="theme-check">✔</span><span><strong>未来へのワクワク感</strong>：これからの人生をより楽しく、充実させる</span></li>
+    </ul>
+
+    <h2 class="section-title">基礎<em>講座</em></h2>
+    <div class="course-info">
+      <h3>Zoom 講義</h3>
+      <div class="info-grid">
+        <span class="info-label">受講料</span>
+        <span class="info-val">50,000円（テキスト資料含む）　※12期生募集開始</span>
+        <span class="info-label">受講期間</span>
+        <span class="info-val">9月10日（水）〜 10月29日（水）　全8回</span>
+        <span class="info-label">開催時間</span>
+        <span class="info-val">毎週水曜 20:00〜（90分＋トークタイム15分）</span>
+        <span class="info-label">募集人数</span>
+        <span class="info-val">6〜7名</span>
+      </div>
+    </div>
+
+    <h2 class="section-title">カリキュラム<em>内容</em></h2>
+    <ul class="curriculum">
+      <li class="curriculum-item">
+        <span class="curriculum-tag">身体の健康</span>
+        <div><h3>身体のセルフケア</h3><p>予防医学、栄養学（分子栄養学）、運動（実践的なエゴスキュー）。老化の仕組みを知って、生活の質（QOL）を向上させる。</p></div>
+      </li>
+      <li class="curriculum-item">
+        <span class="curriculum-tag">心の健康</span>
+        <div><h3>心の変化を知る</h3><p>更年期・うつ症状・認知症。孤独感を持つ老人の心理を学び、未来に夢や目標を持つ生き方へ。</p></div>
+      </li>
+      <li class="curriculum-item">
+        <span class="curriculum-tag">精神面</span>
+        <div><h3>死と向き合う</h3><p>人生の終末を迎える。美しさは心のあり方も影響します。</p></div>
+      </li>
+      <li class="curriculum-item">
+        <span class="curriculum-tag">美容と心の美</span>
+        <div><h3>年齢を重ねた豊かさ</h3><p>年齢を重ねたからこそ見えてくる精神世界・広がる好奇心。美容、スキンケア、五感を磨く、ファッションセンスを上げる。</p></div>
+      </li>
+      <li class="curriculum-item">
+        <span class="curriculum-tag">脳の活性化</span>
+        <div><h3>世代を超えたつながり</h3><p>若い人から様々な年代層の人との地域交流。趣味や文化交流などの活動は脳の活性化を促します。</p></div>
+      </li>
+    </ul>
+
+    <div style="padding:2.5rem;background:var(--bg-warm);border:1px solid var(--border)">
+      <p class="section-label">アドバンス講座</p>
+      <p style="font-size:1.1rem;color:var(--text-light);line-height:1.9">基礎講座修了後、さらに深く学び、ジェロントロジストとして活動したい方向けの講座です。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bg-warm">
+  <div class="container">
+    <h2 class="section-title">講師<em>紹介</em></h2>
+    <ul class="instructor-list">
+      <li class="instructor-item">
+        <div class="instructor-photo"><span>Photo</span></div>
+        <div>
+          <h3 class="instructor-name">荻原 彩子</h3>
+          <p class="instructor-name-en">Ayako Ogiwara</p>
+          <p class="instructor-role">ジェロントロジスト／食育コンシェルジュ</p>
+          <p>「年齢を重ねることをポジティブに！」そんな前向きな未来を一緒に築いていきましょう！</p>
+        </div>
+      </li>
+      <li class="instructor-item">
+        <div class="instructor-photo"><span>Photo</span></div>
+        <div>
+          <h3 class="instructor-name">白石 和子</h3>
+          <p class="instructor-name-en">Kazuko Shiraishi</p>
+          <p class="instructor-role">エゴスキュー・ジャパン認定セラピスト／ジェロントロジスト</p>
+          <p>《運動療法エゴスキュー》 健體康心のために「美姿勢」という土台づくりを最優先にすべき理由と、一生続けられるセルフケアをお伝えします。</p>
+        </div>
+      </li>
+      <li class="instructor-item">
+        <div class="instructor-photo"><span>Photo</span></div>
+        <div>
+          <h3 class="instructor-name">小松 佳世</h3>
+          <p class="instructor-name-en">Kayo Komatsu</p>
+          <p class="instructor-role">五感セラピスト／アロマインストラクター／ブレインアナリスト</p>
+          <p>五感（視覚・嗅覚・聴覚・触覚・味覚）から脳へアプローチすることで、いつまでも健康な人生を。人にも地球にも優しい生き方を選ぶあなたに！</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="voice">
+  <div class="container">
+    <p class="section-label">Voice</p>
+    <h2 class="section-title">講座生の<em>声</em></h2>
+    <ul class="voice-list">
+      <li class="voice-item">
+        <p class="voice-text">心健やかに年を重ねる為の荻原流美齢学。人生100年時代を生きるために、加齢によって起こる心と身体、そして社会の中の変化などの問題を正しく学べます。わかっているつもりの老化について学問として理解することで、最期まで人生をどう楽しく生きるかを考えることができる講座です。</p>
+        <p class="voice-attr">60歳・女性</p>
+      </li>
+      <li class="voice-item">
+        <p class="voice-text">高齢化社会におけるお年寄りとの関わり方を考える良いキッカケになりました。まだ40代ですが、老化により身体も心も変化することを学び、それはやがて自分自身にも起こりうることと感じました。これからはお年寄りに寄り添う気持ちを持ち、平和な日本を作ってくれた世代への感謝の気持ちを持って接したいと思います。</p>
+        <p class="voice-attr">40歳・女性</p>
+      </li>
+      <li class="voice-item">
+        <p class="voice-text">歳をとるとできないことが増え、体のあちこちにガタが来る。100年時代に諦めの人生か？そんな模索中にジェロントロジーと出会い、ピン！と来て受講。人生100年時代をイキイキ、美しく賢く歳を重ねる人生哲学。それがジェロントロジー。</p>
+        <p class="voice-attr">50歳・女性</p>
+      </li>
+      <li class="voice-item">
+        <p class="voice-text">年齢を重ねるとは体の変化だけでなく、生活を取り巻く様々なことに関係があり、自分の頭で考える習慣が大きな支えになることを実感。感性豊かに美しく軽やかに年齢を重ねていきたい方にぜひお勧めしたい講座です。</p>
+        <p class="voice-attr">60歳・女性</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<div class="cta-band">
+  <p>あなたも一緒に、<br>美しく輝く未来を築きませんか？</p>
+  <a href="/contact.html" class="cta-btn">講座のお申し込みはこちら</a>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Beautiful Aging</div>
+    <nav class="footer-nav">
+      <a href="/index.html">HOME</a>
+      <a href="/profile.html">プロフィール</a>
+      <a href="/gerontology.html">ジェロントロジーとは</a>
+      <a href="/course.html">講座紹介</a>
+      <a href="/course.html#voice">講座生の声</a>
+      <a href="https://www.instagram.com/mitayako?igsh=c2hzaGxtc2czY3Fo" target="_blank" rel="noopener">Instagram</a>
+      <a href="/contact.html">お問い合わせ</a>
+    </nav>
+    <p class="footer-copy">&copy; Beautiful Aging｜荻原彩子のジェロントロジー講座</p>
+  </div>
+</footer>
+
+<script>
+  const h=document.getElementById('hdr');
+  window.addEventListener('scroll',()=>h.classList.toggle('scrolled',scrollY>40),{passive:true});
+
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+  },{threshold:0.10});
+  document.querySelectorAll('section, .section-label, .section-title, .body-text, .course-card, .voice-card, .two-col > div').forEach((el,i)=>{
+    el.classList.add('reveal');
+    el.style.transitionDelay=(i%5)*0.08+'s';
+    obs.observe(el);
+  });
+</script>
+</body>
+</html>
