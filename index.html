@@ -1004,22 +1004,78 @@
                     body: JSON.stringify({ message: keyword })
                 });
 
-                // ローディングメッセージを消去
-                if (loadingGroup) loadingGroup.remove();
-
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.response || 'サーバーエラーが発生しました');
+                if (!response.ok || !response.body) {
+                    if (loadingGroup) loadingGroup.remove();
+                    let msg = 'サーバーエラーが発生しました';
+                    try { const errData = await response.json(); msg = errData.response || msg; } catch (_) {}
+                    throw new Error(msg);
                 }
 
-                const data = await response.json();
-                
-                // AIの回答を追加
-                const aiGroup = appendMessage("ai", data.response);
+                // ── SSEストリームを読み取りながら回答を逐次表示 ──
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+                let aiGroup = null;
+                let aiBubble = null;
+                let answerText = "";
+                let pendingSources = null;
+                let streamError = null;
+
+                const ensureBubble = () => {
+                    if (loadingGroup && loadingGroup.parentNode) loadingGroup.remove();
+                    if (!aiGroup) {
+                        aiGroup = appendMessage("ai", "");
+                        aiBubble = aiGroup.querySelector(".bubble");
+                        scrollToElement(aiGroup);
+                    }
+                };
+                const renderAnswer = () => {
+                    if (!aiBubble) return;
+                    aiBubble.innerHTML = (typeof marked !== 'undefined') ? marked.parse(answerText) : answerText;
+                };
+                const handleEvent = (payload) => {
+                    if (payload.type === "sources") {
+                        pendingSources = payload.sources || [];
+                    } else if (payload.type === "delta") {
+                        ensureBubble();
+                        answerText += payload.text || "";
+                        renderAnswer();
+                    } else if (payload.type === "error") {
+                        streamError = new Error(payload.message || 'サーバーエラーが発生しました');
+                    }
+                    // "done" は追加処理なし
+                };
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    let idx;
+                    while ((idx = buffer.indexOf("\n\n")) !== -1) {
+                        const rawEvent = buffer.slice(0, idx);
+                        buffer = buffer.slice(idx + 2);
+                        const dataLine = rawEvent.split("\n").find(l => l.startsWith("data:"));
+                        if (!dataLine) continue;
+                        const jsonStr = dataLine.slice(5).trim();
+                        if (!jsonStr) continue;
+                        try { handleEvent(JSON.parse(jsonStr)); } catch (_) {}
+                    }
+                }
+
+                // 回答が一切得られなかった場合はフォールバックさせる
+                if (streamError && !answerText.trim()) throw streamError;
+                if (!answerText.trim()) throw new Error('回答を取得できませんでした');
+
+                // 途中で中断された場合は部分回答を残しつつ注記
+                if (streamError) {
+                    ensureBubble();
+                    answerText += "\n\n（応答が途中で中断されました）";
+                    renderAnswer();
+                }
 
                 // 参考記事の追加
-                if (data.sources && data.sources.length > 0) {
-                    const normalizedSources = data.sources.map(s => ({
+                if (pendingSources && pendingSources.length > 0) {
+                    const normalizedSources = pendingSources.map(s => ({
                         title: s.title,
                         link: s.url
                     }));
@@ -1030,7 +1086,7 @@
                 scrollToElement(aiGroup);
 
             } catch (e) {
-                if (loadingGroup) loadingGroup.remove();
+                if (loadingGroup && loadingGroup.parentNode) loadingGroup.remove();
                 console.error(e);
                 
                 // サーバーエラー時はローカルのキーワード検索にフォールバックする

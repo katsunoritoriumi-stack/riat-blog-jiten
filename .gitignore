@@ -7,7 +7,6 @@ __pycache__/
 node_modules/
 venv/
 recreate_index.py
-upload_gemini.py
 upload.js
 test_data.jso.txt
 package.json
