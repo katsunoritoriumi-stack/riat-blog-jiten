@@ -22,7 +22,8 @@ PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 if not GENAI_API_KEY or not PINECONE_API_KEY:
     raise RuntimeError("GENAI_API_KEY と PINECONE_API_KEY を .env に設定してください")
 
-GEN_MODEL = "gemini-2.5-flash"
+# gemini-3.1-flash-lite は無料枠RPDが500（2.5-flashの20の25倍）。RAG回答には十分な品質
+GEN_MODEL = "gemini-3.1-flash-lite"
 EMBED_MODEL = "gemini-embedding-001"
 EMBED_DIM = 768
 TOP_K = 3
