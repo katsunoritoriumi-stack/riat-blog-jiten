@@ -1,6 +1,10 @@
 # dependencies
 /node_modules
 
+# keep package manifests (repo-root .gitignore ignores these globally)
+!package.json
+!package-lock.json
+
 # next.js
 /.next/
 /out/
