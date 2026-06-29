@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo skip-root-install",
+  "buildCommand": "cd toriumi-official && npm install && npm run build",
+  "outputDirectory": "toriumi-official/out"
+}
