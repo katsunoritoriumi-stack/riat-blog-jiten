@@ -43,13 +43,13 @@ export type Domain = {
   href?: string;
 };
 
-/** 創造の座標軸：各星はリンクとして機能（中心は Connect = LINE） */
+/** 創造の座標軸：六つのカテゴリー（各星はリンク／中心は Connect = LINE） */
 export const DOMAINS: Domain[] = [
   { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28, href: "https://katsunoritor.thebase.in/" },
-  { key: "music", titleEn: "Music", titleJp: "作詞作曲", blurb: "言葉と旋律で次元を結ぶ。", x: 50, y: 16, href: "#sound" },
-  { key: "mv", titleEn: "MV / Video", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 80, y: 30, href: "#sound" },
-  { key: "web", titleEn: "App / Web", titleJp: "アプリ・Web", blurb: "アイデアを動く形にする。", x: 82, y: 64, href: "#digital" },
-  { key: "ai", titleEn: "AI Seminar", titleJp: "AIセミナー", blurb: "創造のための知をひらく。", x: 60, y: 82, href: "#digital" },
+  { key: "youtube", titleEn: "Youtube", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 50, y: 16, href: "https://www.youtube.com/@Exodus999-j7b" },
+  { key: "fashion", titleEn: "Fashion", titleJp: "着るお守り", blurb: "身にまとう、聖なるアート。", x: 80, y: 30, href: "https://nirav.base.shop/" },
+  { key: "produce", titleEn: "Produce", titleJp: "プロデュース", blurb: "ブランドと体験を生み出す。", x: 82, y: 64, href: "https://10-xi-teal.vercel.app/" },
+  { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 60, y: 82, href: "#connect" },
   { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work" },
   { key: "connect", titleEn: "Connect", titleJp: "つながる", blurb: "LINE でいつでも、創造の宇宙へ。", x: 50, y: 50, href: "https://line.me/ti/p/pcon_XLogZ" },
 ];

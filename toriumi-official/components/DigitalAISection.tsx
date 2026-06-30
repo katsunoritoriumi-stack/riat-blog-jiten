@@ -29,11 +29,7 @@ export default function DigitalAISection() {
   return (
     <section id="digital" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
       <div className="mb-16 max-w-2xl">
-        <SectionHeader
-          eyebrow="Build"
-          titleEn="Make"
-          titleJp="アプリ・Web・動画制作"
-        />
+        <SectionHeader eyebrow="Job request" titleEn="Make" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

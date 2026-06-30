@@ -41,7 +41,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="block text-[15vw] font-medium tracking-[-0.01em] sm:text-7xl md:text-8xl lg:text-[8.5rem]"
+            className="block text-[14vw] font-semibold tracking-[-0.02em] sm:text-7xl md:text-8xl lg:text-[8.5rem]"
           >
             <span className="gradient-aurum">Katsunori</span>
           </motion.span>
@@ -49,7 +49,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 1.2, delay: 0.56, ease: [0.22, 1, 0.36, 1] }}
-            className="-mt-1 block text-[16vw] font-light italic tracking-[-0.01em] sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
+            className="-mt-2 block text-[15vw] font-extralight tracking-[0.04em] sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
           >
             <span className="gradient-nebula">Toriumi</span>
           </motion.span>

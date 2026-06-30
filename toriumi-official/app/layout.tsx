@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Space_Mono, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
+import { Sora, Space_Mono, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const sora = Sora({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  style: ["normal", "italic"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["200", "300", "400", "500", "600", "700", "800"],
 });
 
 const spaceMono = Space_Mono({
@@ -50,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${fraunces.variable} ${spaceMono.variable} ${notoSans.variable} ${notoSerif.variable}`}
+      className={`${sora.variable} ${spaceMono.variable} ${notoSans.variable} ${notoSerif.variable}`}
     >
       <body className="font-sans antialiased">
         {/* global film grain */}

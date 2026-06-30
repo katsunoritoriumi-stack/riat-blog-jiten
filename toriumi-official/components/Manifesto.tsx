@@ -40,6 +40,16 @@ export default function Manifesto() {
         {MANIFESTO.body}
       </motion.p>
 
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.9, delay: 0.5 }}
+        className="mt-8 text-right font-display text-lg font-extralight italic tracking-wide text-aurum-300/80 sm:text-2xl"
+      >
+        — Shirankedo<span className="text-aurum-400/50">...</span>
+      </motion.p>
+
       {/* divider glyph */}
       <div className="mt-16 flex justify-center">
         <div className="h-px w-40 bg-gradient-to-r from-transparent via-aurum-400/60 to-transparent" />
