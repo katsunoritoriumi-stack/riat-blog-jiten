@@ -59,6 +59,8 @@ export default function ConstellationMap() {
           // multi-link star → toggles a small popover
           if (d.links) {
             const open = openKey === d.key;
+            // lower-half stars open the popover upward so it never clips
+            const up = d.y > 55;
             return (
               <motion.div
                 key={d.key}
@@ -75,7 +77,11 @@ export default function ConstellationMap() {
                   <span className={labelClass}>{d.titleEn}</span>
                 </button>
                 {open && (
-                  <div className="absolute left-1/2 top-full mt-7 flex -translate-x-1/2 flex-col gap-1 rounded-xl glass p-2">
+                  <div
+                    className={`absolute left-1/2 flex -translate-x-1/2 flex-col gap-1 rounded-xl glass p-2 ${
+                      up ? "bottom-full mb-7" : "top-full mt-7"
+                    }`}
+                  >
                     {d.links.map((l) => (
                       <a
                         key={l.href}
