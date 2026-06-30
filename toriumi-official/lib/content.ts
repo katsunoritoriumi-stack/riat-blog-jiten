@@ -128,6 +128,7 @@ export const WORKS: WorkItem[] = [
   { title: "タネと菜園", type: "Web App", note: "家庭菜園サポート", href: "https://tanetosaien.vercel.app/", hue: "#bef264" },
   { title: "Dragon Shrine Checker", type: "Web App", note: "龍神・神社チェッカー", href: "https://dragon-shrine-checker.vercel.app/", hue: "#f472b6" },
   { title: "静かな電子銀河", type: "Web", note: "アンビエント電子銀河", href: "https://shizuka-na-denshi-ginga.vercel.app/", hue: "#c4b5fd" },
+  { title: "RIAT ブログ事典", type: "AI Search", note: "ブログ横断のAI検索辞典", href: "https://riat-blog-jiten-2.onrender.com/", hue: "#fb923c" },
 ];
 
 /** Manifesto 本文 */
