@@ -21,19 +21,21 @@ export default function SoundVisionSection() {
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.7 }}
-        className="group relative flex aspect-video items-center justify-center overflow-hidden rounded-3xl border border-nebula-500/20"
-        style={{
-          background:
-            "radial-gradient(120% 120% at 50% 0%, rgba(124,58,237,0.3), transparent 55%), linear-gradient(160deg, #0c0a26, #03020a)",
-        }}
+        className="group relative flex aspect-video items-center justify-center overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950"
       >
-        <div className="pointer-events-none absolute inset-0 opacity-60 [background:repeating-linear-gradient(115deg,transparent,transparent_22px,rgba(167,139,250,0.05)_23px)]" />
+        {/* Exodus channel art */}
+        <img
+          src={YOUTUBE.thumbnail}
+          alt="Exodus チャンネル"
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-void-950/35 transition-colors duration-500 group-hover:bg-void-950/20" />
         <div className="relative flex flex-col items-center gap-4 text-center">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-aurum-400/15 ring-1 ring-aurum-400/40 transition-transform group-hover:scale-110">
-            <Play size={30} className="translate-x-0.5 text-aurum-200" fill="currentColor" />
+          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-void-950/40 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110">
+            <Play size={30} className="translate-x-0.5 text-aurum-100" fill="currentColor" />
           </span>
-          <span className="font-display text-xl tracking-widest text-nebula-100">{YOUTUBE.channelName}</span>
-          <span className="text-xs uppercase tracking-cosmic text-nebula-300/60">YouTube · @Exodus999</span>
+          <span className="text-xs uppercase tracking-cosmic text-nebula-100/80 drop-shadow">YouTube · @Exodus999</span>
         </div>
       </motion.a>
 

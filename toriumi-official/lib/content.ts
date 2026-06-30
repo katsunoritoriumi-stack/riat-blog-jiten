@@ -28,7 +28,8 @@ export const LINKS = {
 export const YOUTUBE = {
   channelUrl: LINKS.youtube,
   channelName: "Exodus チャンネル",
-  // チャンネルトップへの導線（ID 不明のため handle リンクを使用）
+  thumbnail:
+    "https://yt3.googleusercontent.com/cHhKFrE1rF9GXeCxRB0wQmLcMbCsKJBj-rxAkVPvLt-DnJnGQKF4RUWycVcze_OhVLjCgloG=w1280-h720",
 } as const;
 
 export type Domain = {
@@ -39,17 +40,25 @@ export type Domain = {
   /** 星座マップ上の相対座標 (0-100) */
   x: number;
   y: number;
-  /** 中心ノード等の外部リンク */
+  /** 単一リンク */
   href?: string;
+  /** 複数リンク（クリックで選択肢を表示） */
+  links?: { label: string; href: string }[];
 };
 
 /** 創造の座標軸：六つのカテゴリー（各星はリンク／中心は Connect = LINE） */
 export const DOMAINS: Domain[] = [
-  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28, href: "https://katsunoritor.thebase.in/" },
+  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28, href: "https://toriumi.thebase.in/" },
   { key: "youtube", titleEn: "Youtube", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 50, y: 16, href: "https://www.youtube.com/@Exodus999-j7b" },
-  { key: "fashion", titleEn: "Fashion", titleJp: "着るお守り", blurb: "身にまとう、聖なるアート。", x: 80, y: 30, href: "https://nirav.base.shop/" },
+  { key: "fashion", titleEn: "Fashion", titleJp: "着るお守り", blurb: "身にまとう、聖なるアート。", x: 80, y: 30, links: [
+    { label: "Original T-shirts", href: "https://katsunoritor.thebase.in/" },
+    { label: "Produced Brand", href: "https://nirav.base.shop/" },
+  ] },
   { key: "produce", titleEn: "Produce", titleJp: "プロデュース", blurb: "ブランドと体験を生み出す。", x: 82, y: 64, href: "https://10-xi-teal.vercel.app/" },
-  { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 60, y: 82, href: "#connect" },
+  { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 60, y: 82, links: [
+    { label: "Instagram", href: "https://www.instagram.com/katsunoritoriumi" },
+    { label: "Facebook", href: "https://www.facebook.com/toriumikatsunori" },
+  ] },
   { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work" },
   { key: "connect", titleEn: "Connect", titleJp: "つながる", blurb: "LINE でいつでも、創造の宇宙へ。", x: 50, y: 50, href: "https://line.me/ti/p/pcon_XLogZ" },
 ];

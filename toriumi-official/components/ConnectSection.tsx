@@ -13,9 +13,9 @@ const socials = [
 ];
 
 const shops = [
-  { icon: Store, label: "Art Store", note: "アート 原画・デジタル", href: LINKS.baseQuantum },
-  { icon: Store, label: "k.toriumi Store", note: "アート・グッズ", href: LINKS.baseToriumi },
-  { icon: Gift, label: "着るお守り", note: "Wearable Holy Art", href: LINKS.nirav },
+  { icon: Store, label: "Original T-shirts", note: "オリジナル Tシャツ", href: LINKS.baseQuantum },
+  { icon: Store, label: "Original Art", note: "原画・デジタル", href: LINKS.baseToriumi },
+  { icon: Gift, label: "Produced Brand", note: "着るお守り / NIRAV", href: LINKS.nirav },
 ];
 
 export default function ConnectSection() {

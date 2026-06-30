@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import SectionHeader from "./ui/SectionHeader";
 import { DOMAINS } from "@/lib/content";
@@ -7,6 +8,16 @@ import { DOMAINS } from "@/lib/content";
 export default function ConstellationMap() {
   const center = DOMAINS.find((d) => d.key === "connect")!;
   const outer = DOMAINS.filter((d) => d.key !== "connect");
+  const [openKey, setOpenKey] = useState<string | null>(null);
+
+  const dotClass =
+    "block h-3 w-3 rounded-full transition-all duration-300 group-hover:scale-150";
+  const dotStyle = {
+    background: "radial-gradient(circle, #c4b5fd, #7c3aed)",
+    boxShadow: "0 0 12px rgba(167,139,250,0.7)",
+  } as const;
+  const labelClass =
+    "pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-widest text-nebula-300/75 transition-colors group-hover:text-aurum-200 sm:text-xs";
 
   return (
     <section id="universe" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
@@ -37,31 +48,66 @@ export default function ConstellationMap() {
         {/* outer category stars */}
         {outer.map((d, i) => {
           const external = d.href?.startsWith("http");
+          const wrapStyle = { left: `${d.x}%`, top: `${d.y}%` };
+          const reveal = {
+            initial: { opacity: 0, scale: 0 },
+            whileInView: { opacity: 1, scale: 1 },
+            viewport: { once: true },
+            transition: { duration: 0.5, delay: i * 0.08 },
+          } as const;
+
+          // multi-link star → toggles a small popover
+          if (d.links) {
+            const open = openKey === d.key;
+            return (
+              <motion.div
+                key={d.key}
+                {...reveal}
+                className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                style={wrapStyle}
+              >
+                <button
+                  onClick={() => setOpenKey(open ? null : d.key)}
+                  className="block"
+                  aria-label={d.titleEn}
+                >
+                  <span className={`${dotClass} ${open ? "scale-150" : ""}`} style={dotStyle} />
+                  <span className={labelClass}>{d.titleEn}</span>
+                </button>
+                {open && (
+                  <div className="absolute left-1/2 top-full mt-7 flex -translate-x-1/2 flex-col gap-1 rounded-xl glass p-2">
+                    {d.links.map((l) => (
+                      <a
+                        key={l.href}
+                        href={l.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs text-nebula-200 transition-colors hover:bg-aurum-400/10 hover:text-aurum-200"
+                      >
+                        {l.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            );
+          }
+
+          // single-link star
           return (
             <motion.a
               key={d.key}
               href={d.href}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              initial={{ opacity: 0, scale: 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
+              {...reveal}
               whileHover={{ scale: 1.2 }}
               className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${d.x}%`, top: `${d.y}%` }}
+              style={wrapStyle}
               aria-label={d.titleEn}
             >
-              <span
-                className="block h-3 w-3 rounded-full transition-all duration-300 group-hover:scale-150"
-                style={{
-                  background: "radial-gradient(circle, #c4b5fd, #7c3aed)",
-                  boxShadow: "0 0 12px rgba(167,139,250,0.7)",
-                }}
-              />
-              <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-widest text-nebula-300/75 transition-colors group-hover:text-aurum-200 sm:text-xs">
-                {d.titleEn}
-              </span>
+              <span className={dotClass} style={dotStyle} />
+              <span className={labelClass}>{d.titleEn}</span>
             </motion.a>
           );
         })}
