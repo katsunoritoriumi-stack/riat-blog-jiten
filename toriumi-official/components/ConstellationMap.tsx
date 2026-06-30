@@ -17,11 +17,8 @@ export default function ConstellationMap() {
         <SectionHeader
           eyebrow="The Universe of Creation"
           titleEn="One Creator, Many Worlds"
-          titleJp="創造の宇宙"
+          titleJp="創造の座標軸"
         />
-        <p className="mt-6 text-nebula-200/70">
-          ひとつの創造のエネルギーが、いくつもの領域に立ち現れる。星をなぞるように、彼の宇宙を巡ってみてください。
-        </p>
       </div>
 
       <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
@@ -41,14 +38,17 @@ export default function ConstellationMap() {
             ))}
           </svg>
 
-          {/* outer nodes (selectable) */}
+          {/* outer nodes (each star is a link) */}
           {outer.map((d, i) => {
             const isActive = active === d.key;
+            const external = d.href?.startsWith("http");
             return (
-              <motion.button
+              <motion.a
                 key={d.key}
+                href={d.href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
                 onMouseEnter={() => setActive(d.key)}
-                onClick={() => setActive(d.key)}
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -73,7 +73,7 @@ export default function ConstellationMap() {
                 >
                   {d.titleEn}
                 </span>
-              </motion.button>
+              </motion.a>
             );
           })}
 

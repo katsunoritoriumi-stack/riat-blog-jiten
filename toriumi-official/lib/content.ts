@@ -9,7 +9,7 @@ export const SITE = {
   nameEn: "Katsunori Toriumi",
   nameJp: "鳥海 勝稚",
   roleEn: "Tricky Multi-Creator",
-  taglineJp: "量子の海を渡る創造者",
+  taglineJp: "銀河の海の渡り鳥",
 } as const;
 
 /** 外部リンク（SNS / ショップ） */
@@ -21,6 +21,7 @@ export const LINKS = {
   baseQuantum: "https://katsunoritor.thebase.in/",
   baseToriumi: "https://toriumi.thebase.in/",
   produce: "https://10-xi-teal.vercel.app/",
+  nirav: "https://nirav.base.shop/",
 } as const;
 
 /** YouTube 埋め込み用（チャンネルの埋め込みは uploads プレイリストが安全） */
@@ -42,14 +43,14 @@ export type Domain = {
   href?: string;
 };
 
-/** 創造の宇宙：全活動領域（中心は Connect = LINE） */
+/** 創造の座標軸：各星はリンクとして機能（中心は Connect = LINE） */
 export const DOMAINS: Domain[] = [
-  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28 },
-  { key: "music", titleEn: "Music", titleJp: "作詞作曲", blurb: "言葉と旋律で次元を結ぶ。", x: 50, y: 16 },
-  { key: "mv", titleEn: "MV / Video", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 80, y: 30 },
-  { key: "web", titleEn: "App / Web", titleJp: "アプリ・Web", blurb: "アイデアを動く形にする。", x: 82, y: 64 },
-  { key: "ai", titleEn: "AI Seminar", titleJp: "AIセミナー", blurb: "創造のための知をひらく。", x: 60, y: 82 },
-  { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70 },
+  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28, href: "https://katsunoritor.thebase.in/" },
+  { key: "music", titleEn: "Music", titleJp: "作詞作曲", blurb: "言葉と旋律で次元を結ぶ。", x: 50, y: 16, href: "#sound" },
+  { key: "mv", titleEn: "MV / Video", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 80, y: 30, href: "#sound" },
+  { key: "web", titleEn: "App / Web", titleJp: "アプリ・Web", blurb: "アイデアを動く形にする。", x: 82, y: 64, href: "#digital" },
+  { key: "ai", titleEn: "AI Seminar", titleJp: "AIセミナー", blurb: "創造のための知をひらく。", x: 60, y: 82, href: "#digital" },
+  { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work" },
   { key: "connect", titleEn: "Connect", titleJp: "つながる", blurb: "LINE でいつでも、創造の宇宙へ。", x: 50, y: 50, href: "https://line.me/ti/p/pcon_XLogZ" },
 ];
 
@@ -134,8 +135,6 @@ export const MANIFESTO = {
 export const SECTIONS = [
   { id: "home", label: "Home" },
   { id: "universe", label: "Universe" },
-  { id: "quantum-art", label: "Art" },
-  { id: "nirav", label: "Produce" },
   { id: "sound", label: "Sound & Vision" },
   { id: "work", label: "Work" },
   { id: "connect", label: "Connect" },

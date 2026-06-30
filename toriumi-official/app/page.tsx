@@ -5,8 +5,6 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
 import ConstellationMap from "@/components/ConstellationMap";
-import QuantumArtGallery from "@/components/QuantumArtGallery";
-import NiravSection from "@/components/NiravSection";
 import SoundVisionSection from "@/components/SoundVisionSection";
 import DigitalAISection from "@/components/DigitalAISection";
 import WorkSection from "@/components/WorkSection";
@@ -24,8 +22,6 @@ export default function Home() {
           <Hero />
           <Manifesto />
           <ConstellationMap />
-          <QuantumArtGallery />
-          <NiravSection />
           <SoundVisionSection />
           <DigitalAISection />
           <WorkSection />
