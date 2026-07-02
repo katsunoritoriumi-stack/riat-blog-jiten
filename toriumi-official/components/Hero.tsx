@@ -10,7 +10,11 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { SITE } from "@/lib/content";
-import { playMajesticIntro, type HeroAudioHandle } from "@/lib/heroAudio";
+import {
+  playMajesticIntro,
+  renderHeroIntroUrl,
+  type HeroAudioHandle,
+} from "@/lib/heroAudio";
 
 /** UFO が画面左へ抜けきる頃合い（UFO動画尺 8s のうち）。ここでテキストが宿る。 */
 const REVEAL_AT = 4.8;
@@ -18,7 +22,8 @@ const REVEAL_AT = 4.8;
 export default function Hero() {
   const ref = useRef<HTMLElement>(null);
   const ufoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HeroAudioHandle | null>(null);
+  const audioRef = useRef<HeroAudioHandle | null>(null); // ライブ Web Audio（フォールバック）
+  const audioElRef = useRef<HTMLAudioElement | null>(null); // 事前レンダリングした <audio>（iOS消音対応）
   const [revealed, setRevealed] = useState(false);
   const [ufoGone, setUfoGone] = useState(false); // UFO動画が退場し、蠢く宇宙が前面へ
   const [soundOn, setSoundOn] = useState(false);
@@ -60,8 +65,25 @@ export default function Hero() {
     return () => window.clearTimeout(fallback);
   }, []);
 
+  // マウント時にイントロ音を WAV へ事前レンダリングし、<audio> を用意しておく。
+  // （iOS のサイレントスイッチは Web Audio を無音化するが、メディア要素は鳴るため）
   useEffect(() => {
-    return () => audioRef.current?.stop();
+    let url: string | null = null;
+    let cancelled = false;
+    renderHeroIntroUrl().then((u) => {
+      if (cancelled || !u) return;
+      url = u;
+      const el = new Audio(u);
+      el.preload = "auto";
+      el.setAttribute("playsinline", "");
+      audioElRef.current = el;
+    });
+    return () => {
+      cancelled = true;
+      audioRef.current?.stop();
+      audioElRef.current?.pause();
+      if (url) URL.revokeObjectURL(url);
+    };
   }, []);
 
   const onTimeUpdate = () => {
@@ -78,6 +100,8 @@ export default function Hero() {
   // イントロを頭から、荘厳なサウンドと共に再体験
   function replayWithSound() {
     audioRef.current?.stop();
+    audioRef.current = null;
+    audioElRef.current?.pause();
     setRevealed(false);
     setUfoGone(false);
     const v = ufoRef.current;
@@ -87,7 +111,18 @@ export default function Hero() {
         v.play();
       } catch {}
     }
-    audioRef.current = playMajesticIntro();
+    // まず <audio>（iOS消音でも鳴る）。無ければライブ Web Audio。
+    const el = audioElRef.current;
+    if (el) {
+      try {
+        el.currentTime = 0;
+        void el.play();
+      } catch {
+        audioRef.current = playMajesticIntro();
+      }
+    } else {
+      audioRef.current = playMajesticIntro();
+    }
     setSoundOn(true);
   }
 
@@ -95,6 +130,7 @@ export default function Hero() {
     if (soundOn) {
       audioRef.current?.stop();
       audioRef.current = null;
+      audioElRef.current?.pause();
       setSoundOn(false);
     } else {
       replayWithSound();
