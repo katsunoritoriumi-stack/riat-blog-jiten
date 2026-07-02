@@ -69,7 +69,28 @@ export default function ConstellationMap() {
     boxShadow: "0 0 12px rgba(167,139,250,0.7)",
   } as const;
   const labelClass =
-    "pointer-events-none absolute left-1/2 top-full mt-2.5 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-widest text-nebula-300/75 transition-colors group-hover:text-aurum-200 sm:text-xs";
+    "pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-void-900/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-nebula-200/90 ring-1 ring-nebula-400/25 backdrop-blur-sm transition-colors group-hover:text-aurum-200 group-hover:ring-aurum-300/50 sm:text-[11px]";
+
+  /** タップ可能と分かる星のノード（広いタップ領域＋常時リング） */
+  const starNode = (open = false) => (
+    <>
+      {/* モバイル向けの広いタップ領域（透明・44px） */}
+      <span
+        aria-hidden
+        className="absolute left-1/2 top-1/2 h-11 w-11 -translate-x-1/2 -translate-y-1/2 rounded-full"
+      />
+      {/* 常時リング＝インタラクティブなノードであることを示す */}
+      <span
+        className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all duration-300 ${
+          open
+            ? "h-8 w-8 border-aurum-300/70"
+            : "h-6 w-6 border-nebula-300/45 group-hover:h-7 group-hover:w-7 group-hover:border-aurum-300/70"
+        }`}
+      />
+      {/* にじむ光輪 */}
+      <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
+    </>
+  );
 
   /** 星の回折スパイク（十字の光条） */
   const spikes = (gold = false) => (
@@ -95,6 +116,10 @@ export default function ConstellationMap() {
           titleEn="One Creator, Many Worlds"
           titleJp="創造の座標軸"
         />
+        <p className="mt-4 flex items-center gap-2 font-mono text-[11px] tracking-widest text-aurum-300/70">
+          <span className="inline-block h-2 w-2 animate-pulse-glow rounded-full bg-aurum-300" />
+          各星をタップして、それぞれの世界へ
+        </p>
       </div>
 
       {/* star chart — 深宇宙の天球図。各星がリンク */}
@@ -254,10 +279,10 @@ export default function ConstellationMap() {
               >
                 <button
                   onClick={() => setOpenKey(open ? null : d.key)}
-                  className="block"
+                  className="relative block"
                   aria-label={d.titleEn}
                 >
-                  <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
+                  {starNode(open)}
                   {spikes()}
                   <span className={`${dotClass} ${open ? "scale-150" : ""}`} style={dotStyle} />
                   <span className={labelClass}>{d.titleEn}</span>
@@ -298,7 +323,7 @@ export default function ConstellationMap() {
               style={wrapStyle}
               aria-label={d.titleEn}
             >
-              <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
+              {starNode()}
               {spikes()}
               <span className={dotClass} style={dotStyle} />
               <span className={labelClass}>{d.titleEn}</span>
@@ -320,6 +345,11 @@ export default function ConstellationMap() {
           style={{ left: `${center.x}%`, top: `${center.y}%` }}
           aria-label="LINE でつながる"
         >
+          {/* モバイル向けの広いタップ領域 */}
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          />
           {/* 回転する破線リング：中心＝Connect を静かに強調 */}
           <span className="pointer-events-none absolute -inset-2.5 animate-spin-slow rounded-full border border-dashed border-aurum-300/40" />
           {spikes(true)}
@@ -330,7 +360,7 @@ export default function ConstellationMap() {
               boxShadow: "0 0 26px 4px rgba(240,180,41,0.8)",
             }}
           />
-          <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.2em] text-aurum-200 sm:text-xs">
+          <span className="pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-aurum-400/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-aurum-200 ring-1 ring-aurum-300/40 backdrop-blur-sm sm:text-[11px]">
             Connect
           </span>
         </motion.a>

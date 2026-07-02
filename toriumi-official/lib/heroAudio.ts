@@ -21,7 +21,18 @@ export function playMajesticIntro(): HeroAudioHandle {
     (window as unknown as { webkitAudioContext: typeof AudioContext })
       .webkitAudioContext;
   const ctx = new Ctx();
-  const t0 = ctx.currentTime + 0.02;
+
+  // iOS/モバイル対策：ユーザー操作内で明示的に resume し、無音バッファで音を解錠する。
+  // （iOS Safari では new AudioContext() が suspended で始まり、resume しないと無音）
+  void ctx.resume?.();
+  try {
+    const unlock = ctx.createBufferSource();
+    unlock.buffer = ctx.createBuffer(1, 1, 22050);
+    unlock.connect(ctx.destination);
+    unlock.start(0);
+  } catch {}
+
+  const t0 = ctx.currentTime + 0.15;
 
   // ── master chain: gain → soft compressor → destination ──
   const master = ctx.createGain();

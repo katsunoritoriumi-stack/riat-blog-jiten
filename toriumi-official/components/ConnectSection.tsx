@@ -31,14 +31,14 @@ export default function ConnectSection() {
       </div>
 
       {/* social */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         {socials.map((s, i) => (
           <LinkCard key={s.label} {...s} i={i} />
         ))}
       </div>
 
       {/* shops */}
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:grid-cols-3 sm:gap-4">
         {shops.map((s, i) => (
           <LinkCard key={s.label} {...s} handle={s.note} i={i + 3} accent />
         ))}
@@ -67,32 +67,32 @@ function LinkCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
-      whileHover={{ y: -5 }}
-      className={`sheen group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl glass p-6 transition-colors ${
+      whileHover={{ y: -4 }}
+      className={`sheen group relative flex flex-col gap-3 overflow-hidden rounded-2xl glass p-4 transition-colors sm:p-5 ${
         accent ? "hover:border-aurum-400/40" : "hover:border-nebula-400/40"
       }`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
         <span
-          className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110 ${
+          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110 ${
             accent ? "bg-aurum-400/15 text-aurum-200" : "bg-nebula-600/30 text-nebula-200"
           }`}
         >
-          <Icon size={22} />
+          <Icon size={19} />
         </span>
-        <div>
-          <p className="font-serif text-base text-nebula-100">{label}</p>
-          <p className="text-xs text-nebula-300/60">{handle}</p>
-        </div>
+        <ArrowUpRight
+          size={15}
+          className="text-nebula-300/45 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-aurum-200"
+        />
       </div>
-      <ArrowUpRight
-        size={18}
-        className="text-nebula-300/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-aurum-200"
-      />
+      <div className="min-w-0">
+        <p className="truncate font-serif text-[15px] text-nebula-100 sm:text-base">{label}</p>
+        <p className="truncate text-[11px] text-nebula-300/60">{handle}</p>
+      </div>
     </motion.a>
   );
 }
