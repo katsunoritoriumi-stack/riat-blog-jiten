@@ -212,12 +212,13 @@
 .glitch::before {
   color: #5eead4;
   mix-blend-mode: screen;
-  animation: glitch-x 3.6s infinite ease-in-out;
+  /* 3s の delay ＝ 文字の立ち上がり中はグリッチさせない */
+  animation: glitch-x 3.6s ease-in-out 3s infinite;
 }
 .glitch::after {
   color: #f472b6;
   mix-blend-mode: screen;
-  animation: glitch-y 4.2s infinite ease-in-out;
+  animation: glitch-y 4.2s ease-in-out 3.4s infinite;
 }
 @keyframes glitch-x {
   0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
@@ -295,6 +296,36 @@
 @keyframes ring-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ─── Cosmic name (Hero) ─── */
+/* 文字列を端から端へ流れる starlight の波：明度＋グローのパルス */
+@keyframes name-wave {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(0, 0, 0, 0)); }
+  50%      { filter: brightness(1.45) drop-shadow(0 0 16px var(--wave-glow, rgba(252, 234, 187, 0.35))); }
+}
+.name-wave {
+  animation: name-wave 5.5s ease-in-out infinite;
+}
+
+/* ─── Star chart (創造の座標軸) ─── */
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.75; }
+}
+.star-twinkle {
+  animation: star-twinkle 3.8s ease-in-out infinite;
+}
+/* 天球グリッドの低速回転（SVG 内の <g> 用） */
+.map-rotate {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: ring-spin 150s linear infinite;
+}
+.map-rotate-rev {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: ring-spin 210s linear infinite reverse;
 }
 
 /* ─── Marquee edge fade ─── */

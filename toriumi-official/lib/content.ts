@@ -22,6 +22,7 @@ export const LINKS = {
   baseToriumi: "https://toriumi.thebase.in/",
   produce: "https://10-xi-teal.vercel.app/",
   nirav: "https://nirav.base.shop/",
+  radio: "https://stand.fm/channels/605df06b2b49b926c852b5f2",
 } as const;
 
 /** YouTube 埋め込み用（チャンネルの埋め込みは uploads プレイリストが安全） */
@@ -60,6 +61,7 @@ export const DOMAINS: Domain[] = [
     { label: "Facebook", href: "https://www.facebook.com/toriumikatsunori" },
   ] },
   { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work" },
+  { key: "radio", titleEn: "Radio", titleJp: "音声配信", blurb: "声で綴る、日々の宇宙。stand.fm にて配信中。", x: 16, y: 49, href: "https://stand.fm/channels/605df06b2b49b926c852b5f2" },
   { key: "connect", titleEn: "Connect", titleJp: "つながる", blurb: "LINE でいつでも、創造の宇宙へ。", x: 50, y: 50, href: "https://line.me/ti/p/pcon_XLogZ" },
 ];
 

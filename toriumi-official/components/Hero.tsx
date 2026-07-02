@@ -9,6 +9,7 @@ import {
 } from "framer-motion";
 import { useRef } from "react";
 import { ChevronDown } from "lucide-react";
+import StarName from "./ui/StarName";
 import { SITE } from "@/lib/content";
 
 export default function Hero() {
@@ -94,24 +95,54 @@ export default function Hero() {
 
         <motion.h1
           style={{ rotateX, rotateY, transformPerspective: 900 }}
-          className="font-display leading-[0.92]"
+          className="relative font-display leading-[0.92]"
         >
-          <motion.span
-            initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="block text-[14vw] font-semibold tracking-[-0.02em] sm:text-7xl md:text-8xl lg:text-[8.5rem]"
+          {/* 名前の周りで瞬く星屑 */}
+          <span
+            className="star-twinkle pointer-events-none absolute -top-7 left-[7%] text-base text-aurum-200/80 sm:text-lg"
+            style={{ animationDelay: "0.6s" }}
+            aria-hidden="true"
           >
-            <span className="gradient-aurum">Katsunori</span>
-          </motion.span>
-          <motion.span
-            initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1.2, delay: 0.56, ease: [0.22, 1, 0.36, 1] }}
-            className="-mt-2 block text-[15vw] font-extralight tracking-[0.04em] sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
+            ✦
+          </span>
+          <span
+            className="star-twinkle pointer-events-none absolute right-[1%] top-[32%] text-xs text-iris-cyan/70 sm:text-sm"
+            style={{ animationDelay: "2.1s" }}
+            aria-hidden="true"
           >
-            <span className="gradient-nebula">Toriumi</span>
-          </motion.span>
+            ✦
+          </span>
+          <span
+            className="star-twinkle pointer-events-none absolute -bottom-6 left-[20%] text-sm text-iris-rose/70"
+            style={{ animationDelay: "3.4s" }}
+            aria-hidden="true"
+          >
+            ✦
+          </span>
+
+          {/* 一文字ずつ虚空から立ち上がり、starlight の波が流れ、時折グリッチする */}
+          <span
+            data-text="Katsunori"
+            className="glitch block text-[14vw] font-semibold tracking-[-0.02em] sm:text-7xl md:text-8xl lg:text-[8.5rem]"
+          >
+            <StarName
+              text="Katsunori"
+              colors={["#fceabb", "#f0b429", "#d99a1c"]}
+              glow="rgba(240, 180, 41, 0.4)"
+              delay={0.4}
+            />
+          </span>
+          <span
+            data-text="Toriumi"
+            className="glitch -mt-2 block text-[15vw] font-extralight tracking-[0.04em] sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
+          >
+            <StarName
+              text="Toriumi"
+              colors={["#5eead4", "#a78bfa", "#f472b6"]}
+              glow="rgba(167, 139, 250, 0.45)"
+              delay={0.95}
+            />
+          </span>
         </motion.h1>
 
         <motion.p

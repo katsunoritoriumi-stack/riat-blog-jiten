@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Camera, ThumbsUp, PlayCircle, Store, ArrowUpRight, Gift, MessageCircle } from "lucide-react";
+import { Camera, ThumbsUp, PlayCircle, Store, ArrowUpRight, Gift, MessageCircle, Radio } from "lucide-react";
 import SectionHeader from "./ui/SectionHeader";
 import { LINKS } from "@/lib/content";
 
@@ -9,6 +9,7 @@ const socials = [
   { icon: MessageCircle, label: "LINE", handle: "友だち追加", href: LINKS.line },
   { icon: Camera, label: "Instagram", handle: "@katsunoritoriumi", href: LINKS.instagram },
   { icon: PlayCircle, label: "YouTube", handle: "Exodus チャンネル", href: LINKS.youtube },
+  { icon: Radio, label: "Radio", handle: "stand.fm 音声配信", href: LINKS.radio },
   { icon: ThumbsUp, label: "Facebook", handle: "Katsunori Toriumi", href: LINKS.facebook },
 ];
 
@@ -30,7 +31,7 @@ export default function ConnectSection() {
       </div>
 
       {/* social */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {socials.map((s, i) => (
           <LinkCard key={s.label} {...s} i={i} />
         ))}
