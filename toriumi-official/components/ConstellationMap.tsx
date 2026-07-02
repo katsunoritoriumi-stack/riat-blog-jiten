@@ -32,8 +32,9 @@ export default function ConstellationMap() {
       {/* star map — each star is a link */}
       <div className="relative mx-auto aspect-square w-full max-w-2xl overflow-hidden rounded-3xl glass nebula-bg">
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-          {outer.map((d) => (
-            <line
+          {/* 結線：ビューに入ると中心から描き上がる */}
+          {outer.map((d, i) => (
+            <motion.line
               key={`l-${d.key}`}
               x1={center.x}
               y1={center.y}
@@ -41,6 +42,31 @@ export default function ConstellationMap() {
               y2={d.y}
               stroke="rgba(167,139,250,0.22)"
               strokeWidth={0.3}
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.1, delay: 0.25 + i * 0.12, ease: "easeOut" }}
+            />
+          ))}
+          {/* 光のパルス：中心から各星へ、時差をつけて静かに走る */}
+          {outer.map((d, i) => (
+            <motion.circle
+              key={`p-${d.key}`}
+              r={0.7}
+              fill="#fceabb"
+              initial={{ opacity: 0 }}
+              animate={{
+                cx: [center.x, (center.x + d.x) / 2, d.x],
+                cy: [center.y, (center.y + d.y) / 2, d.y],
+                opacity: [0, 0.85, 0],
+              }}
+              transition={{
+                duration: 2.4,
+                delay: 2 + i * 1.7,
+                repeat: Infinity,
+                repeatDelay: 8.5,
+                ease: "easeInOut",
+              }}
             />
           ))}
         </svg>
@@ -73,6 +99,7 @@ export default function ConstellationMap() {
                   className="block"
                   aria-label={d.titleEn}
                 >
+                  <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
                   <span className={`${dotClass} ${open ? "scale-150" : ""}`} style={dotStyle} />
                   <span className={labelClass}>{d.titleEn}</span>
                 </button>
@@ -112,6 +139,7 @@ export default function ConstellationMap() {
               style={wrapStyle}
               aria-label={d.titleEn}
             >
+              <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
               <span className={dotClass} style={dotStyle} />
               <span className={labelClass}>{d.titleEn}</span>
             </motion.a>
@@ -132,6 +160,8 @@ export default function ConstellationMap() {
           style={{ left: `${center.x}%`, top: `${center.y}%` }}
           aria-label="LINE でつながる"
         >
+          {/* 回転する破線リング：中心＝Connect を静かに強調 */}
+          <span className="pointer-events-none absolute -inset-2.5 animate-spin-slow rounded-full border border-dashed border-aurum-300/40" />
           <span
             className="block h-6 w-6 animate-pulse-glow rounded-full"
             style={{

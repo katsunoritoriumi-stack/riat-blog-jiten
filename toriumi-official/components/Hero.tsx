@@ -1,6 +1,12 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
 import { useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { SITE } from "@/lib/content";
@@ -13,18 +19,68 @@ export default function Hero() {
   });
   const yText = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+
+  // マウス追従の微細な 3D パララックス（±3.5deg・スプリングで滑らかに）
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [3.5, -3.5]), {
+    stiffness: 60,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-3.5, 3.5]), {
+    stiffness: 60,
+    damping: 20,
+  });
+
+  function onMouseMove(e: React.MouseEvent) {
+    mx.set(e.clientX / window.innerWidth - 0.5);
+    my.set(e.clientY / window.innerHeight - 0.5);
+  }
 
   return (
     <section
       id="home"
       ref={ref}
+      onMouseMove={onMouseMove}
       className="relative flex h-[100svh] min-h-[640px] items-center justify-center overflow-hidden"
     >
       {/* soft glow to lift the name off the galaxy */}
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.18),transparent_65%)]" />
 
+      {/* orbit — 名前の周りを巡る彗星（渡り鳥の軌道） */}
+      <svg
+        viewBox="0 0 640 360"
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 w-[min(92vw,900px)] -translate-x-1/2 -translate-y-1/2 -rotate-6"
+      >
+        <ellipse
+          cx="320"
+          cy="180"
+          rx="300"
+          ry="132"
+          fill="none"
+          stroke="rgba(167,139,250,0.14)"
+          strokeWidth="0.8"
+          strokeDasharray="1 7"
+        />
+        <path
+          id="hero-orbit"
+          d="M 320 48 A 300 132 0 1 1 319.9 48"
+          fill="none"
+          stroke="none"
+        />
+        <g>
+          <circle r="7" fill="rgba(252,234,187,0.15)" />
+          <circle r="2.2" fill="#fceabb" />
+          <animateMotion dur="16s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#hero-orbit" />
+          </animateMotion>
+        </g>
+      </svg>
+
       <motion.div
-        style={{ y: yText, opacity }}
+        style={{ y: yText, opacity, scale }}
         className="relative z-10 flex flex-col items-center px-6 text-center"
       >
         <motion.span
@@ -36,7 +92,10 @@ export default function Hero() {
           ✦ Tricky Multi-Creator ✦
         </motion.span>
 
-        <h1 className="font-display leading-[0.92]">
+        <motion.h1
+          style={{ rotateX, rotateY, transformPerspective: 900 }}
+          className="font-display leading-[0.92]"
+        >
           <motion.span
             initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -53,7 +112,7 @@ export default function Hero() {
           >
             <span className="gradient-nebula">Toriumi</span>
           </motion.span>
-        </h1>
+        </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}

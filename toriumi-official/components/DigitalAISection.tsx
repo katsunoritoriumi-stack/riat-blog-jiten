@@ -41,10 +41,23 @@ export default function DigitalAISection() {
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.6, delay: i * 0.1 }}
             whileHover={{ y: -6 }}
-            className="group relative overflow-hidden rounded-3xl glass p-8"
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+              e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+            }}
+            className="group relative overflow-hidden rounded-3xl glass p-8 transition-colors duration-500 hover:border-aurum-400/30"
           >
+            {/* カーソルを追うスポットライト */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              style={{
+                background:
+                  "radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(240,180,41,0.10), transparent 70%)",
+              }}
+            />
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-nebula-500/20 blur-3xl transition-opacity duration-500 group-hover:opacity-100 opacity-40" />
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-nebula-500/40 to-aurum-400/20 text-aurum-200">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-nebula-500/40 to-aurum-400/20 text-aurum-200 transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
               <s.icon size={26} />
             </span>
             <p className="mt-6 font-display text-xs uppercase tracking-widest text-aurum-300/70">{s.en}</p>

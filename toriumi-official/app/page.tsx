@@ -4,6 +4,7 @@ import GalaxyBackground from "@/components/GalaxyBackground";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
+import MarqueeDivider from "@/components/MarqueeDivider";
 import ConstellationMap from "@/components/ConstellationMap";
 import SoundVisionSection from "@/components/SoundVisionSection";
 import DigitalAISection from "@/components/DigitalAISection";
@@ -21,6 +22,7 @@ export default function Home() {
         <main>
           <Hero />
           <Manifesto />
+          <MarqueeDivider />
           <ConstellationMap />
           <SoundVisionSection />
           <DigitalAISection />

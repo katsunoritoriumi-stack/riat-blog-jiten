@@ -232,6 +232,77 @@
   98% { transform: translate(1px, 1px); opacity: 0.6; }
 }
 
+/* ─── Sheen sweep (hover gloss) ─── */
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(252, 234, 187, 0.10) 50%,
+    transparent 58%
+  );
+  transform: translateX(-80%) ;
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sheen:hover::after {
+  transform: translateX(80%);
+}
+
+/* ─── Equalizer bars (sound section) ─── */
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.eq span {
+  width: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(to top, #d99a1c, #fceabb);
+  animation: eq-bounce 1.15s ease-in-out infinite;
+}
+.eq span:nth-child(1) { animation-delay: 0s;    height: 55%; }
+.eq span:nth-child(2) { animation-delay: 0.18s; height: 90%; }
+.eq span:nth-child(3) { animation-delay: 0.36s; height: 65%; }
+.eq span:nth-child(4) { animation-delay: 0.1s;  height: 100%; }
+.eq span:nth-child(5) { animation-delay: 0.28s; height: 45%; }
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1); }
+}
+.eq span { transform-origin: bottom; }
+
+/* ─── Rotating light ring (play button) ─── */
+.orbit-ring::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 62%,
+    rgba(252, 234, 187, 0.85) 82%,
+    transparent 100%
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 1.5px));
+  animation: ring-spin 4.5s linear infinite;
+}
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Marquee edge fade ─── */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
 /* link underline sweep */
 .link-sweep {
   position: relative;

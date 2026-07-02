@@ -71,13 +71,13 @@ function LinkCard({
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
       whileHover={{ y: -5 }}
-      className={`group flex items-center justify-between gap-4 rounded-2xl glass p-6 transition-colors ${
+      className={`sheen group relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl glass p-6 transition-colors ${
         accent ? "hover:border-aurum-400/40" : "hover:border-nebula-400/40"
       }`}
     >
       <div className="flex items-center gap-4">
         <span
-          className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+          className={`flex h-12 w-12 items-center justify-center rounded-xl transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110 ${
             accent ? "bg-aurum-400/15 text-aurum-200" : "bg-nebula-600/30 text-nebula-200"
           }`}
         >

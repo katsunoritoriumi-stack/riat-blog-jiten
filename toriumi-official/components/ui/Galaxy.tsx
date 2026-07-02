@@ -11,6 +11,15 @@ type Star = {
   tw: number;      // twinkle phase
 };
 
+type Meteor = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;    // 残りフレーム
+  maxLife: number;
+};
+
 /**
  * 渦巻銀河（spiral galaxy）。差動回転する複数の腕に星を配置し、
  * 円盤を傾けて見たパースで描画。中心はゴールドのコア、腕は紫〜シアン。
@@ -70,6 +79,58 @@ export default function Galaxy({
     let raf = 0;
     let t = 0;
 
+    // 流星（渡り鳥）：まれに一筋、銀河を横切る
+    let meteors: Meteor[] = [];
+    let nextMeteor = 300 + Math.random() * 300; // frames (~60fps)
+
+    function spawnMeteor() {
+      const fromLeft = Math.random() < 0.5;
+      const angle = (Math.random() * 0.25 + 0.12) * Math.PI; // 浅い落下角
+      const speed = 7 + Math.random() * 5;
+      meteors.push({
+        x: fromLeft ? -40 : w * (0.3 + Math.random() * 0.7),
+        y: Math.random() * h * 0.35,
+        vx: Math.cos(angle) * speed * (fromLeft ? 1 : -1),
+        vy: Math.sin(angle) * speed,
+        life: 90,
+        maxLife: 90,
+      });
+    }
+
+    function drawMeteors(c: CanvasRenderingContext2D) {
+      if (--nextMeteor <= 0) {
+        spawnMeteor();
+        nextMeteor = 500 + Math.random() * 700; // 8〜20秒に一度
+      }
+      meteors = meteors.filter((m) => m.life > 0);
+      for (const m of meteors) {
+        m.x += m.vx;
+        m.y += m.vy;
+        m.life--;
+        const fade = Math.sin((m.life / m.maxLife) * Math.PI); // in→out
+        const tail = 14;
+        const g = c.createLinearGradient(
+          m.x, m.y,
+          m.x - m.vx * tail, m.y - m.vy * tail
+        );
+        g.addColorStop(0, `rgba(252, 234, 187, ${0.85 * fade})`);
+        g.addColorStop(0.3, `rgba(167, 139, 250, ${0.3 * fade})`);
+        g.addColorStop(1, "rgba(167, 139, 250, 0)");
+        c.strokeStyle = g;
+        c.lineWidth = 1.4;
+        c.lineCap = "round";
+        c.beginPath();
+        c.moveTo(m.x, m.y);
+        c.lineTo(m.x - m.vx * tail, m.y - m.vy * tail);
+        c.stroke();
+        // head
+        c.fillStyle = `rgba(255, 248, 225, ${fade})`;
+        c.beginPath();
+        c.arc(m.x, m.y, 1.6, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
+
     function frame() {
       const c = ctx as CanvasRenderingContext2D;
       t += reduce ? 0 : 0.0011;
@@ -111,6 +172,7 @@ export default function Galaxy({
         c.arc(x, y, rad, 0, Math.PI * 2);
         c.fill();
       }
+      if (!reduce) drawMeteors(c);
       c.globalCompositeOperation = "source-over";
 
       if (!reduce) raf = requestAnimationFrame(frame);

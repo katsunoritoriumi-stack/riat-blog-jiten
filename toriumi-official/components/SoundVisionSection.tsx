@@ -32,10 +32,19 @@ export default function SoundVisionSection() {
         />
         <div className="pointer-events-none absolute inset-0 bg-void-950/35 transition-colors duration-500 group-hover:bg-void-950/20" />
         <div className="relative flex flex-col items-center gap-4 text-center">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-void-950/40 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110">
+          {/* 再生ボタン：周囲を光が周回する */}
+          <span className="orbit-ring relative flex h-20 w-20 items-center justify-center rounded-full bg-void-950/40 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110">
             <Play size={30} className="translate-x-0.5 text-aurum-100" fill="currentColor" />
           </span>
-          <span className="text-xs uppercase tracking-cosmic text-nebula-100/80 drop-shadow">YouTube · @Exodus999</span>
+          <span className="flex items-center gap-3 text-xs uppercase tracking-cosmic text-nebula-100/80 drop-shadow">
+            <span className="eq" aria-hidden="true">
+              <span /><span /><span /><span /><span />
+            </span>
+            YouTube · @Exodus999
+            <span className="eq" aria-hidden="true">
+              <span /><span /><span /><span /><span />
+            </span>
+          </span>
         </div>
       </motion.a>
 

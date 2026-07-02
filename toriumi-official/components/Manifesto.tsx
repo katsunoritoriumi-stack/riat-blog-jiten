@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import TextReveal from "./ui/TextReveal";
+import ScrubText from "./ui/ScrubText";
 import { MANIFESTO } from "@/lib/content";
 
 export default function Manifesto() {
@@ -30,15 +31,11 @@ export default function Manifesto() {
         ))}
       </div>
 
-      <motion.p
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 1, delay: 0.3 }}
-        className="mx-auto mt-12 max-w-2xl text-center text-base leading-loose text-nebula-200/70 sm:text-lg"
-      >
-        {MANIFESTO.body}
-      </motion.p>
+      {/* スクロールと同期して一文字ずつ灯る本文 */}
+      <ScrubText
+        text={MANIFESTO.body}
+        className="mx-auto mt-12 max-w-2xl text-center text-base leading-loose text-nebula-100 sm:text-lg"
+      />
 
       <motion.p
         initial={{ opacity: 0, y: 16 }}
