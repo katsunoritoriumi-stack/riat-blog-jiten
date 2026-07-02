@@ -55,7 +55,7 @@ export const DOMAINS: Domain[] = [
     { label: "Original T-shirts", href: "https://katsunoritor.thebase.in/" },
     { label: "Produced Brand", href: "https://nirav.base.shop/" },
   ] },
-  { key: "produce", titleEn: "Produce", titleJp: "プロデュース", blurb: "ブランドと体験を生み出す。", x: 82, y: 64, href: "https://10-xi-teal.vercel.app/" },
+  { key: "produce", titleEn: "Direction", titleJp: "ディレクション", blurb: "ブランドと体験を生み出す。", x: 82, y: 64, href: "https://10-xi-teal.vercel.app/" },
   { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 60, y: 82, links: [
     { label: "Instagram", href: "https://www.instagram.com/katsunoritoriumi" },
     { label: "Facebook", href: "https://www.facebook.com/toriumikatsunori" },
