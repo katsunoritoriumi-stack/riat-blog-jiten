@@ -8,16 +8,20 @@ import {
   useSpring,
 } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { SITE } from "@/lib/content";
+import { playMajesticIntro, type HeroAudioHandle } from "@/lib/heroAudio";
 
-/** UFO が画面左へ抜けきる頃合い（動画尺 8s のうち）。ここでテキストが宿る。 */
+/** UFO が画面左へ抜けきる頃合い（UFO動画尺 8s のうち）。ここでテキストが宿る。 */
 const REVEAL_AT = 4.8;
 
 export default function Hero() {
   const ref = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const ufoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HeroAudioHandle | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [ufoGone, setUfoGone] = useState(false); // UFO動画が退場し、蠢く宇宙が前面へ
+  const [soundOn, setSoundOn] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -27,7 +31,7 @@ export default function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
 
-  // マウス追従の微細な 3D パララックス（テキストが宿ったあとに効く）
+  // マウス追従の微細な 3D パララックス
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [2.5, -2.5]), {
@@ -44,21 +48,58 @@ export default function Hero() {
     my.set(e.clientY / window.innerHeight - 0.5);
   }
 
-  // 動画の進行に同期してテキストを宿す。再生できない環境ではフォールバックで必ず表示。
+  // 自動再生できない環境ではフォールバックで必ずテキストを表示。
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
       setRevealed(true);
+      setUfoGone(true);
       return;
     }
     const fallback = window.setTimeout(() => setRevealed(true), 7000);
     return () => window.clearTimeout(fallback);
   }, []);
 
+  useEffect(() => {
+    return () => audioRef.current?.stop();
+  }, []);
+
   const onTimeUpdate = () => {
-    const v = videoRef.current;
+    const v = ufoRef.current;
     if (v && v.currentTime >= REVEAL_AT) setRevealed(true);
   };
+
+  // UFO動画が終わったら、少し余韻を置いて前面から退場（背後の蠢く宇宙が現れる）
+  const onEnded = () => {
+    setRevealed(true);
+    setUfoGone(true);
+  };
+
+  // イントロを頭から、荘厳なサウンドと共に再体験
+  function replayWithSound() {
+    audioRef.current?.stop();
+    setRevealed(false);
+    setUfoGone(false);
+    const v = ufoRef.current;
+    if (v) {
+      try {
+        v.currentTime = 0;
+        v.play();
+      } catch {}
+    }
+    audioRef.current = playMajesticIntro();
+    setSoundOn(true);
+  }
+
+  function toggleSound() {
+    if (soundOn) {
+      audioRef.current?.stop();
+      audioRef.current = null;
+      setSoundOn(false);
+    } else {
+      replayWithSound();
+    }
+  }
 
   return (
     <section
@@ -67,10 +108,26 @@ export default function Hero() {
       onMouseMove={onMouseMove}
       className="relative flex h-[100svh] min-h-[640px] items-center justify-center overflow-hidden"
     >
-      {/* ── full-bleed cinematic backdrop (UFO appearing in space) — 一度だけ再生 ── */}
+      {/* ── 背景レイヤー①：蠢く宇宙（常時ループ）。テキスト表示後も動き続ける ── */}
       <motion.video
-        ref={videoRef}
         style={{ scale }}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/cosmos-loop.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      />
+
+      {/* ── 背景レイヤー②：UFO登場（一度だけ再生）。終わると静かにフェードして①へ受け渡す ── */}
+      <motion.video
+        ref={ufoRef}
+        style={{ scale }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: ufoGone ? 0 : 1 }}
+        transition={{ duration: 1.8, ease: "easeInOut" }}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         src="/hero-space.mp4"
         autoPlay
@@ -78,17 +135,17 @@ export default function Hero() {
         playsInline
         preload="auto"
         onTimeUpdate={onTimeUpdate}
-        onEnded={() => setRevealed(true)}
+        onEnded={onEnded}
         aria-hidden="true"
       />
 
       {/* base darken */}
       <div className="pointer-events-none absolute inset-0 bg-void-950/35" />
-      {/* テキストが宿るとき、焼き込み映像を静かに沈めて文字を持ち上げる追い暗転 */}
+      {/* テキストが宿るとき、映像を少し沈めて文字を持ち上げる追い暗転 */}
       <motion.div
         className="pointer-events-none absolute inset-0 bg-void-950"
         initial={{ opacity: 0 }}
-        animate={{ opacity: revealed ? 0.45 : 0 }}
+        animate={{ opacity: revealed ? 0.4 : 0 }}
         transition={{ duration: 1.6, ease: "easeInOut" }}
       />
       {/* vignette + 下端フェード（次セクションへ繋ぐ） */}
@@ -141,9 +198,7 @@ export default function Hero() {
         {/* a.k.a KIEJI */}
         <motion.p
           initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
-          animate={
-            revealed ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}
-          }
+          animate={revealed ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
           transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="mt-5 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.4em] sm:text-sm"
         >
@@ -170,9 +225,7 @@ export default function Hero() {
         className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-aurum-300/70"
         initial={{ opacity: 0 }}
         animate={
-          revealed
-            ? { opacity: [0, 0.7, 0.7], y: [0, 10, 0] }
-            : { opacity: 0 }
+          revealed ? { opacity: [0, 0.7, 0.7], y: [0, 10, 0] } : { opacity: 0 }
         }
         transition={{
           opacity: { duration: 1, delay: 1 },
@@ -182,6 +235,25 @@ export default function Hero() {
       >
         <ChevronDown size={28} />
       </motion.a>
+
+      {/* sound toggle — 荘厳なサウンドと共にイントロを再体験 */}
+      <button
+        onClick={toggleSound}
+        className="group absolute bottom-7 right-6 z-20 flex items-center gap-2 rounded-full border border-nebula-400/25 bg-void-900/40 px-4 py-2 backdrop-blur-sm transition-colors hover:border-aurum-300/50 sm:right-8"
+        aria-label={soundOn ? "サウンドを止める" : "荘厳なサウンドと共に再生"}
+      >
+        {!soundOn && (
+          <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-aurum-300/15" />
+        )}
+        {soundOn ? (
+          <Volume2 size={15} className="text-aurum-200" />
+        ) : (
+          <VolumeX size={15} className="text-nebula-200/80 group-hover:text-aurum-200" />
+        )}
+        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-nebula-200/80 group-hover:text-aurum-200">
+          {soundOn ? "Sound On" : "Sound"}
+        </span>
+      </button>
     </section>
   );
 }
