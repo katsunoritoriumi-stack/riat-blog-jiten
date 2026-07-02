@@ -16,6 +16,34 @@ load_dotenv()
 app = Flask(__name__, template_folder=".")
 CORS(app)
 
+# --- Basic 認証（非公開化）------------------------------------------------
+# 公開リポジトリのためパスワードは環境変数で注入する。Render のダッシュボードで
+# BASIC_AUTH_PASS（および任意で BASIC_AUTH_USER）を設定すること。
+# 未設定時は「誤って公開しない」ため全アクセスを 503 でブロックする。
+BASIC_AUTH_USER = os.environ.get("BASIC_AUTH_USER", "katsu")
+BASIC_AUTH_PASS = os.environ.get("BASIC_AUTH_PASS")
+
+
+@app.before_request
+def _require_basic_auth():
+    # /warmup は UptimeRobot 等のキープアライブ用に認証不要（機密情報を返さない）
+    if request.path == "/warmup":
+        return None
+    if not BASIC_AUTH_PASS:
+        return Response(
+            "非公開設定中です（管理者は環境変数 BASIC_AUTH_PASS を設定してください）",
+            503,
+        )
+    auth = request.authorization
+    if auth and auth.username == BASIC_AUTH_USER and auth.password == BASIC_AUTH_PASS:
+        return None
+    return Response(
+        "認証が必要です",
+        401,
+        {"WWW-Authenticate": 'Basic realm="RIAT (private)"'},
+    )
+# --------------------------------------------------------------------------
+
 GENAI_API_KEY    = os.environ.get("GENAI_API_KEY")
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 
