@@ -7,13 +7,18 @@ import {
   useMotionValue,
   useSpring,
 } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import StarName from "./ui/StarName";
 import { SITE } from "@/lib/content";
+
+/** UFO が画面左へ抜けきる頃合い（動画尺 8s のうち）。ここでテキストが宿る。 */
+const REVEAL_AT = 4.8;
 
 export default function Hero() {
   const ref = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -22,14 +27,14 @@ export default function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
 
-  // マウス追従の微細な 3D パララックス（±3.5deg・スプリングで滑らかに）
+  // マウス追従の微細な 3D パララックス（テキストが宿ったあとに効く）
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [3.5, -3.5]), {
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [2.5, -2.5]), {
     stiffness: 60,
     damping: 20,
   });
-  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-3.5, 3.5]), {
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-2.5, 2.5]), {
     stiffness: 60,
     damping: 20,
   });
@@ -39,6 +44,22 @@ export default function Hero() {
     my.set(e.clientY / window.innerHeight - 0.5);
   }
 
+  // 動画の進行に同期してテキストを宿す。再生できない環境ではフォールバックで必ず表示。
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setRevealed(true);
+      return;
+    }
+    const fallback = window.setTimeout(() => setRevealed(true), 7000);
+    return () => window.clearTimeout(fallback);
+  }, []);
+
+  const onTimeUpdate = () => {
+    const v = videoRef.current;
+    if (v && v.currentTime >= REVEAL_AT) setRevealed(true);
+  };
+
   return (
     <section
       id="home"
@@ -46,110 +67,97 @@ export default function Hero() {
       onMouseMove={onMouseMove}
       className="relative flex h-[100svh] min-h-[640px] items-center justify-center overflow-hidden"
     >
-      {/* soft glow to lift the name off the galaxy */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.18),transparent_65%)]" />
-
-      {/* orbit — 名前の周りを巡る彗星（渡り鳥の軌道） */}
-      <svg
-        viewBox="0 0 640 360"
+      {/* ── full-bleed cinematic backdrop (UFO appearing in space) — 一度だけ再生 ── */}
+      <motion.video
+        ref={videoRef}
+        style={{ scale }}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/hero-space.mp4"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        onTimeUpdate={onTimeUpdate}
+        onEnded={() => setRevealed(true)}
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 w-[min(92vw,900px)] -translate-x-1/2 -translate-y-1/2 -rotate-6"
-      >
-        <ellipse
-          cx="320"
-          cy="180"
-          rx="300"
-          ry="132"
-          fill="none"
-          stroke="rgba(167,139,250,0.14)"
-          strokeWidth="0.8"
-          strokeDasharray="1 7"
-        />
-        <path
-          id="hero-orbit"
-          d="M 320 48 A 300 132 0 1 1 319.9 48"
-          fill="none"
-          stroke="none"
-        />
-        <g>
-          <circle r="7" fill="rgba(252,234,187,0.15)" />
-          <circle r="2.2" fill="#fceabb" />
-          <animateMotion dur="16s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#hero-orbit" />
-          </animateMotion>
-        </g>
-      </svg>
+      />
 
+      {/* base darken */}
+      <div className="pointer-events-none absolute inset-0 bg-void-950/35" />
+      {/* テキストが宿るとき、焼き込み映像を静かに沈めて文字を持ち上げる追い暗転 */}
       <motion.div
-        style={{ y: yText, opacity, scale }}
+        className="pointer-events-none absolute inset-0 bg-void-950"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: revealed ? 0.45 : 0 }}
+        transition={{ duration: 1.6, ease: "easeInOut" }}
+      />
+      {/* vignette + 下端フェード（次セクションへ繋ぐ） */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(3,2,10,0.85)_92%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-void-950" />
+
+      {/* soft glow behind the name */}
+      <motion.div
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.22),transparent_65%)]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: revealed ? 1 : 0 }}
+        transition={{ duration: 1.8 }}
+      />
+
+      {/* ── テキスト：UFO の退場に同期して、もとからそこに在ったように宿る ── */}
+      <motion.div
+        style={{ y: yText, opacity, rotateX, rotateY, transformPerspective: 1000 }}
         className="relative z-10 flex flex-col items-center px-6 text-center"
       >
         <motion.span
-          initial={{ opacity: 0, letterSpacing: "0.1em" }}
-          animate={{ opacity: 1, letterSpacing: "0.42em" }}
-          transition={{ duration: 1.4, delay: 0.2 }}
-          className="mb-7 font-mono text-[10px] uppercase text-aurum-300/80 sm:text-xs"
+          initial={{ opacity: 0, y: 8, filter: "blur(6px)", letterSpacing: "0.2em" }}
+          animate={
+            revealed
+              ? { opacity: 1, y: 0, filter: "blur(0px)", letterSpacing: "0.42em" }
+              : {}
+          }
+          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-7 font-mono text-[10px] uppercase text-aurum-300/85 sm:text-xs"
         >
           ✦ Tricky Multi-Creator ✦
         </motion.span>
 
         <motion.h1
-          style={{ rotateX, rotateY, transformPerspective: 900 }}
-          className="relative font-display leading-[0.92]"
+          initial={{ opacity: 0, filter: "blur(14px)", scale: 1.04 }}
+          animate={revealed ? { opacity: 1, filter: "blur(0px)", scale: 1 } : {}}
+          transition={{ duration: 1.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="font-display leading-[0.9]"
         >
-          {/* 名前の周りで瞬く星屑 */}
-          <span
-            className="star-twinkle pointer-events-none absolute -top-7 left-[7%] text-base text-aurum-200/80 sm:text-lg"
-            style={{ animationDelay: "0.6s" }}
-            aria-hidden="true"
-          >
-            ✦
+          <span className="name-wave block text-[14vw] font-semibold tracking-[-0.02em] gradient-aurum sm:text-7xl md:text-8xl lg:text-[8.5rem]">
+            Katsunori
           </span>
           <span
-            className="star-twinkle pointer-events-none absolute right-[1%] top-[32%] text-xs text-iris-cyan/70 sm:text-sm"
-            style={{ animationDelay: "2.1s" }}
-            aria-hidden="true"
+            className="name-wave -mt-1 block text-[15vw] font-extralight tracking-[0.03em] gradient-nebula sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
+            style={{ animationDelay: "1.2s" }}
           >
-            ✦
-          </span>
-          <span
-            className="star-twinkle pointer-events-none absolute -bottom-6 left-[20%] text-sm text-iris-rose/70"
-            style={{ animationDelay: "3.4s" }}
-            aria-hidden="true"
-          >
-            ✦
-          </span>
-
-          {/* 一文字ずつ虚空から立ち上がり、starlight の波が流れ、時折グリッチする */}
-          <span
-            data-text="Katsunori"
-            className="glitch block text-[14vw] font-semibold tracking-[-0.02em] sm:text-7xl md:text-8xl lg:text-[8.5rem]"
-          >
-            <StarName
-              text="Katsunori"
-              colors={["#fceabb", "#f0b429", "#d99a1c"]}
-              glow="rgba(240, 180, 41, 0.4)"
-              delay={0.4}
-            />
-          </span>
-          <span
-            data-text="Toriumi"
-            className="glitch -mt-2 block text-[15vw] font-extralight tracking-[0.04em] sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
-          >
-            <StarName
-              text="Toriumi"
-              colors={["#5eead4", "#a78bfa", "#f472b6"]}
-              glow="rgba(167, 139, 250, 0.45)"
-              delay={0.95}
-            />
+            Toriumi
           </span>
         </motion.h1>
 
+        {/* a.k.a KIEJI */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="mt-7 max-w-xl font-serif text-base text-nebula-200/90 sm:text-lg"
+          initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+          animate={
+            revealed ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}
+          }
+          transition={{ duration: 1.4, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-5 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.4em] sm:text-sm"
+        >
+          <span className="h-px w-8 bg-gradient-to-r from-transparent to-aurum-300/60" />
+          <span className="text-nebula-300/70">a.k.a</span>
+          <span className="gradient-aurum font-bold tracking-[0.5em]">KIEJI</span>
+          <span className="h-px w-8 bg-gradient-to-l from-transparent to-aurum-300/60" />
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: revealed ? 1 : 0 }}
+          transition={{ duration: 1.2, delay: 0.8 }}
+          className="mt-7 max-w-xl font-serif text-base text-nebula-200/85 sm:text-lg"
         >
           {SITE.nameJp} — {SITE.taglineJp}
         </motion.p>
@@ -160,9 +168,16 @@ export default function Hero() {
         href="#universe"
         style={{ opacity }}
         className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-aurum-300/70"
-        initial={{ y: 0 }}
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
+        initial={{ opacity: 0 }}
+        animate={
+          revealed
+            ? { opacity: [0, 0.7, 0.7], y: [0, 10, 0] }
+            : { opacity: 0 }
+        }
+        transition={{
+          opacity: { duration: 1, delay: 1 },
+          y: { duration: 2, repeat: Infinity, delay: 1 },
+        }}
         aria-label="次のセクションへ"
       >
         <ChevronDown size={28} />
