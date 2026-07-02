@@ -8,7 +8,7 @@ import MarqueeDivider from "@/components/MarqueeDivider";
 import ConstellationMap from "@/components/ConstellationMap";
 import SoundVisionSection from "@/components/SoundVisionSection";
 import DigitalAISection from "@/components/DigitalAISection";
-import WorkSection from "@/components/WorkSection";
+// import WorkSection from "@/components/WorkSection"; // Collection 一旦非公開
 import ConnectSection from "@/components/ConnectSection";
 import Footer from "@/components/Footer";
 
@@ -26,7 +26,7 @@ export default function Home() {
           <ConstellationMap />
           <SoundVisionSection />
           <DigitalAISection />
-          <WorkSection />
+          {/* <WorkSection /> Collection 一旦非公開 */}
           <ConnectSection />
         </main>
         <Footer />

@@ -45,23 +45,26 @@ export type Domain = {
   href?: string;
   /** 複数リンク（クリックで選択肢を表示） */
   links?: { label: string; href: string }[];
+  /** 一旦非公開（座標軸に表示しない） */
+  hidden?: boolean;
 };
 
 /** 創造の座標軸：六つのカテゴリー（各星はリンク／中心は Connect = LINE） */
 export const DOMAINS: Domain[] = [
-  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 28, href: "https://toriumi.thebase.in/" },
-  { key: "youtube", titleEn: "Youtube", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 50, y: 16, href: "https://www.youtube.com/@Exodus999-j7b" },
-  { key: "fashion", titleEn: "Fashion", titleJp: "着るお守り", blurb: "身にまとう、聖なるアート。", x: 80, y: 30, links: [
+  // 中心 Connect(50,50) を軸に半径32の正六角形（配列順＝外周のなぞり順）
+  { key: "art", titleEn: "Art", titleJp: "アート", blurb: "神話と宇宙のシンボルを描く絵画群。", x: 22, y: 34, href: "https://toriumi.thebase.in/" },
+  { key: "youtube", titleEn: "Youtube", titleJp: "映像・MV", blurb: "Exodus として映像世界を編む。", x: 50, y: 18, href: "https://www.youtube.com/@Exodus999-j7b" },
+  { key: "fashion", titleEn: "Fashion", titleJp: "着るお守り", blurb: "身にまとう、聖なるアート。", x: 78, y: 34, links: [
     { label: "Original T-shirts", href: "https://katsunoritor.thebase.in/" },
     { label: "Produced Brand", href: "https://nirav.base.shop/" },
   ] },
-  { key: "produce", titleEn: "Direction", titleJp: "ディレクション", blurb: "ブランドと体験を生み出す。", x: 82, y: 64, href: "https://10-xi-teal.vercel.app/" },
-  { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 60, y: 82, links: [
+  { key: "produce", titleEn: "Direction", titleJp: "ディレクション", blurb: "ブランドと体験を生み出す。", x: 78, y: 66, href: "https://10-xi-teal.vercel.app/" },
+  { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 50, y: 82, links: [
     { label: "Instagram", href: "https://www.instagram.com/katsunoritoriumi" },
     { label: "Facebook", href: "https://www.facebook.com/toriumikatsunori" },
   ] },
-  { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work" },
-  { key: "radio", titleEn: "Radio", titleJp: "音声配信", blurb: "声で綴る、日々の宇宙。stand.fm にて配信中。", x: 16, y: 49, href: "https://stand.fm/channels/605df06b2b49b926c852b5f2" },
+  { key: "work", titleEn: "Work", titleJp: "制作物", blurb: "世に放ったアプリとウェブサイト。", x: 24, y: 70, href: "#work", hidden: true },
+  { key: "radio", titleEn: "Radio", titleJp: "音声配信", blurb: "声で綴る、日々の宇宙。stand.fm にて配信中。", x: 22, y: 66, href: "https://stand.fm/channels/605df06b2b49b926c852b5f2" },
   { key: "connect", titleEn: "Connect", titleJp: "つながる", blurb: "LINE でいつでも、創造の宇宙へ。", x: 50, y: 50, href: "https://line.me/ti/p/pcon_XLogZ" },
 ];
 
@@ -148,6 +151,6 @@ export const SECTIONS = [
   { id: "home", label: "Home" },
   { id: "universe", label: "Universe" },
   { id: "sound", label: "Sound & Vision" },
-  { id: "work", label: "Work" },
+  // { id: "work", label: "Work" }, // Collection 一旦非公開
   { id: "connect", label: "Connect" },
 ] as const;

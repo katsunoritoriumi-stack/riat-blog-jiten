@@ -53,7 +53,7 @@ const ORBITS = [15, 27, 39, 47.2];
 
 export default function ConstellationMap() {
   const center = DOMAINS.find((d) => d.key === "connect")!;
-  const outer = DOMAINS.filter((d) => d.key !== "connect");
+  const outer = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   // 外周星座線：隣接する星同士を結ぶ（content.ts の並び＝時計回り）
@@ -251,7 +251,7 @@ export default function ConstellationMap() {
           Celestial Map — K.T.
         </span>
         <span className="pointer-events-none absolute bottom-6 right-7 font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/50 sm:text-[9px]">
-          7 Domains · 1 Core
+          {outer.length} Domains · 1 Core
         </span>
 
         {/* outer category stars */}
