@@ -10,6 +10,7 @@ import SoundVisionSection from "@/components/SoundVisionSection";
 import DigitalAISection from "@/components/DigitalAISection";
 // import WorkSection from "@/components/WorkSection"; // Collection 一旦非公開
 import ConnectSection from "@/components/ConnectSection";
+import LegacyStatement from "@/components/LegacyStatement";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
           <DigitalAISection />
           {/* <WorkSection /> Collection 一旦非公開 */}
           <ConnectSection />
+          <LegacyStatement />
         </main>
         <Footer />
       </div>

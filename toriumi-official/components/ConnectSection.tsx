@@ -5,18 +5,16 @@ import { Camera, ThumbsUp, PlayCircle, Store, ArrowUpRight, Gift, MessageCircle,
 import SectionHeader from "./ui/SectionHeader";
 import { LINKS } from "@/lib/content";
 
-const socials = [
+// SNS とショップを 8 項目に統合（携帯では隙間なく 2×4、PC では 4×2）
+const links = [
   { icon: MessageCircle, label: "LINE", handle: "友だち追加", href: LINKS.line },
   { icon: Camera, label: "Instagram", handle: "@katsunoritoriumi", href: LINKS.instagram },
   { icon: PlayCircle, label: "YouTube", handle: "Exodus チャンネル", href: LINKS.youtube },
   { icon: Radio, label: "Radio", handle: "stand.fm 音声配信", href: LINKS.radio },
   { icon: ThumbsUp, label: "Facebook", handle: "Katsunori Toriumi", href: LINKS.facebook },
-];
-
-const shops = [
-  { icon: Store, label: "Original T-shirts", note: "オリジナル Tシャツ", href: LINKS.baseQuantum },
-  { icon: Store, label: "Original Art", note: "原画・デジタル", href: LINKS.baseToriumi },
-  { icon: Gift, label: "Produced Brand", note: "着るお守り / NIRAV", href: LINKS.nirav },
+  { icon: Store, label: "Original T-shirts", handle: "オリジナル Tシャツ", href: LINKS.baseQuantum, accent: true },
+  { icon: Store, label: "Original Art", handle: "原画・デジタル", href: LINKS.baseToriumi, accent: true },
+  { icon: Gift, label: "Produced Brand", handle: "着るお守り / NIRAV", href: LINKS.nirav, accent: true },
 ];
 
 export default function ConnectSection() {
@@ -30,17 +28,10 @@ export default function ConnectSection() {
         />
       </div>
 
-      {/* social */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-        {socials.map((s, i) => (
+      {/* 8 項目を隙間なく：携帯 2×4／PC 4×2 */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {links.map((s, i) => (
           <LinkCard key={s.label} {...s} i={i} />
-        ))}
-      </div>
-
-      {/* shops */}
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:grid-cols-3 sm:gap-4">
-        {shops.map((s, i) => (
-          <LinkCard key={s.label} {...s} handle={s.note} i={i + 3} accent />
         ))}
       </div>
     </section>
