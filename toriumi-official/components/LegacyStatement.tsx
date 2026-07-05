@@ -64,7 +64,7 @@ export default function LegacyStatement() {
           </motion.span>
           <motion.span variants={line} className="mt-2 block">
             <span className="gradient-nebula">Katsunori&nbsp;Toriumi</span>
-            が自己のミッションを
+            が自己の記憶を
             <br className="hidden sm:block" />
             まとめ上げる為に作成した
           </motion.span>
