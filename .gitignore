@@ -1,7 +1,11 @@
 __pycache__/
 *.pyc
 *.pyo
-.env
+# シークレット類は全形式を無視（.env.example のみ許可）
+.env*
+!.env.example
+*.key
+*.pem
 *.log
 .claude/
 node_modules/
@@ -11,3 +15,4 @@ upload.js
 test_data.jso.txt
 package.json
 package-lock.json
+SECURITY_ACTIONS.md
