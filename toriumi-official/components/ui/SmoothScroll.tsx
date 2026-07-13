@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
+import { setLenis } from "@/lib/lenisBridge";
 
 export default function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -12,14 +13,20 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       touchMultiplier: 2,
     });
+    setLenis(lenis); // ワープ演出などから scrollTo / stop / start を使えるよう共有
 
-    function raf(time: number) {
+    let raf = 0;
+    function loop(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      raf = requestAnimationFrame(loop);
     }
-    requestAnimationFrame(raf);
+    raf = requestAnimationFrame(loop);
 
-    return () => lenis.destroy();
+    return () => {
+      cancelAnimationFrame(raf);
+      setLenis(null);
+      lenis.destroy();
+    };
   }, []);
 
   return <>{children}</>;

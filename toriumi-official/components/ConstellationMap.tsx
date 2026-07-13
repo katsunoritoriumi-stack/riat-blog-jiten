@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import SectionHeader from "./ui/SectionHeader";
 import { DOMAINS } from "@/lib/content";
+import { playSfx } from "@/lib/sfx";
 
 /* ─────────────────────────────────────────────
    装飾ジオメトリ（SSR ハイドレーション対策で全て丸めた決定値）
@@ -278,7 +280,10 @@ export default function ConstellationMap() {
                 style={wrapStyle}
               >
                 <button
-                  onClick={() => setOpenKey(open ? null : d.key)}
+                  onClick={() => {
+                    playSfx("chime");
+                    setOpenKey(open ? null : d.key);
+                  }}
                   className="relative block"
                   aria-label={d.titleEn}
                 >
@@ -293,17 +298,28 @@ export default function ConstellationMap() {
                       up ? "bottom-full mb-7" : "top-full mt-7"
                     }`}
                   >
-                    {d.links.map((l) => (
-                      <a
-                        key={l.href}
-                        href={l.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs text-nebula-200 transition-colors hover:bg-aurum-400/10 hover:text-aurum-200"
-                      >
-                        {l.label}
-                      </a>
-                    ))}
+                    {d.links.map((l) => {
+                      const internal = l.href.startsWith("/");
+                      const cls =
+                        "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs text-nebula-200 transition-colors hover:bg-aurum-400/10 hover:text-aurum-200";
+                      // 内部ページ（App/Website 一覧）は Next のクライアントルーティングで遷移。
+                      // 外部リンクは通常どおり新規タブ。
+                      return internal ? (
+                        <Link key={l.href} href={l.href} className={cls}>
+                          {l.label}
+                        </Link>
+                      ) : (
+                        <a
+                          key={l.href}
+                          href={l.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cls}
+                        >
+                          {l.label}
+                        </a>
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>
@@ -319,6 +335,7 @@ export default function ConstellationMap() {
               rel={external ? "noopener noreferrer" : undefined}
               {...reveal}
               whileHover={{ scale: 1.2 }}
+              onClick={() => playSfx("chime")}
               className="group absolute -translate-x-1/2 -translate-y-1/2"
               style={wrapStyle}
               aria-label={d.titleEn}
@@ -341,6 +358,7 @@ export default function ConstellationMap() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
           whileHover={{ scale: 1.15 }}
+          onClick={() => playSfx("chime")}
           className="group absolute -translate-x-1/2 -translate-y-1/2"
           style={{ left: `${center.x}%`, top: `${center.y}%` }}
           aria-label="LINE でつながる"

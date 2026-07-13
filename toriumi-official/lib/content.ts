@@ -61,6 +61,8 @@ export const DOMAINS: Domain[] = [
   { key: "produce", titleEn: "Work", titleJp: "仕事・活動", blurb: "ブランドと体験を生み出す。", x: 78, y: 66, links: [
     { label: "Produce", href: "https://10-xi-teal.vercel.app/" },
     { label: "Message Video", href: "https://anemone-web.com/what-is-anemone/message-video/" },
+    { label: "App", href: "/apps/" },
+    { label: "Website", href: "/websites/" },
   ] },
   { key: "sns", titleEn: "SNS", titleJp: "発信", blurb: "日々の創造を発信する。", x: 50, y: 82, links: [
     { label: "Instagram", href: "https://www.instagram.com/katsunoritoriumi" },
@@ -137,6 +139,20 @@ export const WORKS: WorkItem[] = [
   { title: "Dragon Shrine Checker", type: "Web App", note: "龍神・神社チェッカー", href: "https://dragon-shrine-checker.vercel.app/", hue: "#f472b6" },
   { title: "静かな電子銀河", type: "Web", note: "アンビエント電子銀河", href: "https://shizuka-na-denshi-ginga.vercel.app/", hue: "#c4b5fd" },
   { title: "RIAT ブログ事典", type: "AI Search", note: "ブログ横断のAI検索辞典", href: "https://riat-blog-jiten-2.onrender.com/", hue: "#fb923c" },
+];
+
+/** Work（座標軸）→ App サブページに並べるアプリ群 */
+export const APPS: WorkItem[] = [
+  { title: "Earth Watch", type: "3D App", note: "Cesium製・地球可視化ダッシュボード", href: "https://earth-watch-gilt.vercel.app/", hue: "#60a5fa" },
+  { title: "AI Atlas", type: "3D Graph", note: "AI勢力図を描く3Dグラフ", href: "https://ai-atlas-murex.vercel.app/", hue: "#a78bfa" },
+  { title: "献立マスター", type: "Web App", note: "献立プランナー", href: "https://kondate-master.vercel.app/", hue: "#5eead4" },
+  { title: "Voyage", type: "AI Travel", note: "AI旅行プランナー", href: "https://voyage-ai-travel-planner-8gw80ve11.vercel.app/", hue: "#f0b429" },
+];
+
+/** Work（座標軸）→ Website サブページに並べるサイト群 */
+export const WEBSITES: WorkItem[] = [
+  { title: "タネと菜園", type: "Website", note: "家庭菜園サポート", href: "https://tanetosaien.vercel.app/", hue: "#bef264" },
+  { title: "Beautiful Aging", type: "Website", note: "荻原彩子のジェロントロジー講座", href: "https://beautiful-aging.vercel.app/index.html", hue: "#f472b6" },
 ];
 
 /** Manifesto 本文 */

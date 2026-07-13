@@ -238,7 +238,7 @@ function scheduleIntro(ctx: BaseAudioContext, t0: number): GainNode {
 }
 
 /** AudioBuffer → 16bit PCM WAV（ArrayBuffer） */
-function encodeWav(buffer: AudioBuffer): ArrayBuffer {
+export function encodeWav(buffer: AudioBuffer): ArrayBuffer {
   const numCh = buffer.numberOfChannels;
   const sr = buffer.sampleRate;
   const len = buffer.length;

@@ -15,6 +15,8 @@ import {
   renderHeroIntroUrl,
   type HeroAudioHandle,
 } from "@/lib/heroAudio";
+import { useSoundOn, setSoundOn } from "@/lib/soundStore";
+import { useBootDone } from "@/lib/bootGate";
 
 /** UFO が画面左へ抜けきる頃合い（UFO動画尺 8s のうち）。ここでテキストが宿る。 */
 const REVEAL_AT = 4.8;
@@ -26,7 +28,8 @@ export default function Hero() {
   const audioElRef = useRef<HTMLAudioElement | null>(null); // 事前レンダリングした <audio>（iOS消音対応）
   const [revealed, setRevealed] = useState(false);
   const [ufoGone, setUfoGone] = useState(false); // UFO動画が退場し、蠢く宇宙が前面へ
-  const [soundOn, setSoundOn] = useState(false);
+  const soundOn = useSoundOn(); // グローバル共有（SFX等が参照）。書き込みは setSoundOn（store）
+  const bootDone = useBootDone(); // ブート演出明けに UFO 動画を始動
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -53,17 +56,29 @@ export default function Hero() {
     my.set(e.clientY / window.innerHeight - 0.5);
   }
 
-  // 自動再生できない環境ではフォールバックで必ずテキストを表示。
+  // reduced-motion では即・完成形を表示。
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
       setRevealed(true);
       setUfoGone(true);
-      return;
+    }
+  }, []);
+
+  // ブート演出が明けたら UFO 動画を頭から再生（muted なので gesture 不要）。
+  // 再生できない環境でも 7 秒で必ずテキストを表示するフォールバック付き。
+  useEffect(() => {
+    if (!bootDone) return;
+    const v = ufoRef.current;
+    if (v && v.paused && !v.ended) {
+      try {
+        v.currentTime = 0;
+        void v.play();
+      } catch {}
     }
     const fallback = window.setTimeout(() => setRevealed(true), 7000);
     return () => window.clearTimeout(fallback);
-  }, []);
+  }, [bootDone]);
 
   // マウント時にイントロ音を WAV へ事前レンダリングし、<audio> を用意しておく。
   // （iOS のサイレントスイッチは Web Audio を無音化するが、メディア要素は鳴るため）
@@ -166,7 +181,6 @@ export default function Hero() {
         transition={{ duration: 1.8, ease: "easeInOut" }}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         src="/hero-space.mp4"
-        autoPlay
         muted
         playsInline
         preload="auto"

@@ -1,5 +1,8 @@
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
+import BootSequence from "@/components/BootSequence";
+import WarpOverlay from "@/components/WarpOverlay";
+import WanderingUfo from "@/components/WanderingUfo";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -11,6 +14,7 @@ import DigitalAISection from "@/components/DigitalAISection";
 // import WorkSection from "@/components/WorkSection"; // Collection 一旦非公開
 import ConnectSection from "@/components/ConnectSection";
 import LegacyStatement from "@/components/LegacyStatement";
+import SignalLost from "@/components/SignalLost";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -18,6 +22,9 @@ export default function Home() {
     <SmoothScroll>
       <GalaxyBackground />
       <CustomCursor />
+      <WarpOverlay />
+      <WanderingUfo />
+      <BootSequence />
       <Navbar />
       <div className="relative z-10">
         <main>
@@ -30,6 +37,7 @@ export default function Home() {
           {/* <WorkSection /> Collection 一旦非公開 */}
           <ConnectSection />
           <LegacyStatement />
+          <SignalLost />
         </main>
         <Footer />
       </div>
