@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import SectionHeader from "./ui/SectionHeader";
@@ -57,6 +57,24 @@ export default function ConstellationMap() {
   const center = DOMAINS.find((d) => d.key === "connect")!;
   const outer = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden);
   const [openKey, setOpenKey] = useState<string | null>(null);
+  // ホバーでの開閉：星→ポップオーバー間の隙間を跨ぐ一瞬だけ、閉じる側にごく短い猶予を持たせる
+  // （開くのは常に即時。猶予がないと隙間を通過する間にちらついて閉じてしまう）
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelClose = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+  const openHover = (key: string) => {
+    cancelClose();
+    setOpenKey(key);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimerRef.current = setTimeout(() => setOpenKey(null), 140);
+  };
+  useEffect(() => cancelClose, []);
 
   // 外周星座線：隣接する星同士を結ぶ（content.ts の並び＝時計回り）
   const perimeter = outer.map((d, i) => {
@@ -276,12 +294,15 @@ export default function ConstellationMap() {
               <motion.div
                 key={d.key}
                 {...reveal}
+                onMouseEnter={() => openHover(d.key)}
+                onMouseLeave={scheduleClose}
                 className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
                 style={wrapStyle}
               >
                 <button
                   onClick={() => {
                     playSfx("chime");
+                    cancelClose();
                     setOpenKey(open ? null : d.key);
                   }}
                   className="relative block"
@@ -295,7 +316,7 @@ export default function ConstellationMap() {
                 {open && (
                   <div
                     className={`absolute left-1/2 flex -translate-x-1/2 flex-col gap-1 rounded-xl glass p-2 ${
-                      up ? "bottom-full mb-7" : "top-full mt-7"
+                      up ? "bottom-full mb-5" : "top-full mt-5"
                     }`}
                   >
                     {d.links.map((l) => {
