@@ -10,7 +10,7 @@ import { getSoundOn, subscribeSound } from "./soundStore";
  * レンダリングは初回 soundOn=true のときに一度だけ（OFF の間はゼロコスト）。
  */
 
-export type SfxName = "chime" | "warp" | "capture";
+export type SfxName = "chime" | "warp";
 
 const urls: Partial<Record<SfxName, string>> = {};
 let rendering = false;
@@ -86,28 +86,9 @@ function scheduleWarp(ctx: BaseAudioContext) {
   sub.stop(t0 + dur + 0.05);
 }
 
-/** UFO捕獲のピロリ：3音上昇ブリップ 0.5s */
-function scheduleCapture(ctx: BaseAudioContext) {
-  const notes = [660, 880, 1320]; // E5 → A5 → E6
-  notes.forEach((f, i) => {
-    const t = 0.01 + i * 0.11;
-    const o = ctx.createOscillator();
-    o.type = "triangle";
-    o.frequency.value = f;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.4, t + 0.015);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
-    o.connect(g).connect(ctx.destination);
-    o.start(t);
-    o.stop(t + 0.2);
-  });
-}
-
 const RECIPES: Record<SfxName, { dur: number; schedule: (c: BaseAudioContext) => void }> = {
   chime: { dur: 0.6, schedule: scheduleChime },
   warp: { dur: 0.85, schedule: scheduleWarp },
-  capture: { dur: 0.55, schedule: scheduleCapture },
 };
 
 async function renderAll() {

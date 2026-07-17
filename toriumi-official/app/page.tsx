@@ -2,7 +2,6 @@ import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
 import BootSequence from "@/components/BootSequence";
 import WarpOverlay from "@/components/WarpOverlay";
-import WanderingUfo from "@/components/WanderingUfo";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -23,7 +22,6 @@ export default function Home() {
       <GalaxyBackground />
       <CustomCursor />
       <WarpOverlay />
-      <WanderingUfo />
       <BootSequence />
       <Navbar />
       <div className="relative z-10">
