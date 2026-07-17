@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Code2, Globe, Film } from "lucide-react";
 import SectionHeader from "./ui/SectionHeader";
+import { LINKS } from "@/lib/content";
 
 const services = [
   {
@@ -58,11 +59,13 @@ export default function DigitalAISection() {
         ))}
       </div>
 
-      {/* 依頼はどこから？の案内（実際の導線は Connect へ） */}
+      {/* 依頼はどこから？の案内（実際の導線は LINE へ直接） */}
       <p className="mt-14 text-center font-serif text-sm text-nebula-300/60">
         ご依頼・ご相談は
         <a
-          href="#connect"
+          href={LINKS.line}
+          target="_blank"
+          rel="noopener noreferrer"
           className="mx-1 text-aurum-200 underline decoration-aurum-400/40 underline-offset-4 transition-colors hover:decoration-aurum-300"
         >
           Connect
