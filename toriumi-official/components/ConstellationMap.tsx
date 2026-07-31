@@ -172,7 +172,7 @@ export default function ConstellationMap() {
         ref={boxRef}
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
+        viewport={{ once: true, margin: "-25%" }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative mx-auto h-[clamp(420px,72vh,660px)] w-full max-w-4xl overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950/60 backdrop-blur-sm"
       >
