@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 
 /**
@@ -84,6 +85,28 @@ export default function SignalLost() {
               style={{ height: h * 2 }}
             />
           ))}
+        </motion.div>
+
+        {/* 交信は途絶えた。別の航路で宇宙の奥へ向かう導線 */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1.2, delay: 2.8 }}
+          className="mt-16"
+        >
+          <Link
+            href="/voyage/"
+            className="group inline-flex flex-col items-center gap-3"
+            aria-label="Voyage — スクロールで宇宙の奥へ進む航行体験へ"
+          >
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] text-nebula-300/40">
+              — Re-establishing another route —
+            </span>
+            <span className="relative font-mono text-xs uppercase tracking-[0.35em] text-aurum-200/90 transition-colors group-hover:text-aurum-100 sm:text-sm">
+              Enter the Voyage
+              <span className="absolute -bottom-2 left-0 h-px w-full origin-left scale-x-0 bg-aurum-300/70 transition-transform duration-500 group-hover:scale-x-100" />
+            </span>
+          </Link>
         </motion.div>
       </div>
     </section>
