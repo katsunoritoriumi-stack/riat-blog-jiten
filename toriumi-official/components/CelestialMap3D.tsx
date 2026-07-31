@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { CameraControls, Stars, Html } from "@react-three/drei";
 import { EffectComposer, Bloom, GodRays } from "@react-three/postprocessing";
 // 型だけ借りる。実体は drei が持つもの（install 済み）を使う
@@ -131,6 +131,7 @@ const PLANETS: Record<string, PlanetConfig> = {
 };
 
 const CORE_SIZE = 1.5;
+const CAMERA_FOV = 45;
 
 /**
  * drei の Html は distanceFactor / カメラ距離 で拡大する。
@@ -269,16 +270,6 @@ function PlanetLabel({
           }}
         >
           {data.titleEn}
-        </span>
-        <span
-          className="mt-[3px] block text-[10px] tracking-wide transition-opacity duration-300"
-          style={{
-            color: "rgba(226,222,246,0.8)",
-            textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.8)",
-            opacity: active ? 1 : 0.85,
-          }}
-        >
-          {data.titleJp}
         </span>
         {/* ホバー・選択で下線がすっと引かれる */}
         <span
@@ -486,6 +477,8 @@ function OrbitTrack({ radius }: { radius: number }) {
 function Planet({
   data,
   cfg,
+  radiusScale,
+  sizeScale,
   textures,
   reduced,
   shadows,
@@ -496,6 +489,10 @@ function Planet({
 }: {
   data: Domain;
   cfg: PlanetConfig;
+  /** 画面が縦長のときは軌道を詰める（引きすぎて全部小さくなるのを避ける） */
+  radiusScale: number;
+  /** 天体そのものの拡大率 */
+  sizeScale: number;
   textures: TextureSet | null;
   reduced: boolean;
   shadows: boolean;
@@ -517,8 +514,9 @@ function Planet({
     // 左巻き（上から見て反時計回り）に公転させる
     if (!frozen) angleRef.current -= delta * cfg.speed;
     const a = angleRef.current;
-    const x = Math.cos(a) * cfg.radius;
-    const z = Math.sin(a) * cfg.radius;
+    const r = cfg.radius * radiusScale;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
     groupRef.current.position.set(x, 0, z);
     positions.get(data.key)?.set(x, 0, z);
     if (!reduced) meshRef.current.rotation.y -= delta * 0.22; // 自転も公転と同じ向き
@@ -539,6 +537,7 @@ function Planet({
     onSelect(focused ? null : data.key);
   };
 
+  const size = cfg.size * sizeScale;
   const active = hovered || focused;
   const map = textures?.skins[cfg.skin] ?? null;
   const normalMap = cfg.normalScale > 0 ? (textures?.normal ?? null) : null;
@@ -562,11 +561,11 @@ function Planet({
       >
         {/* 当たり判定を広げる透明球 */}
         <mesh visible={false}>
-          <sphereGeometry args={[cfg.size * 2.2, 8, 8]} />
+          <sphereGeometry args={[size * 2.2, 8, 8]} />
         </mesh>
 
         <mesh ref={meshRef} castShadow={shadows} receiveShadow={shadows}>
-          <sphereGeometry args={[cfg.size, 64, 64]} />
+          <sphereGeometry args={[size, 64, 64]} />
           <meshStandardMaterial
             map={map}
             color={map ? "#ffffff" : cfg.accent}
@@ -582,7 +581,7 @@ function Planet({
         {/* 大気層（森と海の惑星のみ） */}
         {cfg.atmosphere && (
           <mesh scale={1.05}>
-            <sphereGeometry args={[cfg.size, 32, 32]} />
+            <sphereGeometry args={[size, 32, 32]} />
             <meshStandardMaterial
               color={cfg.atmosphere}
               transparent
@@ -595,7 +594,7 @@ function Planet({
 
         {/* 選択・ホバー時に灯る輪郭光 */}
         <mesh scale={active ? 1.55 : 1.28} visible={active}>
-          <sphereGeometry args={[cfg.size, 24, 24]} />
+          <sphereGeometry args={[size, 24, 24]} />
           <meshBasicMaterial
             color={cfg.accent}
             transparent
@@ -609,7 +608,7 @@ function Planet({
 
       <Html
         distanceFactor={HTML_DISTANCE_FACTOR}
-        position={[0, cfg.size + 0.7, 0]}
+        position={[0, size + 0.7, 0]}
         center
         zIndexRange={[30, 0]}
         style={{ pointerEvents: "auto" }}
@@ -628,6 +627,37 @@ function Planet({
   );
 }
 
+/**
+ * 俯瞰位置を枠の縦横比から決める。
+ * 距離を固定にすると、横長では余白だらけ・縦長では軌道がはみ出す、が両立してしまう。
+ * 「最外軌道が必ず入る距離」を横と縦の両方から求め、大きい方を採る。
+ */
+function ResponsiveHome({
+  homeRef,
+  rMax,
+  elevation,
+}: {
+  homeRef: React.RefObject<[number, number, number]>;
+  rMax: number;
+  elevation: number;
+}) {
+  const size = useThree((st) => st.size);
+
+  useEffect(() => {
+    const halfAngle = Math.tan((CAMERA_FOV * Math.PI) / 360);
+    const aspect = size.width / Math.max(1, size.height);
+    const need = rMax * 1.12; // ラベル用の余白
+    // 横方向：halfW = halfAngle * d * aspect ≥ need
+    const dW = need / (halfAngle * Math.max(0.3, aspect));
+    // 縦方向：円盤は傾いて見えるので、縦の広がりは rMax * sin(仰角)
+    const dH = (need * Math.sin(elevation) + 1.6) / halfAngle;
+    const d = Math.max(11, dW, dH);
+    homeRef.current = [0, d * Math.sin(elevation), d * Math.cos(elevation)];
+  }, [size.width, size.height, rMax, elevation, homeRef]);
+
+  return null;
+}
+
 /* ─────────────────────────────────────────────
    カメラ追従：選ばれた星へ寄り、解除で俯瞰へ戻る
    ───────────────────────────────────────────── */
@@ -640,7 +670,7 @@ function FocusRig({
   controlsRef: React.RefObject<CameraControlsImpl | null>;
   focusedKey: string | null;
   positions: PositionMap;
-  home: [number, number, number];
+  home: React.RefObject<[number, number, number]>;
 }) {
   const tmp = useRef(new THREE.Vector3());
 
@@ -657,7 +687,8 @@ function FocusRig({
       dir.multiplyScalar((r + dist) / r);
       c.setLookAt(dir.x, size * 1.6, dir.z, p.x, p.y, p.z, true);
     } else {
-      c.setLookAt(home[0], home[1], home[2], 0, 0, 0, true);
+      const h = home.current;
+      c.setLookAt(h[0], h[1], h[2], 0, 0, 0, true);
     }
   });
 
@@ -762,7 +793,18 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
     [planets]
   );
 
-  const home: [number, number, number] = compact ? [0, 10, 30] : [0, 8, 22];
+  /**
+   * 縦長の画面では、直径24単位の円盤を横幅に収めるためにカメラを大きく引くしかなく、
+   * 結果すべてが小さく窮屈になる。モバイルでは軌道自体を詰め、
+   * さらに見下ろす角度を強めて縦の余白を使う。
+   */
+  const radiusScale = compact ? 0.62 : 1;
+  /** 惑星が点にしか見えないのを避けるため、モバイルでは天体だけ大きくする */
+  const sizeScale = compact ? 1.15 : 1;
+  /** 縦長のモバイルは見下ろす角度を強めて、縦の余白を使う */
+  const elevation = compact ? 0.55 : 0.4;
+  const rMax = 12 * radiusScale;
+  const homeRef = useRef<[number, number, number]>([0, 8, 21]);
   const shadows = !compact;
 
   /** 余白クリックで俯瞰へ戻す。ラベル（DOM オーバーレイ）上のクリックは対象外 */
@@ -794,7 +836,7 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
   return (
     <Canvas
       shadows={shadows}
-      camera={{ position: home, fov: 45, near: 0.1, far: 400 }}
+      camera={{ position: homeRef.current, fov: CAMERA_FOV, near: 0.1, far: 400 }}
       dpr={[1, 2]}
       frameloop={paused ? "demand" : "always"}
       onPointerMissed={handleMissed}
@@ -836,7 +878,7 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
       />
 
       {planets.map((d) => (
-        <OrbitTrack key={`ring-${d.key}`} radius={PLANETS[d.key].radius} />
+        <OrbitTrack key={`ring-${d.key}`} radius={PLANETS[d.key].radius * radiusScale} />
       ))}
 
       {planets.map((d) => (
@@ -844,6 +886,8 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
           key={d.key}
           data={d}
           cfg={PLANETS[d.key]}
+          radiusScale={radiusScale}
+          sizeScale={sizeScale}
           textures={textures}
           reduced={reduced}
           shadows={shadows}
@@ -858,8 +902,9 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
         controlsRef={controlsRef}
         focusedKey={focusedKey}
         positions={positions}
-        home={home}
+        home={homeRef}
       />
+      <ResponsiveHome homeRef={homeRef} rMax={rMax} elevation={elevation} />
 
       <CameraControls
         ref={setupControls}
