@@ -1,132 +1,157 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { Component, type ReactNode, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import SectionHeader from "./ui/SectionHeader";
 import { DOMAINS } from "@/lib/content";
-import { playSfx } from "@/lib/sfx";
 
-/* ─────────────────────────────────────────────
-   装飾ジオメトリ（SSR ハイドレーション対策で全て丸めた決定値）
-   ───────────────────────────────────────────── */
-const r2 = (v: number) => Math.round(v * 100) / 100;
+/**
+ * 創造の座標軸。中身は three.js 製の 3D 天球図（CelestialMap3D）。
+ * three.js は重い（gzip 約230KB）ので、
+ *   ① next/dynamic + ssr:false でメインバンドルから切り離し
+ *   ② セクションが画面に近づいてから読み込み開始（IntersectionObserver）
+ * とすることで、トップ表示（ブート演出・UFO動画）の速度を落とさない。
+ * 画面外に出ている間は描画ループを止める（電池・GPU 節約）。
+ */
 
-/** 背景の微細な星々：シード付き擬似乱数で常に同じ空 */
-const BG_STARS = (() => {
-  let s = 20260702;
-  const rnd = () => {
-    s = (s * 1664525 + 1013904223) % 4294967296;
-    return s / 4294967296;
-  };
-  return Array.from({ length: 64 }, (_, i) => ({
-    x: r2(3 + rnd() * 94),
-    y: r2(3 + rnd() * 94),
-    r: r2(0.1 + rnd() * 0.28),
-    o: r2(0.15 + rnd() * 0.45),
-    tw: i % 4 === 0, // 4つに1つは瞬く
-    d: r2(rnd() * 4),
-  }));
-})();
-
-/** 外周リングの方位目盛り（15°刻み・90°ごとに長い目盛り） */
-const TICKS = Array.from({ length: 24 }, (_, i) => {
-  const a = (i * 15 * Math.PI) / 180;
-  const inner = i % 6 === 0 ? 44.6 : 45.9;
-  return {
-    x1: r2(50 + Math.cos(a) * inner),
-    y1: r2(50 + Math.sin(a) * inner),
-    x2: r2(50 + Math.cos(a) * 47.2),
-    y2: r2(50 + Math.sin(a) * 47.2),
-    major: i % 6 === 0,
-  };
+const CelestialMap3D = dynamic(() => import("./CelestialMap3D"), {
+  ssr: false,
+  loading: () => <MapPlaceholder />,
 });
 
-/** 方位ラベル（天球図の経度表記） */
-const DEGREES = [
-  { label: "0°", x: 50, y: 5.2, anchor: "middle" },
-  { label: "90°", x: 95.5, y: 51, anchor: "end" },
-  { label: "180°", x: 50, y: 96.4, anchor: "middle" },
-  { label: "270°", x: 4.5, y: 51, anchor: "start" },
-] as const;
+/** 読み込み中に出る、静かな星の待機画面 */
+function MapPlaceholder() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <span className="h-2 w-2 animate-pulse-glow rounded-full bg-aurum-300" />
+        <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-nebula-300/45">
+          Establishing orbital link
+        </span>
+      </div>
+    </div>
+  );
+}
 
-/** 同心軌道リング半径 */
-const ORBITS = [15, 27, 39, 47.2];
+/**
+ * WebGL が使えない／3D の初期化に失敗した場合の代替表示。
+ * 3D の中にしかリンクが無いと、この状況で各ドメインへの導線が丸ごと消えてしまうため、
+ * 素のリンク一覧に必ず退避できるようにしておく。
+ */
+function DomainListFallback() {
+  const items = DOMAINS.filter((d) => !d.hidden);
+  return (
+    <div className="absolute inset-0 flex flex-col justify-center gap-6 px-8 py-10">
+      <p className="text-center font-mono text-[9px] uppercase tracking-[0.35em] text-nebula-300/45">
+        Orbital view unavailable — direct links
+      </p>
+      <ul className="mx-auto grid w-full max-w-lg grid-cols-2 gap-x-6 gap-y-3">
+        {items.map((d) => {
+          const links = d.links ?? (d.href ? [{ label: d.titleJp, href: d.href }] : []);
+          return (
+            <li key={d.key} className="border-t border-nebula-500/20 pt-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-aurum-300/70">
+                {d.titleEn}
+              </p>
+              <div className="mt-1 flex flex-col gap-0.5">
+                {links.map((l) =>
+                  l.href.startsWith("/") ? (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      className="text-xs text-nebula-200/80 underline decoration-nebula-400/30 underline-offset-4 hover:text-aurum-200"
+                    >
+                      {l.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={l.href}
+                      href={l.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-nebula-200/80 underline decoration-nebula-400/30 underline-offset-4 hover:text-aurum-200"
+                    >
+                      {l.label}
+                    </a>
+                  )
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** 3D 側で例外が出てもページ全体を巻き込まないための境界 */
+class MapBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? <DomainListFallback /> : this.props.children;
+  }
+}
+
+/** WebGL が実際に取れるかを一度だけ判定する */
+function detectWebGL(): boolean {
+  try {
+    const cv = document.createElement("canvas");
+    const gl = cv.getContext("webgl2") || cv.getContext("webgl");
+    // 判定用に取った context は即返す（同時に持てる数に上限があるため）
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    return !!gl;
+  } catch {
+    return false;
+  }
+}
 
 export default function ConstellationMap() {
-  const center = DOMAINS.find((d) => d.key === "connect")!;
-  const outer = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden);
-  const [openKey, setOpenKey] = useState<string | null>(null);
-  // ホバーでの開閉：星→ポップオーバー間の隙間を跨ぐ一瞬だけ、閉じる側にごく短い猶予を持たせる
-  // （開くのは常に即時。猶予がないと隙間を通過する間にちらついて閉じてしまう）
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cancelClose = () => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  };
-  const openHover = (key: string) => {
-    cancelClose();
-    setOpenKey(key);
-  };
-  const scheduleClose = () => {
-    cancelClose();
-    closeTimerRef.current = setTimeout(() => setOpenKey(null), 140);
-  };
-  useEffect(() => cancelClose, []);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false); // 読み込み開始
+  const [visible, setVisible] = useState(true); // 画面内＝描画ループを回す
+  const [webgl, setWebgl] = useState<boolean | null>(null);
 
-  // 外周星座線：隣接する星同士を結ぶ（content.ts の並び＝時計回り）
-  const perimeter = outer.map((d, i) => {
-    const next = outer[(i + 1) % outer.length];
-    return { key: `peri-${d.key}`, x1: d.x, y1: d.y, x2: next.x, y2: next.y };
-  });
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
 
-  const dotClass =
-    "block h-3 w-3 rounded-full transition-all duration-300 group-hover:scale-150";
-  const dotStyle = {
-    background: "radial-gradient(circle, #c4b5fd, #7c3aed)",
-    boxShadow: "0 0 12px rgba(167,139,250,0.7)",
-  } as const;
-  const labelClass =
-    "pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-void-900/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-nebula-200/90 ring-1 ring-nebula-400/25 backdrop-blur-sm transition-colors group-hover:text-aurum-200 group-hover:ring-aurum-300/50 sm:text-[11px]";
+    setWebgl(detectWebGL());
 
-  /** タップ可能と分かる星のノード（広いタップ領域＋常時リング） */
-  const starNode = (open = false) => (
-    <>
-      {/* モバイル向けの広いタップ領域（透明・44px） */}
-      <span
-        aria-hidden
-        className="absolute left-1/2 top-1/2 h-11 w-11 -translate-x-1/2 -translate-y-1/2 rounded-full"
-      />
-      {/* 常時リング＝インタラクティブなノードであることを示す */}
-      <span
-        className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all duration-300 ${
-          open
-            ? "h-8 w-8 border-aurum-300/70"
-            : "h-6 w-6 border-nebula-300/45 group-hover:h-7 group-hover:w-7 group-hover:border-aurum-300/70"
-        }`}
-      />
-      {/* にじむ光輪 */}
-      <span className="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse-glow rounded-full bg-nebula-400/30 blur-[6px]" />
-    </>
-  );
+    // ① 画面の 400px 手前まで来たら即読み込み
+    const pre = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setNear(true);
+          pre.disconnect();
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    pre.observe(el);
 
-  /** 星の回折スパイク（十字の光条） */
-  const spikes = (gold = false) => (
-    <>
-      <span
-        className={`pointer-events-none absolute left-1/2 top-1/2 h-px -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent to-transparent ${
-          gold ? "w-10 via-aurum-200/80" : "w-7 via-nebula-200/60"
-        }`}
-      />
-      <span
-        className={`pointer-events-none absolute left-1/2 top-1/2 w-px -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-transparent to-transparent ${
-          gold ? "h-10 via-aurum-200/80" : "h-7 via-nebula-200/60"
-        }`}
-      />
-    </>
-  );
+    // ② スクロールされなくても、表示が落ち着いた頃に裏で先読みしておく
+    //    （到達したときには読み込み済み＝待ち時間ゼロ。初期表示はすでに終わっている）
+    const idle = window.setTimeout(() => setNear(true), 3000);
+
+    // ③ 画面外の間は描画ループを止める（電池・GPU 節約）
+    const vis = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), {
+      rootMargin: "80px",
+    });
+    vis.observe(el);
+
+    return () => {
+      pre.disconnect();
+      vis.disconnect();
+      window.clearTimeout(idle);
+    };
+  }, []);
+
+  const domainCount = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden).length;
 
   return (
     <section id="universe" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
@@ -138,272 +163,45 @@ export default function ConstellationMap() {
         />
         <p className="mt-4 flex items-center gap-2 font-mono text-[11px] tracking-widest text-aurum-300/70">
           <span className="inline-block h-2 w-2 animate-pulse-glow rounded-full bg-aurum-300" />
-          各星をタップして、それぞれの世界へ
+          ドラッグで視点を回し、各星をタップしてそれぞれの世界へ
         </p>
       </div>
 
-      {/* star chart — 深宇宙の天球図。各星がリンク */}
-      <div className="relative mx-auto aspect-square w-full max-w-2xl overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950/60 backdrop-blur-sm">
+      {/* star chart — 公転する天球図。各星がリンク */}
+      <motion.div
+        ref={boxRef}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative mx-auto h-[clamp(420px,72vh,660px)] w-full max-w-4xl overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950/60 backdrop-blur-sm"
+      >
         {/* 奥行きの星雲ウォッシュ＋ヴィネット */}
-        <div className="pointer-events-none absolute inset-0 nebula-bg opacity-60" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(3,2,10,0.7)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 nebula-bg opacity-50" />
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,transparent_55%,rgba(3,2,10,0.75)_100%)]" />
 
-        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-          {/* ── 背景の星々 ── */}
-          {BG_STARS.map((s, i) => (
-            <circle
-              key={`bg-${i}`}
-              cx={s.x}
-              cy={s.y}
-              r={s.r}
-              fill="#e7e3ff"
-              opacity={s.tw ? undefined : s.o}
-              className={s.tw ? "star-twinkle" : undefined}
-              style={s.tw ? { animationDelay: `${s.d}s` } : undefined}
-            />
-          ))}
-
-          {/* ── 天球グリッド：同心軌道（外側2本は逆方向に微回転）── */}
-          <g className="map-rotate">
-            <circle cx="50" cy="50" r={ORBITS[3]} fill="none" stroke="rgba(167,139,250,0.16)" strokeWidth="0.22" strokeDasharray="0.6 1.8" />
-            <circle cx="50" cy="50" r={ORBITS[1]} fill="none" stroke="rgba(167,139,250,0.1)" strokeWidth="0.18" strokeDasharray="0.4 2.2" />
-          </g>
-          <g className="map-rotate-rev">
-            <circle cx="50" cy="50" r={ORBITS[2]} fill="none" stroke="rgba(167,139,250,0.12)" strokeWidth="0.18" strokeDasharray="1.4 2.6" />
-          </g>
-          <circle cx="50" cy="50" r={ORBITS[0]} fill="none" stroke="rgba(240,180,41,0.14)" strokeWidth="0.18" strokeDasharray="0.3 1.6" />
-
-          {/* ── 座標軸（十字）── */}
-          <line x1="50" y1="4" x2="50" y2="96" stroke="rgba(167,139,250,0.07)" strokeWidth="0.18" />
-          <line x1="4" y1="50" x2="96" y2="50" stroke="rgba(167,139,250,0.07)" strokeWidth="0.18" />
-          {/* 中心のクロスヘア */}
-          <line x1="46.5" y1="50" x2="53.5" y2="50" stroke="rgba(240,180,41,0.35)" strokeWidth="0.2" />
-          <line x1="50" y1="46.5" x2="50" y2="53.5" stroke="rgba(240,180,41,0.35)" strokeWidth="0.2" />
-
-          {/* ── 方位目盛りとラベル ── */}
-          {TICKS.map((t, i) => (
-            <line
-              key={`tick-${i}`}
-              x1={t.x1}
-              y1={t.y1}
-              x2={t.x2}
-              y2={t.y2}
-              stroke={t.major ? "rgba(240,180,41,0.4)" : "rgba(167,139,250,0.25)"}
-              strokeWidth={t.major ? 0.3 : 0.18}
-            />
-          ))}
-          {DEGREES.map((d) => (
-            <text
-              key={d.label}
-              x={d.x}
-              y={d.y}
-              textAnchor={d.anchor}
-              fill="rgba(167,139,250,0.45)"
-              style={{ fontSize: "2.6px", fontFamily: "var(--font-mono)", letterSpacing: "0.1em" }}
-            >
-              {d.label}
-            </text>
-          ))}
-
-          {/* ── 外周星座線：星から星へ ── */}
-          {perimeter.map((l, i) => (
-            <motion.line
-              key={l.key}
-              x1={l.x1}
-              y1={l.y1}
-              x2={l.x2}
-              y2={l.y2}
-              stroke="rgba(167,139,250,0.14)"
-              strokeWidth={0.22}
-              strokeDasharray="1.2 1.6"
-              initial={{ pathLength: 0, opacity: 0 }}
-              whileInView={{ pathLength: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.2, delay: 1.2 + i * 0.1, ease: "easeOut" }}
-            />
-          ))}
-
-          {/* ── 結線：ビューに入ると中心から描き上がる ── */}
-          {outer.map((d, i) => (
-            <motion.line
-              key={`l-${d.key}`}
-              x1={center.x}
-              y1={center.y}
-              x2={d.x}
-              y2={d.y}
-              stroke="rgba(167,139,250,0.22)"
-              strokeWidth={0.3}
-              initial={{ pathLength: 0, opacity: 0 }}
-              whileInView={{ pathLength: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.1, delay: 0.25 + i * 0.12, ease: "easeOut" }}
-            />
-          ))}
-          {/* ── 光のパルス：中心から各星へ、時差をつけて静かに走る ── */}
-          {outer.map((d, i) => (
-            <motion.circle
-              key={`p-${d.key}`}
-              r={0.7}
-              fill="#fceabb"
-              initial={{ opacity: 0 }}
-              animate={{
-                cx: [center.x, (center.x + d.x) / 2, d.x],
-                cy: [center.y, (center.y + d.y) / 2, d.y],
-                opacity: [0, 0.85, 0],
-              }}
-              transition={{
-                duration: 2.4,
-                delay: 2 + i * 1.7,
-                repeat: Infinity,
-                repeatDelay: 8.5,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
-        </svg>
+        {webgl === false ? (
+          <DomainListFallback />
+        ) : near && webgl ? (
+          <MapBoundary>
+            <CelestialMap3D paused={!visible} />
+          </MapBoundary>
+        ) : (
+          <MapPlaceholder />
+        )}
 
         {/* ── HUD コーナーブラケット＋観測メタ情報 ── */}
-        <span className="pointer-events-none absolute left-4 top-4 h-4 w-4 rounded-tl border-l border-t border-aurum-300/40" />
-        <span className="pointer-events-none absolute right-4 top-4 h-4 w-4 rounded-tr border-r border-t border-aurum-300/40" />
-        <span className="pointer-events-none absolute bottom-4 left-4 h-4 w-4 rounded-bl border-b border-l border-aurum-300/40" />
-        <span className="pointer-events-none absolute bottom-4 right-4 h-4 w-4 rounded-br border-b border-r border-aurum-300/40" />
-        <span className="pointer-events-none absolute left-7 top-6 font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/50 sm:text-[9px]">
+        <span className="pointer-events-none absolute left-4 top-4 z-[2] h-4 w-4 rounded-tl border-l border-t border-aurum-300/40" />
+        <span className="pointer-events-none absolute right-4 top-4 z-[2] h-4 w-4 rounded-tr border-r border-t border-aurum-300/40" />
+        <span className="pointer-events-none absolute bottom-4 left-4 z-[2] h-4 w-4 rounded-bl border-b border-l border-aurum-300/40" />
+        <span className="pointer-events-none absolute bottom-4 right-4 z-[2] h-4 w-4 rounded-br border-b border-r border-aurum-300/40" />
+        <span className="pointer-events-none absolute left-7 top-6 z-[2] font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/50 sm:text-[9px]">
           Celestial Map — K.T.
         </span>
-        <span className="pointer-events-none absolute bottom-6 right-7 font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/50 sm:text-[9px]">
-          {outer.length} Domains · 1 Core
+        <span className="pointer-events-none absolute bottom-6 right-7 z-[2] font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/50 sm:text-[9px]">
+          {domainCount} Domains · 1 Core
         </span>
-
-        {/* outer category stars */}
-        {outer.map((d, i) => {
-          const external = d.href?.startsWith("http");
-          const wrapStyle = { left: `${d.x}%`, top: `${d.y}%` };
-          const reveal = {
-            initial: { opacity: 0, scale: 0 },
-            whileInView: { opacity: 1, scale: 1 },
-            viewport: { once: true },
-            transition: { duration: 0.5, delay: i * 0.08 },
-          } as const;
-
-          // multi-link star → toggles a small popover
-          if (d.links) {
-            const open = openKey === d.key;
-            // lower-half stars open the popover upward so it never clips
-            const up = d.y > 55;
-            return (
-              <motion.div
-                key={d.key}
-                {...reveal}
-                onMouseEnter={() => openHover(d.key)}
-                onMouseLeave={scheduleClose}
-                className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
-                style={wrapStyle}
-              >
-                <button
-                  onClick={() => {
-                    playSfx("chime");
-                    cancelClose();
-                    setOpenKey(open ? null : d.key);
-                  }}
-                  className="relative block"
-                  aria-label={d.titleEn}
-                >
-                  {starNode(open)}
-                  {spikes()}
-                  <span className={`${dotClass} ${open ? "scale-150" : ""}`} style={dotStyle} />
-                  <span className={labelClass}>{d.titleEn}</span>
-                </button>
-                {open && (
-                  <div
-                    className={`absolute left-1/2 flex -translate-x-1/2 flex-col gap-1 rounded-xl glass p-2 ${
-                      up ? "bottom-full mb-5" : "top-full mt-5"
-                    }`}
-                  >
-                    {d.links.map((l) => {
-                      const internal = l.href.startsWith("/");
-                      const cls =
-                        "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs text-nebula-200 transition-colors hover:bg-aurum-400/10 hover:text-aurum-200";
-                      // 内部ページ（App/Website 一覧）は Next のクライアントルーティングで遷移。
-                      // 外部リンクは通常どおり新規タブ。
-                      return internal ? (
-                        <Link key={l.href} href={l.href} className={cls}>
-                          {l.label}
-                        </Link>
-                      ) : (
-                        <a
-                          key={l.href}
-                          href={l.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cls}
-                        >
-                          {l.label}
-                        </a>
-                      );
-                    })}
-                  </div>
-                )}
-              </motion.div>
-            );
-          }
-
-          // single-link star
-          return (
-            <motion.a
-              key={d.key}
-              href={d.href}
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener noreferrer" : undefined}
-              {...reveal}
-              whileHover={{ scale: 1.2 }}
-              onClick={() => playSfx("chime")}
-              className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={wrapStyle}
-              aria-label={d.titleEn}
-            >
-              {starNode()}
-              {spikes()}
-              <span className={dotClass} style={dotStyle} />
-              <span className={labelClass}>{d.titleEn}</span>
-            </motion.a>
-          );
-        })}
-
-        {/* center node → LINE */}
-        <motion.a
-          href={center.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          initial={{ opacity: 0, scale: 0 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          whileHover={{ scale: 1.15 }}
-          onClick={() => playSfx("chime")}
-          className="group absolute -translate-x-1/2 -translate-y-1/2"
-          style={{ left: `${center.x}%`, top: `${center.y}%` }}
-          aria-label="LINE でつながる"
-        >
-          {/* モバイル向けの広いタップ領域 */}
-          <span
-            aria-hidden
-            className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          />
-          {/* 回転する破線リング：中心＝Connect を静かに強調 */}
-          <span className="pointer-events-none absolute -inset-2.5 animate-spin-slow rounded-full border border-dashed border-aurum-300/40" />
-          {spikes(true)}
-          <span
-            className="block h-6 w-6 animate-pulse-glow rounded-full"
-            style={{
-              background: "radial-gradient(circle, #fceabb, #f0b429)",
-              boxShadow: "0 0 26px 4px rgba(240,180,41,0.8)",
-            }}
-          />
-          <span className="pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded-full bg-aurum-400/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-aurum-200 ring-1 ring-aurum-300/40 backdrop-blur-sm sm:text-[11px]">
-            Connect
-          </span>
-        </motion.a>
-      </div>
+      </motion.div>
     </section>
   );
 }
