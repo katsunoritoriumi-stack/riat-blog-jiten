@@ -35,10 +35,10 @@ export default function Home() {
           大きいほど「そこへ向かう航行」と「滞在」が長くなる。 */}
       <ZoomStage
         stations={[
-          { id: "home", node: <Hero />, scroll: 1.8 },
+          { id: "home", node: <Hero />, scroll: 2.2 },
           {
             id: "manifesto",
-            scroll: 2.3,
+            scroll: 2.9,
             node: (
               <>
                 <Manifesto />
@@ -46,14 +46,14 @@ export default function Home() {
               </>
             ),
           },
-          { id: "universe", node: <ConstellationMap />, scroll: 3 },
-          { id: "sound", node: <SoundVisionSection />, scroll: 2.3 },
-          { id: "digital", node: <DigitalAISection />, scroll: 2.3 },
-          { id: "connect", node: <ConnectSection />, scroll: 2.8 },
-          { id: "report", node: <LegacyStatement />, scroll: 2.8 },
+          { id: "universe", node: <ConstellationMap />, scroll: 3.6 },
+          { id: "sound", node: <SoundVisionSection />, scroll: 2.9 },
+          { id: "digital", node: <DigitalAISection />, scroll: 2.9 },
+          { id: "connect", node: <ConnectSection />, scroll: 3.4 },
+          { id: "report", node: <LegacyStatement />, scroll: 3.4 },
           {
             id: "end",
-            scroll: 2.2,
+            scroll: 2.6,
             node: (
               <>
                 <SignalLost />

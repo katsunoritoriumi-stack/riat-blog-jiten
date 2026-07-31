@@ -6,6 +6,7 @@ import {
   cruiseSpeed,
   depthAlpha,
   flightVelocity,
+  smoothstep,
   thrustStep,
   Z_FAR,
   Z_NEAR,
@@ -41,6 +42,128 @@ const HUES: [string, string][] = [
   ["#a78bfa", "rgba(167,139,250,"],
   ["#5eead4", "rgba(94,234,212,"],
 ];
+
+/* ── 航行中に通り過ぎる天体（星雲・惑星） ──────────────
+   星屑よりずっと遠くから、ゆっくり近づいて脇を通り抜ける。
+   セクションとセクションの間（何も表示されない航行区間）に
+   「移動している」実感を与えるための要素。
+   ───────────────────────────────────────────── */
+
+const FLYBY_FAR = 5; // 飛来物の最遠。星屑(1.6)よりずっと遠く＝通過に時間がかかる
+const FLYBY_NEAR = 0.16;
+
+/** 星雲の色（サイトのパレット寄り） */
+const NEBULA_RGB: [number, number, number][] = [
+  [124, 58, 237], // 紫
+  [56, 132, 214], // 青
+  [214, 92, 148], // 薄紅
+];
+/** 惑星の色 */
+const PLANET_RGB: [number, number, number][] = [
+  [196, 138, 92], // 砂色
+  [96, 132, 196], // 青
+  [172, 150, 210], // 藤色（環あり）
+];
+
+function newSprite(size: number) {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  return c;
+}
+
+/** もやのかたまりを重ねて星雲を焼く */
+function makeNebulaSprite([r, g, b]: [number, number, number]): HTMLCanvasElement {
+  const S = 256;
+  const cv = newSprite(S);
+  const x = cv.getContext("2d")!;
+  x.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 7; i++) {
+    const px = S / 2 + (Math.random() - 0.5) * S * 0.55;
+    const py = S / 2 + (Math.random() - 0.5) * S * 0.55;
+    const rad = S * (0.16 + Math.random() * 0.26);
+    const grd = x.createRadialGradient(px, py, 0, px, py, rad);
+    grd.addColorStop(0, `rgba(${r},${g},${b},0.5)`);
+    grd.addColorStop(0.45, `rgba(${r},${g},${b},0.14)`);
+    grd.addColorStop(1, "rgba(0,0,0,0)");
+    x.fillStyle = grd;
+    x.beginPath();
+    x.arc(px, py, rad, 0, Math.PI * 2);
+    x.fill();
+  }
+  // 中に散る小さな輝き
+  for (let i = 0; i < 26; i++) {
+    const px = S / 2 + (Math.random() - 0.5) * S * 0.7;
+    const py = S / 2 + (Math.random() - 0.5) * S * 0.7;
+    x.fillStyle = `rgba(255,255,255,${0.25 + Math.random() * 0.5})`;
+    x.beginPath();
+    x.arc(px, py, Math.random() * 1.4 + 0.4, 0, Math.PI * 2);
+    x.fill();
+  }
+  return cv;
+}
+
+/** 光の当たった球として惑星を焼く（環つきも作れる） */
+function makePlanetSprite([r, g, b]: [number, number, number], ring: boolean): HTMLCanvasElement {
+  const S = 256;
+  const cv = newSprite(S);
+  const x = cv.getContext("2d")!;
+  const cx = S / 2;
+  const cy = S / 2;
+  const R = S * 0.3;
+  const lit = `rgb(${Math.min(255, r + 78)},${Math.min(255, g + 74)},${Math.min(255, b + 66)})`;
+  const mid = `rgb(${r},${g},${b})`;
+  const dark = `rgb(${Math.round(r * 0.14)},${Math.round(g * 0.14)},${Math.round(b * 0.2)})`;
+
+  const drawRing = () => {
+    x.save();
+    x.translate(cx, cy);
+    x.rotate(-0.32);
+    x.strokeStyle = `rgba(${Math.min(255, r + 40)},${Math.min(255, g + 36)},${Math.min(255, b + 30)},0.5)`;
+    x.lineWidth = S * 0.028;
+    x.beginPath();
+    x.ellipse(0, 0, R * 1.75, R * 0.46, 0, 0, Math.PI * 2);
+    x.stroke();
+    x.restore();
+  };
+
+  if (ring) drawRing(); // 奥側の環（このあと本体で半分隠れる）
+
+  const grd = x.createRadialGradient(cx - R * 0.42, cy - R * 0.42, R * 0.05, cx, cy, R * 1.02);
+  grd.addColorStop(0, lit);
+  grd.addColorStop(0.45, mid);
+  grd.addColorStop(1, dark);
+  x.fillStyle = grd;
+  x.beginPath();
+  x.arc(cx, cy, R, 0, Math.PI * 2);
+  x.fill();
+
+  if (ring) {
+    // 手前を通る側だけ描き足す（本体の下半分にかかる部分）
+    x.save();
+    x.beginPath();
+    x.rect(0, cy + R * 0.12, S, S);
+    x.clip();
+    drawRing();
+    x.restore();
+  }
+  return cv;
+}
+
+type Flyby = {
+  kind: 0 | 1; // 0=星雲 1=惑星
+  sprite: number;
+  x: number;
+  y: number;
+  z: number;
+  size: number; // 世界単位の半径
+  rot: number;
+  spin: number;
+};
+
+/** 遠すぎ／近すぎで消える（星屑より緩やかに出入りする） */
+const flybyAlpha = (z: number) =>
+  smoothstep(FLYBY_FAR, FLYBY_FAR * 0.5, z) * smoothstep(FLYBY_NEAR, FLYBY_NEAR * 3.4, z);
 
 type P = {
   x: number;
@@ -99,6 +222,30 @@ export default function DeepFlight({ className = "" }: { className?: string }) {
       return s;
     });
 
+    // 飛来物のスプライトも最初に一度だけ焼く
+    const nebulaSprites = NEBULA_RGB.map(makeNebulaSprite);
+    const planetSprites = PLANET_RGB.map((c, i) => makePlanetSprite(c, i === 2));
+    let flybys: Flyby[] = [];
+
+    function spawnFlyby(f: Flyby, atFar: boolean) {
+      f.z = atFar ? FLYBY_FAR : FLYBY_NEAR + Math.random() * (FLYBY_FAR - FLYBY_NEAR);
+      // 画面中央（＝本文が乗る場所）を避け、脇を通るように配置する。
+      // 位置は「z=1 のときの画面上の距離」で決めてから世界座標へ逆算する。
+      const ang = Math.random() * Math.PI * 2;
+      const half = Math.min(w, h) / 2;
+      const spread =
+        f.kind === 0 ? 0.3 + Math.random() * 0.75 : 0.5 + Math.random() * 0.85;
+      f.x = (Math.cos(ang) * half * spread) / focal;
+      f.y = (Math.sin(ang) * half * spread) / focal;
+      f.rot = Math.random() * Math.PI * 2;
+      f.spin = (Math.random() - 0.5) * 0.0022;
+      f.size =
+        f.kind === 0 ? 0.24 + Math.random() * 0.3 : 0.045 + Math.random() * 0.055;
+      f.sprite = Math.floor(
+        Math.random() * (f.kind === 0 ? nebulaSprites.length : planetSprites.length)
+      );
+    }
+
     function spawn(p: P, prog: number, atFar: boolean) {
       p.z = atFar ? Z_FAR : Z_NEAR + Math.random() * (Z_FAR - Z_NEAR);
       // その深さで画面に写る範囲へ撒く（視錐台に沿わせる）。
@@ -134,6 +281,16 @@ export default function DeepFlight({ className = "" }: { className?: string }) {
         spawn(p, 0, false);
         return p;
       });
+
+      // 星雲と惑星。数を絞り、奥行きをばらけさせて「たまに通り過ぎる」密度にする
+      const kinds: (0 | 1)[] = coarse ? [0, 0, 1, 1, 0] : [0, 0, 0, 0, 0, 1, 1, 1];
+      flybys = kinds.map((kind, i) => {
+        const f: Flyby = { kind, sprite: 0, x: 0, y: 0, z: 0, size: 0, rot: 0, spin: 0 };
+        spawnFlyby(f, false);
+        // 等間隔にずらして、同時に通り過ぎないようにする
+        f.z = FLYBY_NEAR + ((i + 0.5) / kinds.length) * (FLYBY_FAR - FLYBY_NEAR);
+        return f;
+      });
     }
 
     let raf = 0;
@@ -168,7 +325,42 @@ export default function DeepFlight({ className = "" }: { className?: string }) {
       const cy = h / 2 + (mouse.y - 0.5) * 28;
 
       c.clearRect(0, 0, w, h);
+
+      // ── 飛来物を進める（描画は種類ごとに順序を分ける） ──
+      for (const f of flybys) {
+        if (vz > 0) {
+          // 星屑より遅く進ませる＝遠くをゆっくり通り過ぎて見える
+          const next = f.z - vz * 0.7;
+          if (next <= FLYBY_NEAR) spawnFlyby(f, true);
+          else f.z = next;
+        }
+        if (!reduce) f.rot += f.spin * dt;
+      }
+
+      const drawFlyby = (kind: 0 | 1) => {
+        for (const f of flybys) {
+          if (f.kind !== kind) continue;
+          const a = flybyAlpha(f.z);
+          if (a <= 0.004) continue;
+          const k = focal / f.z;
+          const sx = cx + f.x * k;
+          const sy = cy + f.y * k;
+          const rad = f.size * k;
+          if (sx + rad < 0 || sx - rad > w || sy + rad < 0 || sy - rad > h) continue;
+          const sprite = kind === 0 ? nebulaSprites[f.sprite] : planetSprites[f.sprite];
+          c.globalAlpha = Math.min(1, a * (kind === 0 ? 0.72 : 1));
+          c.save();
+          c.translate(sx, sy);
+          c.rotate(f.rot);
+          c.drawImage(sprite, -rad, -rad, rad * 2, rad * 2);
+          c.restore();
+        }
+        c.globalAlpha = 1;
+      };
+
+      // 星雲はいちばん奥。加算合成でにじませる
       c.globalCompositeOperation = "lighter";
+      drawFlyby(0);
 
       // 色ごとにストリークを溜めて、最後にまとめて描く
       const streaks: number[][] = [[], [], []];
@@ -238,7 +430,10 @@ export default function DeepFlight({ className = "" }: { className?: string }) {
         c.stroke();
       }
 
+      // 惑星は実体なので最後に不透明で描く（星が透けない）
       c.globalCompositeOperation = "source-over";
+      drawFlyby(1);
+
       if (!reduce) raf = requestAnimationFrame(frame);
     }
 
