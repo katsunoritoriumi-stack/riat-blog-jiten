@@ -61,14 +61,15 @@ function StationStage({
   progress,
   start,
   span,
-  blur,
+  blurMax,
   last,
 }: {
   children: ReactNode;
   progress: MotionValue<number>;
   start: number;
   span: number;
-  blur: boolean;
+  /** ピント外れの最大量(px)。0 ならぼかさない */
+  blurMax: number;
   /** 最後のステーションは通過させない（次が無いので静止したまま終わる） */
   last: boolean;
 }) {
@@ -113,9 +114,11 @@ function StationStage({
   const blurPx = useTransform(
     q,
     [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO],
-    [BLUR_MAX, 0, 0, last ? 0 : BLUR_MAX],
+    [blurMax, 0, 0, last ? 0 : blurMax],
     easing
   );
+  // filter は必ず style に含める。外してしまうと、サーバーHTMLに焼き込まれた
+  // blur(...) を framer が上書きできず、ぼけたまま固まる（モバイルで発生した不具合）
   const filter = useTransform(blurPx, (v) => (v < 0.15 ? "none" : `blur(${v.toFixed(1)}px)`));
 
   // 画面に関係ない間は display:none にする。
@@ -164,7 +167,7 @@ function StationStage({
       style={{
         scale,
         opacity,
-        filter: blur ? filter : undefined,
+        filter,
         display: live ? undefined : "none",
         pointerEvents: interactive ? "auto" : "none",
       }}
@@ -191,9 +194,19 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
     return { start, span: wgt / total };
   });
 
-  // モバイル（粗いポインタ）ではフルスクリーンのぼかしが重いので切る
-  const blur =
-    typeof window !== "undefined" ? !window.matchMedia("(pointer: coarse)").matches : true;
+  /**
+   * フルスクリーンのぼかしはモバイルで重いので、細かいポインタ（＝PC）でだけ有効にする。
+   * 描画中に matchMedia を読むとサーバーとクライアントで結果が食い違い、
+   * サーバー側のぼかしが焼き付いてしまうため、マウント後に切り替える。
+   */
+  const [blurMax, setBlurMax] = useState(0);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: coarse)");
+    const sync = () => setBlurMax(mq.matches ? 0 : BLUR_MAX);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   if (reduce) {
     return (
@@ -235,7 +248,7 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
             progress={scrollYProgress}
             start={bands[i].start}
             span={bands[i].span}
-            blur={blur}
+            blurMax={blurMax}
             last={i === stations.length - 1}
           >
             {s.node}

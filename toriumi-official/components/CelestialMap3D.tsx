@@ -132,6 +132,23 @@ const PLANETS: Record<string, PlanetConfig> = {
 
 const CORE_SIZE = 1.5;
 
+/**
+ * drei の Html は distanceFactor / カメラ距離 で拡大する。
+ * 惑星をクリックしてカメラが寄ると距離が 4 程度まで縮み、ラベルが 4 倍近くに
+ * 膨れ上がって画面からはみ出す。見かけの倍率をこの範囲に収めるため、
+ * drei が掛けた分を内側で打ち消す。
+ */
+const HTML_DISTANCE_FACTOR = 16;
+const LABEL_SCALE_MIN = 0.6;
+const LABEL_SCALE_MAX = 1.05;
+
+/** カメラ距離から「内側で打ち消すべき倍率」を求める */
+function labelCounterScale(distance: number): number {
+  const applied = HTML_DISTANCE_FACTOR / Math.max(distance, 0.001);
+  const wanted = Math.min(LABEL_SCALE_MAX, Math.max(LABEL_SCALE_MIN, applied));
+  return wanted / applied;
+}
+
 type TextureSet = { normal: THREE.Texture; skins: Partial<Record<PlanetSkin, THREE.Texture>> };
 type PositionMap = Map<string, THREE.Vector3>;
 
@@ -181,6 +198,7 @@ function LinkRow({
  * 色はその惑星自身の色を使うので、天体ごとに佇まいが変わる。
  */
 function PlanetLabel({
+  rootRef,
   data,
   accent,
   active,
@@ -188,6 +206,7 @@ function PlanetLabel({
   onSelect,
   onHover,
 }: {
+  rootRef: React.RefObject<HTMLDivElement | null>;
   data: Domain;
   accent: string;
   active: boolean;
@@ -199,7 +218,9 @@ function PlanetLabel({
 
   return (
     <div
+      ref={rootRef}
       className="flex select-none flex-col items-center"
+      style={{ transformOrigin: "50% 100%" }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
     >
@@ -320,11 +341,17 @@ function CoreStar({
 }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const coronaRef = useRef<THREE.Mesh>(null!);
+  const labelRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const map = textures?.skins.plasma ?? null;
 
   useFrame((state, delta) => {
-    if (!reduced) meshRef.current.rotation.y += delta * 0.045;
+    if (!reduced) meshRef.current.rotation.y -= delta * 0.045; // 系全体と同じ左巻き
+    if (labelRef.current) {
+      // 惑星ラベルと同じく、寄ったときの巨大化を打ち消す
+      const d = state.camera.position.length();
+      labelRef.current.style.transform = `scale(${labelCounterScale(d).toFixed(3)})`;
+    }
     const t = state.clock.getElapsedTime();
     coronaRef.current.scale.setScalar(1 + Math.sin(t * 0.7) * 0.04 + (hovered ? 0.08 : 0));
   });
@@ -382,12 +409,14 @@ function CoreStar({
         />
       </mesh>
 
-      <Html distanceFactor={16} position={[0, CORE_SIZE + 1.1, 0]} center zIndexRange={[30, 0]}>
+      <Html distanceFactor={HTML_DISTANCE_FACTOR} position={[0, CORE_SIZE + 1.1, 0]} center zIndexRange={[30, 0]}>
         {/* 中心星も惑星と同じ注記の作法に揃える（箱で囲わない） */}
         <button
+          ref={labelRef as unknown as React.RefObject<HTMLButtonElement>}
           onClick={open}
           className="flex select-none flex-col items-center px-3 py-1"
           style={{
+            transformOrigin: "50% 100%",
             background:
               "radial-gradient(ellipse 130% 150% at 50% 50%, rgba(2,1,8,0.82) 0%, rgba(2,1,8,0.6) 45%, rgba(2,1,8,0) 78%)",
           }}
@@ -478,19 +507,27 @@ function Planet({
   const groupRef = useRef<THREE.Group>(null!);
   const meshRef = useRef<THREE.Mesh>(null!);
   const angleRef = useRef(cfg.phase);
+  const labelRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
 
   // ホバー中／フォーカス中は公転を止める（リンクを狙って押せるように）
   const frozen = hovered || focused || reduced;
 
-  useFrame((_, delta) => {
-    if (!frozen) angleRef.current += delta * cfg.speed;
+  useFrame((state, delta) => {
+    // 左巻き（上から見て反時計回り）に公転させる
+    if (!frozen) angleRef.current -= delta * cfg.speed;
     const a = angleRef.current;
     const x = Math.cos(a) * cfg.radius;
     const z = Math.sin(a) * cfg.radius;
     groupRef.current.position.set(x, 0, z);
     positions.get(data.key)?.set(x, 0, z);
-    if (!reduced) meshRef.current.rotation.y += delta * 0.22; // 自転
+    if (!reduced) meshRef.current.rotation.y -= delta * 0.22; // 自転も公転と同じ向き
+
+    // カメラが寄ってもラベルが巨大化しないよう、drei が掛けた倍率を打ち消す
+    if (labelRef.current) {
+      const d = state.camera.position.distanceTo(groupRef.current.position);
+      labelRef.current.style.transform = `scale(${labelCounterScale(d).toFixed(3)})`;
+    }
   });
 
   const setHover = (v: boolean) => {
@@ -571,13 +608,14 @@ function Planet({
       </group>
 
       <Html
-        distanceFactor={16}
+        distanceFactor={HTML_DISTANCE_FACTOR}
         position={[0, cfg.size + 0.7, 0]}
         center
         zIndexRange={[30, 0]}
         style={{ pointerEvents: "auto" }}
       >
         <PlanetLabel
+          rootRef={labelRef}
           data={data}
           accent={cfg.accent}
           active={active}
