@@ -50,8 +50,9 @@ export default function SignalLost() {
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className={`font-mono text-base uppercase tracking-[0.5em] sm:text-xl ${
-            settled ? "text-nebula-300/60" : "animate-flicker text-nebula-100"
+          style={{ textShadow: "0 2px 10px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.7)" }}
+          className={`font-mono text-lg uppercase tracking-[0.5em] sm:text-2xl ${
+            settled ? "text-nebula-200/75" : "animate-flicker text-nebula-50"
           }`}
         >
           Signal Lost
@@ -61,7 +62,8 @@ export default function SignalLost() {
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 1.4 }}
-          className="mt-6 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-300/40 sm:text-xs"
+          style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
+          className="mt-6 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-200/60 sm:text-xs"
         >
           — End of Transmission —
         </motion.p>

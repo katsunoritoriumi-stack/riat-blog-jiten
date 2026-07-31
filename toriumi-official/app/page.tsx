@@ -15,6 +15,7 @@ import DigitalAISection from "@/components/DigitalAISection";
 import ConnectSection from "@/components/ConnectSection";
 import LegacyStatement from "@/components/LegacyStatement";
 import SignalLost from "@/components/SignalLost";
+import FinaleBackdrop from "@/components/FinaleBackdrop";
 import Footer from "@/components/Footer";
 
 /**
@@ -55,10 +56,13 @@ export default function Home() {
             id: "end",
             scroll: 2.6,
             node: (
-              <>
+              // 終章は絵を画面いっぱいに敷き、その上に通信途絶とロゴの署名を重ねる。
+              // min-h をステーション1枚ぶんにして、背景がフルサイズで広がるようにする。
+              <div className="relative isolate flex min-h-[100svh] flex-col justify-between py-[6vh]">
+                <FinaleBackdrop />
                 <SignalLost />
                 <Footer />
-              </>
+              </div>
             ),
           },
         ]}

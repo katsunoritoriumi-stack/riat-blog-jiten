@@ -9,7 +9,7 @@ import { SITE } from "@/lib/content";
  */
 export default function Footer() {
   return (
-    <footer className="relative px-6 pb-8 pt-4">
+    <footer className="relative px-6 pb-10 pt-8">
       <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92, filter: "blur(10px)" }}
@@ -27,7 +27,7 @@ export default function Footer() {
             style={{
               width: "190%",
               height: "190%",
-              background: "radial-gradient(circle, rgba(124,58,237,0.4), transparent 65%)",
+              background: "radial-gradient(circle, rgba(124,58,237,0.55), rgba(3,2,10,0.35) 45%, transparent 70%)",
             }}
           />
           <img
@@ -36,7 +36,7 @@ export default function Footer() {
             width={846}
             height={1024}
             loading="lazy"
-            className="logo-drift block h-[14svh] max-h-[140px] min-h-[96px] w-auto"
+            className="logo-drift block h-[17svh] max-h-[180px] min-h-[110px] w-auto"
           />
         </motion.div>
 
@@ -45,7 +45,8 @@ export default function Footer() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.6, delay: 0.9 }}
-          className="mt-5 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-300/50"
+          style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
+          className="mt-5 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-200/65"
         >
           {SITE.roleEn}
         </motion.p>
@@ -64,7 +65,8 @@ export default function Footer() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.4, delay: 1.3 }}
-          className="mt-4 text-[11px] text-nebula-300/40"
+          style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
+          className="mt-4 text-[11px] text-nebula-200/55"
         >
           © {new Date().getFullYear()} {SITE.nameEn}. All works belong to the artist.
         </motion.p>
