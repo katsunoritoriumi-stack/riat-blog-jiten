@@ -31,11 +31,14 @@ export default function Home() {
       <WarpOverlay />
       <BootSequence />
       <Navbar />
+      {/* scroll = そのステーションに割り当てる移動距離（画面高さの倍数）。
+          大きいほど「そこへ向かう航行」と「滞在」が長くなる。 */}
       <ZoomStage
         stations={[
-          { id: "home", node: <Hero />, scroll: 1.1 },
+          { id: "home", node: <Hero />, scroll: 1.8 },
           {
             id: "manifesto",
+            scroll: 2.3,
             node: (
               <>
                 <Manifesto />
@@ -43,13 +46,14 @@ export default function Home() {
               </>
             ),
           },
-          { id: "universe", node: <ConstellationMap />, scroll: 1.5 },
-          { id: "sound", node: <SoundVisionSection /> },
-          { id: "digital", node: <DigitalAISection /> },
-          { id: "connect", node: <ConnectSection />, scroll: 1.4 },
-          { id: "report", node: <LegacyStatement />, scroll: 1.4 },
+          { id: "universe", node: <ConstellationMap />, scroll: 3 },
+          { id: "sound", node: <SoundVisionSection />, scroll: 2.3 },
+          { id: "digital", node: <DigitalAISection />, scroll: 2.3 },
+          { id: "connect", node: <ConnectSection />, scroll: 2.8 },
+          { id: "report", node: <LegacyStatement />, scroll: 2.8 },
           {
             id: "end",
+            scroll: 2.2,
             node: (
               <>
                 <SignalLost />

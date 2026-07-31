@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
+  cubicBezier,
   motion,
   useMotionValue,
   useMotionValueEvent,
@@ -33,14 +34,27 @@ export type StationDef = {
   scroll?: number;
 };
 
-/** 進捗 q の意味：0 で到着完了、0.75 まで静止、1 を超えると通過しきる */
-const ENTER_FROM = -0.4; // ここから奥に現れ始める
-const ENTER_TO = -0.02; // ここで実寸に到着
-const HOLD_TO = 0.76; // ここまで静止（読める・押せる）
-const EXIT_TO = 1.1; // ここで完全に通過
-const SCALE_FAR = 0.52; // 現れ始めの大きさ
-const SCALE_PAST = 2.15; // 通り過ぎるときの大きさ
-const BLUR_MAX = 9; // ピント外れの最大量(px)
+/**
+ * 1ステーションの帯（q: 0〜1）の使い方。
+ *
+ *   -0.25 ┄┄ 0 ────────── 0.40 ─────── 0.60 ┄┄┄┄ 0.75(=次の出現開始)
+ *     現れる    静止して読める      通り過ぎる     何も無い＝航行区間
+ *
+ * 通り過ぎたあとに「何も無い区間」をわざと空けている。ここでは星屑だけが流れ、
+ * 次のセクションはまだ現れない＝宇宙を移動している時間になる。
+ * この空白が無いと、セクションが切れ目なく続いて「旅している感じ」が出ない。
+ */
+const ENTER_FROM = -0.25; // ここから奥に現れ始める
+const ENTER_TO = 0; // ここで実寸に到着
+const HOLD_TO = 0.4; // ここまで静止（読める・押せる）
+const EXIT_TO = 0.6; // ここで完全に通過（以降 0.75 までは何も無い）
+const SCALE_FAR = 0.34; // 現れ始めの大きさ（遠いほど旅の距離を感じる）
+const SCALE_PAST = 2.6; // 通り過ぎるときの大きさ
+const BLUR_MAX = 11; // ピント外れの最大量(px)
+
+/** 近づくときは減速して着地、去るときは加速して抜けていく */
+const EASE_APPROACH = cubicBezier(0.16, 0.62, 0.24, 1); // easeOut 寄り
+const EASE_DEPART = cubicBezier(0.62, 0, 0.9, 0.4); // easeIn 寄り
 
 function StationStage({
   children,
@@ -62,10 +76,12 @@ function StationStage({
   const q = useTransform(progress, (v) => (v - start) / span);
 
   const holdTo = last ? EXIT_TO : HOLD_TO;
+  const easing = { ease: [EASE_APPROACH, EASE_APPROACH, EASE_DEPART] };
   const travel = useTransform(
     q,
     [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO],
-    [SCALE_FAR, 1, 1, last ? 1 : SCALE_PAST]
+    [SCALE_FAR, 1, 1, last ? 1 : SCALE_PAST],
+    easing
   );
 
   /**
@@ -88,8 +104,18 @@ function StationStage({
   }, [fit]);
 
   const scale = useTransform([travel, fit], ([t, f]: number[]) => t * f);
-  const opacity = useTransform(q, [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO], [0, 1, 1, last ? 1 : 0]);
-  const blurPx = useTransform(q, [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO], [BLUR_MAX, 0, 0, last ? 0 : BLUR_MAX]);
+  const opacity = useTransform(
+    q,
+    [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO],
+    [0, 1, 1, last ? 1 : 0],
+    easing
+  );
+  const blurPx = useTransform(
+    q,
+    [ENTER_FROM, ENTER_TO, holdTo, EXIT_TO],
+    [BLUR_MAX, 0, 0, last ? 0 : BLUR_MAX],
+    easing
+  );
   const filter = useTransform(blurPx, (v) => (v < 0.15 ? "none" : `blur(${v.toFixed(1)}px)`));
 
   // 画面に関係ない間は display:none にする。

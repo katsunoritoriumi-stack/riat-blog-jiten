@@ -18,7 +18,7 @@ import { makeCommonNormal, makeDiffuse, type PlanetSkin } from "@/lib/planetText
  * ・中心星 Connect(LINE) を唯一の光源とし、6つのドメインが実際に公転する
  * ・惑星は PBR（カラー＋共通法線マップ）。質感は lib/planetTextures.ts で手続き生成
  * ・Bloom と GodRays（中心星からの光芒）で映画的な光を作る
- * ・星をクリック → カメラがその星まで飛び、ホログラム UI が開いて行き先が出る
+ * ・星をクリック → カメラがその星まで飛び、注記が開いて行き先が出る
  * ・three.js は重いので、このファイルは ConstellationMap 側から動的 import される
  *
  * 本物のテクスチャに差し替えたい場合は、SKINS の生成を
@@ -38,7 +38,7 @@ type PlanetConfig = {
   emissive?: string;
   emissiveIntensity?: number;
   atmosphere?: string; // 指定すると大気層を纏う
-  accent: string; // ホログラム UI とにじむ光の色
+  accent: string; // ラベルとにじむ光の色
 };
 
 /** lib/content.ts の 6 ドメインに、仕様書の質感を割り当てる */
@@ -131,15 +131,56 @@ const PLANETS: Record<string, PlanetConfig> = {
 };
 
 const CORE_SIZE = 1.5;
-const HOLO = "#7cffb2"; // ホログラム UI の発光色
 
 type TextureSet = { normal: THREE.Texture; skins: Partial<Record<PlanetSkin, THREE.Texture>> };
 type PositionMap = Map<string, THREE.Vector3>;
 
 /* ─────────────────────────────────────────────
-   ホログラム UI ラベル
+   惑星ラベル（計器の注記風）
    ───────────────────────────────────────────── */
-function HoloLabel({
+
+/** ポップオーバー内のリンク1行。ホバーで短い罫線が伸びて文字が少し送られる */
+function LinkRow({
+  label,
+  href,
+  accent,
+}: {
+  label: string;
+  href: string;
+  accent: string;
+}) {
+  const cls =
+    "group/row flex items-center gap-2 px-3 py-[7px] text-left font-mono text-[10.5px] tracking-wide text-nebula-100/75 transition-colors duration-300 hover:text-white";
+  const inner = (
+    <>
+      <span
+        aria-hidden
+        className="h-px w-0 shrink-0 transition-all duration-300 group-hover/row:w-3"
+        style={{ background: accent }}
+      />
+      <span className="transition-transform duration-300 group-hover/row:translate-x-0.5">
+        {label}
+      </span>
+    </>
+  );
+  // 内部ページ（App / Website 一覧）は Next のクライアントルーティングで遷移
+  return href.startsWith("/") ? (
+    <Link href={href} className={cls}>
+      {inner}
+    </Link>
+  ) : (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+      {inner}
+    </a>
+  );
+}
+
+/**
+ * 惑星に添えるラベル。
+ * 箱で囲わず、惑星へ引き出し線を伸ばす「注記」の形にしている。
+ * 色はその惑星自身の色を使うので、天体ごとに佇まいが変わる。
+ */
+function PlanetLabel({
   data,
   accent,
   active,
@@ -158,90 +199,75 @@ function HoloLabel({
 
   return (
     <div
-      className="select-none"
+      className="flex select-none flex-col items-center"
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
     >
+      {focused && (
+        <div
+          className="mb-3 w-[190px] overflow-hidden rounded-xl backdrop-blur-md"
+          style={{
+            background: "rgba(5,4,14,0.88)",
+            border: `1px solid ${accent}2e`,
+            boxShadow: `0 18px 40px -18px rgba(0,0,0,0.95), 0 0 26px -14px ${accent}`,
+          }}
+        >
+          {/* 上端に一本だけ光の線を通す */}
+          <span
+            aria-hidden
+            className="block h-px w-full"
+            style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+          />
+          <p className="px-3 pb-2 pt-2.5 text-[9.5px] leading-relaxed text-nebula-200/45">
+            {data.blurb}
+          </p>
+          <div className="flex flex-col pb-1.5">
+            {links.map((l) => (
+              <LinkRow key={l.href} label={l.label} href={l.href} accent={accent} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onSelect}
         aria-label={data.titleEn}
         aria-expanded={focused}
-        className="relative block px-3 py-1.5 text-center transition-all duration-300"
-        style={{
-          background: active ? "rgba(6,20,14,0.82)" : "rgba(6,14,12,0.45)",
-          border: `1px solid ${active ? HOLO : "rgba(124,255,178,0.35)"}`,
-          boxShadow: active
-            ? `0 0 18px ${HOLO}55, inset 0 0 12px ${HOLO}22`
-            : `0 0 8px ${HOLO}22`,
-          backdropFilter: "blur(6px)",
-        }}
+        className="block px-1 text-center"
       >
-        {/* SF ホログラムのコーナーブラケット */}
-        {[
-          "left-[-3px] top-[-3px] border-l border-t",
-          "right-[-3px] top-[-3px] border-r border-t",
-          "left-[-3px] bottom-[-3px] border-l border-b",
-          "right-[-3px] bottom-[-3px] border-r border-b",
-        ].map((pos) => (
-          <span
-            key={pos}
-            aria-hidden
-            className={`pointer-events-none absolute h-1.5 w-1.5 ${pos}`}
-            style={{ borderColor: HOLO }}
-          />
-        ))}
         <span
-          className="block font-mono text-[11px] uppercase tracking-[0.2em]"
-          style={{ color: active ? HOLO : "rgba(203,255,226,0.85)" }}
+          className="block font-mono text-[10px] uppercase tracking-[0.28em] transition-colors duration-300"
+          style={{ color: active ? accent : "rgba(231,227,255,0.66)" }}
         >
           {data.titleEn}
         </span>
         <span
-          className="mt-0.5 block text-[9px] tracking-wide"
-          style={{ color: active ? `${accent}` : "rgba(203,255,226,0.5)" }}
+          className="mt-[3px] block text-[9px] tracking-wide text-nebula-200/45 transition-opacity duration-300"
+          style={{ opacity: active ? 1 : 0.6 }}
         >
           {data.titleJp}
         </span>
+        {/* ホバー・選択で下線がすっと引かれる */}
+        <span
+          aria-hidden
+          className="mt-1.5 block h-px w-full transition-transform duration-500"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+            transform: `scaleX(${active ? 1 : 0})`,
+          }}
+        />
       </button>
 
-      {focused && (
-        <div
-          className="mt-2 flex flex-col gap-1 p-1.5"
-          style={{
-            background: "rgba(6,20,14,0.9)",
-            border: `1px solid ${HOLO}55`,
-            boxShadow: `0 0 16px ${HOLO}33`,
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <span className="px-2 pb-1 font-mono text-[8px] uppercase tracking-[0.3em] text-[rgba(124,255,178,0.55)]">
-            {data.blurb}
-          </span>
-          {links.map((l) => {
-            const internal = l.href.startsWith("/");
-            const cls =
-              "whitespace-nowrap px-2.5 py-1 text-left font-mono text-[11px] tracking-wide transition-colors";
-            const style = { color: "rgba(203,255,226,0.9)" };
-            // 内部ページ（App / Website 一覧）は Next のクライアントルーティングで遷移
-            return internal ? (
-              <Link key={l.href} href={l.href} className={cls} style={style}>
-                ▸ {l.label}
-              </Link>
-            ) : (
-              <a
-                key={l.href}
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cls}
-                style={style}
-              >
-                ▸ {l.label}
-              </a>
-            );
-          })}
-        </div>
-      )}
+      {/* 惑星へ伸びる引き出し線 */}
+      <span
+        aria-hidden
+        className="mt-1 block w-px transition-all duration-500"
+        style={{
+          height: active ? 24 : 14,
+          background: `linear-gradient(180deg, ${accent}, transparent)`,
+          opacity: active ? 0.9 : 0.45,
+        }}
+      />
     </div>
   );
 }
@@ -326,18 +352,32 @@ function CoreStar({
       </mesh>
 
       <Html distanceFactor={16} position={[0, CORE_SIZE + 1.1, 0]} center zIndexRange={[30, 0]}>
-        <button
-          onClick={open}
-          className="whitespace-nowrap px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.25em] backdrop-blur-sm transition-colors"
-          style={{
-            color: "#ffe6a8",
-            background: "rgba(28,16,4,0.55)",
-            border: "1px solid rgba(255,200,110,0.45)",
-            boxShadow: "0 0 16px rgba(255,180,71,0.35)",
-          }}
-        >
-          ✦ Connect
-          <span className="ml-2 normal-case tracking-normal opacity-60">LINE</span>
+        {/* 中心星も惑星と同じ注記の作法に揃える（箱で囲わない） */}
+        <button onClick={open} className="flex select-none flex-col items-center px-1">
+          <span
+            className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.3em] transition-colors duration-300"
+            style={{ color: hovered ? "#fff3d4" : "#ffe6a8" }}
+          >
+            Connect
+          </span>
+          <span className="mt-[3px] text-[9px] tracking-[0.18em] text-aurum-200/50">LINE</span>
+          <span
+            aria-hidden
+            className="mt-1.5 block h-px w-full transition-transform duration-500"
+            style={{
+              background: "linear-gradient(90deg, transparent, #ffd77a, transparent)",
+              transform: `scaleX(${hovered ? 1 : 0.35})`,
+            }}
+          />
+          <span
+            aria-hidden
+            className="mt-1 block w-px transition-all duration-500"
+            style={{
+              height: hovered ? 26 : 16,
+              background: "linear-gradient(180deg, #ffd77a, transparent)",
+              opacity: hovered ? 0.9 : 0.45,
+            }}
+          />
         </button>
       </Html>
     </group>
@@ -488,7 +528,7 @@ function Planet({
         zIndexRange={[30, 0]}
         style={{ pointerEvents: "auto" }}
       >
-        <HoloLabel
+        <PlanetLabel
           data={data}
           accent={cfg.accent}
           active={active}
