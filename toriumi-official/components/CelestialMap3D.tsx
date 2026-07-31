@@ -693,6 +693,29 @@ function ResponsiveHome({
   return null;
 }
 
+/**
+ * スマホで天球図に触るとページが縦スクロールしなくなる問題への対処。
+ * camera-controls はキャンバスに touch-action: none を書き込むため、
+ * 1本指の操作を NONE にしていてもブラウザ側でスクロールが殺される。
+ * CameraControls より後にマウントしてキャンバスへ pan-y を上書きする
+ * （setupControls 側でも同じことをしているが、あちらは private フィールド
+ *   参照なので、こちらを本命の保険として置いている）。
+ */
+function TouchScrollGuard() {
+  const gl = useThree((st) => st.gl);
+  useEffect(() => {
+    const el = gl.domElement;
+    el.style.touchAction = "pan-y";
+    // 念のため、後から書き換えられても戻す
+    const ob = new MutationObserver(() => {
+      if (el.style.touchAction !== "pan-y") el.style.touchAction = "pan-y";
+    });
+    ob.observe(el, { attributes: true, attributeFilter: ["style"] });
+    return () => ob.disconnect();
+  }, [gl]);
+  return null;
+}
+
 /* ─────────────────────────────────────────────
    カメラ追従：選ばれた星へ寄り、解除で俯瞰へ戻る
    ───────────────────────────────────────────── */
@@ -866,6 +889,15 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
     touch.one = A.NONE;
     touch.two = A.TOUCH_ZOOM_ROTATE;
     touch.three = A.NONE;
+
+    /**
+     * camera-controls はキャンバスに touch-action: none を書き込む。
+     * 1本指の操作を NONE にしていても、ブラウザ側でスクロール自体が殺されるため、
+     * スマホで天球図に触るとページが動かなくなる。
+     * 縦スクロールだけ許す pan-y に上書きする（2本指の操作は従来どおり効く）。
+     */
+    const el = (c as unknown as { _domElement?: HTMLElement })._domElement;
+    if (el) el.style.touchAction = "pan-y";
   };
 
   return (
@@ -948,6 +980,7 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
         maxPolarAngle={Math.PI / 2.1} // 地平線より下へ回り込ませない
         smoothTime={0.65}
       />
+      <TouchScrollGuard />
 
       {/* 光の後処理：強い光沢＋中心星からの光芒 */}
       {sun ? (

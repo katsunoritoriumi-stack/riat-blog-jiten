@@ -32,6 +32,11 @@ export type StationDef = {
   node: ReactNode;
   /** このステーションに割り当てるスクロール量（画面高さの倍数） */
   scroll?: number;
+  /**
+   * このステーションを通り過ぎたあとの「航行区間」に出す予告編のコピー。
+   * 何も表示されない時間を、次の場面への引きとして使う。
+   */
+  caption?: { en: string; jp: string };
 };
 
 /**
@@ -55,6 +60,85 @@ const BLUR_MAX = 11; // ピント外れの最大量(px)
 /** 近づくときは減速して着地、去るときは加速して抜けていく */
 const EASE_APPROACH = cubicBezier(0.16, 0.62, 0.24, 1); // easeOut 寄り
 const EASE_DEPART = cubicBezier(0.62, 0, 0.9, 0.4); // easeIn 寄り
+
+/* 予告編のタイトルカードが出ている区間（帯の 0.52〜0.81＝航行区間の内側） */
+const CARD_IN = 0.53;
+const CARD_SHARP = 0.62;
+const CARD_HOLD = 0.72;
+const CARD_OUT = 0.81;
+
+/**
+ * 航行区間に差し込む予告編のタイトルカード。
+ * 大きな字間の大文字が、ぼけた状態から一度に焦点を結び（＝打ち込まれ）、
+ * しばらく留まってから静かに引いていく。映画の予告編の呼吸に合わせている。
+ */
+function TrailerCard({
+  progress,
+  start,
+  span,
+  en,
+  jp,
+}: {
+  progress: MotionValue<number>;
+  start: number;
+  span: number;
+  en: string;
+  jp: string;
+}) {
+  const q = useTransform(progress, (v) => (v - start) / span);
+  const stops = [CARD_IN, CARD_SHARP, CARD_HOLD, CARD_OUT];
+  const opacity = useTransform(q, stops, [0, 1, 1, 0]);
+  const scale = useTransform(q, stops, [1.18, 1, 1, 0.97]);
+  const blurPx = useTransform(q, stops, [18, 0, 0, 9]);
+  const filter = useTransform(blurPx, (v) => (v < 0.2 ? "none" : `blur(${v.toFixed(1)}px)`));
+  const ruleScale = useTransform(q, stops, [0, 1, 1, 1]);
+
+  const [live, setLive] = useState(() => {
+    const v = q.get();
+    return v > CARD_IN - 0.02 && v < CARD_OUT + 0.02;
+  });
+  useMotionValueEvent(q, "change", (v) => {
+    const next = v > CARD_IN - 0.02 && v < CARD_OUT + 0.02;
+    setLive((p) => (p === next ? p : next));
+  });
+
+  return (
+    <motion.div
+      style={{ opacity, scale, filter, display: live ? undefined : "none" }}
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
+    >
+      {/* 文字が沈まないよう、角の出ないぼかし暗幕を敷く */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          width: "120%",
+          height: "60%",
+          background:
+            "radial-gradient(closest-side, rgba(3,2,10,0.82), rgba(3,2,10,0.4) 55%, rgba(3,2,10,0) 100%)",
+          filter: "blur(18px)",
+        }}
+      />
+      <p
+        className="font-display text-[clamp(1.1rem,4.2vw,2.6rem)] font-light uppercase leading-[1.25] tracking-[0.2em] text-nebula-50 sm:tracking-[0.3em]"
+        style={{ textShadow: "0 2px 18px rgba(0,0,0,0.9), 0 0 44px rgba(124,58,237,0.35)" }}
+      >
+        {en}
+      </p>
+      <motion.span
+        aria-hidden
+        style={{ scaleX: ruleScale }}
+        className="mt-5 block h-px w-28 bg-gradient-to-r from-transparent via-aurum-300/70 to-transparent"
+      />
+      <p
+        className="mt-5 font-serif text-[clamp(0.7rem,2.4vw,0.95rem)] tracking-[0.2em] text-nebula-200/70"
+        style={{ textShadow: "0 1px 10px rgba(0,0,0,0.9)" }}
+      >
+        {jp}
+      </p>
+    </motion.div>
+  );
+}
 
 function StationStage({
   children,
@@ -254,6 +338,20 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
             {s.node}
           </StationStage>
         ))}
+
+        {/* 航行区間に差し込む予告編のコピー */}
+        {stations.map((s, i) =>
+          s.caption && i < stations.length - 1 ? (
+            <TrailerCard
+              key={`cap-${s.id}`}
+              progress={scrollYProgress}
+              start={bands[i].start}
+              span={bands[i].span}
+              en={s.caption.en}
+              jp={s.caption.jp}
+            />
+          ) : null
+        )}
       </div>
     </>
   );

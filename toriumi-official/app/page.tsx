@@ -36,9 +36,15 @@ export default function Home() {
           大きいほど「そこへ向かう航行」と「滞在」が長くなる。 */}
       <ZoomStage
         stations={[
-          { id: "home", node: <Hero />, scroll: 2.2 },
+          {
+            id: "home",
+            node: <Hero />,
+            scroll: 2.2,
+            caption: { en: "One human. Many universes.", jp: "ひとりの中に、いくつもの宇宙" },
+          },
           {
             id: "manifesto",
+            caption: { en: "Six worlds orbit a single light.", jp: "六つの世界が、ひとつの光を巡る" },
             scroll: 2.9,
             node: (
               <>
@@ -47,11 +53,16 @@ export default function Home() {
               </>
             ),
           },
-          { id: "universe", node: <ConstellationMap />, scroll: 3.6 },
-          { id: "sound", node: <SoundVisionSection />, scroll: 2.9 },
-          { id: "digital", node: <DigitalAISection />, scroll: 2.9 },
-          { id: "connect", node: <ConnectSection />, scroll: 3.4 },
-          { id: "report", node: <LegacyStatement />, scroll: 3.4 },
+          { id: "universe",
+            caption: { en: "Some of them sing.", jp: "歌になるもの" }, node: <ConstellationMap />, scroll: 3.6 },
+          { id: "sound",
+            caption: { en: "Some of them are built.", jp: "形になるもの" }, node: <SoundVisionSection />, scroll: 2.9 },
+          { id: "digital",
+            caption: { en: "All of them are signals.", jp: "すべては、発信" }, node: <DigitalAISection />, scroll: 2.9 },
+          { id: "connect",
+            caption: { en: "And every signal has an origin.", jp: "発信には、必ず源がある" }, node: <ConnectSection />, scroll: 3.4 },
+          { id: "report",
+            caption: { en: "This is the final transmission.", jp: "これが、最後の通信" }, node: <LegacyStatement />, scroll: 3.4 },
           {
             id: "end",
             scroll: 2.6,
