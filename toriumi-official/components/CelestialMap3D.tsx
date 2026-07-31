@@ -150,7 +150,7 @@ function LinkRow({
   accent: string;
 }) {
   const cls =
-    "group/row flex items-center gap-2 px-3 py-[7px] text-left font-mono text-[10.5px] tracking-wide text-nebula-100/75 transition-colors duration-300 hover:text-white";
+    "group/row flex items-center gap-2 px-3 py-[7px] text-left font-mono text-[11px] tracking-wide text-nebula-100/90 transition-colors duration-300 hover:text-white";
   const inner = (
     <>
       <span
@@ -207,7 +207,7 @@ function PlanetLabel({
         <div
           className="mb-3 w-[190px] overflow-hidden rounded-xl backdrop-blur-md"
           style={{
-            background: "rgba(5,4,14,0.88)",
+            background: "rgba(4,3,12,0.94)",
             border: `1px solid ${accent}2e`,
             boxShadow: `0 18px 40px -18px rgba(0,0,0,0.95), 0 0 26px -14px ${accent}`,
           }}
@@ -218,7 +218,7 @@ function PlanetLabel({
             className="block h-px w-full"
             style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
           />
-          <p className="px-3 pb-2 pt-2.5 text-[9.5px] leading-relaxed text-nebula-200/45">
+          <p className="px-3 pb-2 pt-2.5 text-[10px] leading-relaxed text-nebula-200/70">
             {data.blurb}
           </p>
           <div className="flex flex-col pb-1.5">
@@ -233,17 +233,29 @@ function PlanetLabel({
         onClick={onSelect}
         aria-label={data.titleEn}
         aria-expanded={focused}
-        className="block px-1 text-center"
+        className="block px-3 py-1 text-center"
+        style={{
+          // 枠のない楕円の暗幕。惑星や星の上に文字が乗っても沈まないようにする
+          background:
+            "radial-gradient(ellipse 130% 150% at 50% 50%, rgba(2,1,8,0.82) 0%, rgba(2,1,8,0.62) 45%, rgba(2,1,8,0) 78%)",
+        }}
       >
         <span
-          className="block font-mono text-[10px] uppercase tracking-[0.28em] transition-colors duration-300"
-          style={{ color: active ? accent : "rgba(231,227,255,0.66)" }}
+          className="block font-mono text-[11px] uppercase tracking-[0.26em] transition-colors duration-300"
+          style={{
+            color: active ? accent : "rgba(244,242,255,0.94)",
+            textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.85)",
+          }}
         >
           {data.titleEn}
         </span>
         <span
-          className="mt-[3px] block text-[9px] tracking-wide text-nebula-200/45 transition-opacity duration-300"
-          style={{ opacity: active ? 1 : 0.6 }}
+          className="mt-[3px] block text-[10px] tracking-wide transition-opacity duration-300"
+          style={{
+            color: "rgba(226,222,246,0.8)",
+            textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.8)",
+            opacity: active ? 1 : 0.85,
+          }}
         >
           {data.titleJp}
         </span>
@@ -271,6 +283,24 @@ function PlanetLabel({
     </div>
   );
 }
+
+/**
+ * 中心星を「球」に見せるための周縁減光（limb darkening）。
+ *
+ * 自己発光だけの天体は全面が同じ明るさになり、Bloom も相まって
+ * 真っ白な円盤に見えてしまう。実際の恒星と同じく、視線に対して斜めになる
+ * 周縁ほど暗く・赤くすることで、初めて立体の球として読める。
+ */
+const limbDarkening = (shader: { fragmentShader: string }) => {
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <emissivemap_fragment>",
+    `#include <emissivemap_fragment>
+     float ndv = clamp(abs(dot(normalize(vNormal), normalize(vViewPosition))), 0.0, 1.0);
+     float limb = pow(ndv, 0.8);
+     totalEmissiveRadiance *= mix(0.20, 1.0, limb);
+     totalEmissiveRadiance *= mix(vec3(1.0, 0.48, 0.14), vec3(1.0, 0.95, 0.84), limb);`
+  );
+};
 
 /* ─────────────────────────────────────────────
    中心星（Connect = LINE）— GodRays の光源
@@ -331,10 +361,11 @@ function CoreStar({
           map={map}
           emissiveMap={map}
           emissive="#ffffff"
-          emissiveIntensity={2.5}
+          emissiveIntensity={1.65}
           roughness={0.9}
           metalness={0.1}
           toneMapped={false}
+          onBeforeCompile={limbDarkening}
         />
       </mesh>
 
@@ -353,14 +384,32 @@ function CoreStar({
 
       <Html distanceFactor={16} position={[0, CORE_SIZE + 1.1, 0]} center zIndexRange={[30, 0]}>
         {/* 中心星も惑星と同じ注記の作法に揃える（箱で囲わない） */}
-        <button onClick={open} className="flex select-none flex-col items-center px-1">
+        <button
+          onClick={open}
+          className="flex select-none flex-col items-center px-3 py-1"
+          style={{
+            background:
+              "radial-gradient(ellipse 130% 150% at 50% 50%, rgba(2,1,8,0.82) 0%, rgba(2,1,8,0.6) 45%, rgba(2,1,8,0) 78%)",
+          }}
+        >
           <span
-            className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.3em] transition-colors duration-300"
-            style={{ color: hovered ? "#fff3d4" : "#ffe6a8" }}
+            className="whitespace-nowrap font-mono text-[11.5px] uppercase tracking-[0.3em] transition-colors duration-300"
+            style={{
+              color: hovered ? "#fff6de" : "#ffe9b4",
+              textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.85)",
+            }}
           >
             Connect
           </span>
-          <span className="mt-[3px] text-[9px] tracking-[0.18em] text-aurum-200/50">LINE</span>
+          <span
+            className="mt-[3px] text-[10px] tracking-[0.18em]"
+            style={{
+              color: "rgba(255,231,175,0.72)",
+              textShadow: "0 1px 3px rgba(0,0,0,0.95)",
+            }}
+          >
+            LINE
+          </span>
           <span
             aria-hidden
             className="mt-1.5 block h-px w-full transition-transform duration-500"

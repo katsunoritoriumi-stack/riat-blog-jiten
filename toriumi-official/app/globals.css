@@ -437,3 +437,16 @@
 .zoom-station::-webkit-scrollbar {
   display: none;
 }
+
+/* ロゴがごくゆっくり漂う（宇宙に浮かんでいる感じ） */
+@keyframes logo-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(-0.6deg); }
+}
+.logo-drift {
+  animation: logo-drift 11s ease-in-out infinite;
+  filter: drop-shadow(0 0 26px rgba(124, 58, 237, 0.35));
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-drift { animation: none; }
+}

@@ -232,17 +232,26 @@ export default function Hero() {
           initial={{ opacity: 0, filter: "blur(14px)", scale: 1.04 }}
           animate={revealed ? { opacity: 1, filter: "blur(0px)", scale: 1 } : {}}
           transition={{ duration: 1.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display leading-[0.9]"
+          className="relative flex justify-center"
         >
-          <span className="name-wave block text-[14vw] font-semibold tracking-[-0.02em] gradient-aurum sm:text-7xl md:text-8xl lg:text-[8.5rem]">
-            Katsunori
-          </span>
+          {/* 見出しの実体はロゴ画像。読み上げ・検索向けに文字も残す */}
+          <span className="sr-only">Katsunori Toriumi — K.TORIUMI</span>
+          {/* ロゴの背後にやわらかい星雲の光 */}
           <span
-            className="name-wave -mt-1 block text-[15vw] font-extralight tracking-[0.03em] gradient-nebula sm:text-[5rem] md:text-9xl lg:text-[9.5rem]"
-            style={{ animationDelay: "1.2s" }}
-          >
-            Toriumi
-          </span>
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[135%] w-[135%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(124,58,237,0.3), transparent 68%)",
+            }}
+          />
+          <img
+            src="/logo-ktoriumi.webp"
+            alt=""
+            aria-hidden="true"
+            width={846}
+            height={1024}
+            className="logo-drift block h-[34svh] max-h-[400px] w-auto"
+          />
         </motion.h1>
 
         {/* a.k.a KIEJI */}
