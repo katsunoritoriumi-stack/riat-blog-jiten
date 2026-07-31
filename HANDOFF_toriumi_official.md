@@ -130,3 +130,18 @@ npm run build # 静的ビルド（out/ を生成）
 
 ---
 最終更新: 2026-07-31（3D化を本番反映。見た目の微調整は未実施）
+
+## 12. /voyage — Z軸フライスルー（2026-07-31）
+
+スクロールでカメラが宇宙の奥へ進み、深さごとのステーションを通過する体験ページ。**トップとは別ページ**（トップの SIGNAL LOST 直後「Enter the Voyage」から入る）。
+
+- `app/voyage/page.tsx` / `components/VoyageClient.tsx`（外枠）/ `components/VoyageScene.tsx`（3D）
+- ステーション6つ: Voyage Start / Manifesto / Universe / Sound & Vision / Make / Final Report。文言とリンクは `lib/content.ts` の実データ。
+- **ScrollControls は使っていない**。canvas 上にスクロール用オーバーレイ div を敷く仕様のため、canvas 内 `Html` のリンクがクリックできなくなる。代わりに `window.scrollY` からカメラZを駆動している。
+- スペーサーは `pointer-events:none` でクリックを canvas へ素通し。中に `sr-only` の実テキストを持たせ、SEO・読み上げ・ページ内検索から本文が消えないようにしてある（静的HTMLに本文が出ていることを本番で確認済み）。
+- カードの表示制御は毎フレームの setState ではなく DOM 直接更新。
+- WebGL不可なら3Dを捨てて素の読み物ページとして表示。
+- **未確認**: 3Dの見た目（Browserペインの制約）。ステーション間隔・カード出現距離・手ぶれ量は要調整の可能性あり。
+
+---
+最終更新: 2026-07-31（/voyage 追加。3Dの見た目調整は未実施）
