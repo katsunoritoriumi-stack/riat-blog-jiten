@@ -9,7 +9,7 @@ import { SITE } from "@/lib/content";
  */
 export default function Footer() {
   return (
-    <footer className="relative px-6 pb-10 pt-8">
+    <footer className="relative px-6 pb-4 pt-2">
       <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.92, filter: "blur(10px)" }}
@@ -36,7 +36,7 @@ export default function Footer() {
             width={846}
             height={1024}
             loading="lazy"
-            className="logo-drift block h-[17svh] max-h-[180px] min-h-[110px] w-auto"
+            className="logo-drift block h-[11svh] max-h-[118px] min-h-[74px] w-auto"
           />
         </motion.div>
 
@@ -46,7 +46,7 @@ export default function Footer() {
           viewport={{ once: true }}
           transition={{ duration: 1.6, delay: 0.9 }}
           style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
-          className="mt-5 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-200/65"
+          className="mt-3.5 font-mono text-[10px] uppercase tracking-[0.4em] text-nebula-200/65"
         >
           {SITE.roleEn}
         </motion.p>
@@ -57,7 +57,7 @@ export default function Footer() {
           whileInView={{ scaleX: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.4, delay: 1.1, ease: "easeOut" }}
-          className="mt-4 block h-px w-24 bg-gradient-to-r from-transparent via-aurum-300/45 to-transparent"
+          className="mt-3 block h-px w-20 bg-gradient-to-r from-transparent via-aurum-300/45 to-transparent"
         />
 
         <motion.p
@@ -66,7 +66,7 @@ export default function Footer() {
           viewport={{ once: true }}
           transition={{ duration: 1.4, delay: 1.3 }}
           style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
-          className="mt-4 text-[11px] text-nebula-200/55"
+          className="mt-3 text-[11px] text-nebula-200/55"
         >
           © {new Date().getFullYear()} {SITE.nameEn}. All works belong to the artist.
         </motion.p>

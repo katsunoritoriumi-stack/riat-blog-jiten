@@ -58,7 +58,7 @@ export default function Home() {
             node: (
               // 終章は絵を画面いっぱいに敷き、その上に通信途絶とロゴの署名を重ねる。
               // min-h をステーション1枚ぶんにして、背景がフルサイズで広がるようにする。
-              <div className="relative isolate flex min-h-[100svh] flex-col justify-between py-[6vh]">
+              <div className="relative isolate flex min-h-[100svh] flex-col justify-between pb-[2vh] pt-[14vh]">
                 <FinaleBackdrop />
                 <SignalLost />
                 <Footer />
