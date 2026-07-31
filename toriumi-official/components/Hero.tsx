@@ -154,7 +154,7 @@ export default function Hero() {
 
   return (
     <section
-      id="home"
+      data-section="home"
       ref={ref}
       onMouseMove={onMouseMove}
       className="relative flex h-[100svh] min-h-[640px] items-center justify-center overflow-hidden"

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { getLenis } from "@/lib/lenisBridge";
 import { isBootDone } from "@/lib/bootGate";
-import { setDepthBypass } from "@/lib/depthBypass";
 import { playSfx } from "@/lib/sfx";
 
 /**
@@ -73,10 +72,6 @@ export default function WarpOverlay() {
       lenis?.stop();
       playSfx("warp");
 
-      // 到着アニメで縮んでいるセクションを lenis が掴むと着地位置がずれるため、
-      // ワープ中だけ全セクションを無変換へ戻す（暗転ピークまで 350ms の猶予がある）
-      setDepthBypass(true);
-
       let jumped = false;
       const start = performance.now();
 
@@ -134,7 +129,6 @@ export default function WarpOverlay() {
           c.style.opacity = "0";
           c.style.pointerEvents = "none";
           getLenis()?.start();
-          setDepthBypass(false);
           activeRef.current = false;
         }
       };
@@ -166,7 +160,6 @@ export default function WarpOverlay() {
       document.removeEventListener("click", onDocClick, true);
       cancelAnimationFrame(raf);
       getLenis()?.start();
-      setDepthBypass(false);
     };
   }, []);
 

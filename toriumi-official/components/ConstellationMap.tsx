@@ -154,7 +154,7 @@ export default function ConstellationMap() {
   const domainCount = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden).length;
 
   return (
-    <section id="universe" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
+    <section data-section="universe" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
       <div className="mb-12 max-w-2xl">
         <SectionHeader
           eyebrow="The Universe of Creation"
@@ -174,7 +174,7 @@ export default function ConstellationMap() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-25%" }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative mx-auto h-[clamp(420px,72vh,660px)] w-full max-w-4xl overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950/60 backdrop-blur-sm"
+        className="relative mx-auto h-[clamp(380px,58vh,600px)] w-full max-w-4xl overflow-hidden rounded-3xl border border-nebula-500/20 bg-void-950/60 backdrop-blur-sm"
       >
         {/* 奥行きの星雲ウォッシュ＋ヴィネット */}
         <div className="pointer-events-none absolute inset-0 nebula-bg opacity-50" />

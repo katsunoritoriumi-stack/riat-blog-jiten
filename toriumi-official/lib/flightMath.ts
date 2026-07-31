@@ -75,24 +75,3 @@ export function advance(
 export function depthAlpha(z: number, zNear = Z_NEAR, zFar = Z_FAR): number {
   return smoothstep(zFar, zFar * 0.78, z) * smoothstep(zNear, zNear * 2.4, z);
 }
-
-/* ── セクションの「奥から到着」 ───────────────── */
-
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-
-/**
- * 到着中のスケール。
- * p <= 0（まだ画面下に入っていない）と p >= 1（到着済み）では必ず 1 を返す。
- * これにより、静的HTML／JS無効時／未到達セクションが常に無変換になり、
- * getBoundingClientRect() が実レイアウト値を返す（lenis の scrollTo が狂わない）。
- */
-export function arrivalScale(p: number, from: number): number {
-  if (p <= 0 || p >= 1) return 1;
-  return from + (1 - from) * easeOutCubic(p);
-}
-
-/** 到着中の不透明度。スケールと同じく p <= 0 では 1（＝無加工）を返す。 */
-export function arrivalOpacity(p: number): number {
-  if (p <= 0) return 1;
-  return clamp01(0.25 + 0.75 * Math.min(1, p / 0.5));
-}

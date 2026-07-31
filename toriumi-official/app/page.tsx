@@ -1,6 +1,6 @@
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
-import DepthArrival from "@/components/ui/DepthArrival";
+import ZoomStage from "@/components/ui/ZoomStage";
 import BootSequence from "@/components/BootSequence";
 import WarpOverlay from "@/components/WarpOverlay";
 import GalaxyBackground from "@/components/GalaxyBackground";
@@ -17,6 +17,12 @@ import LegacyStatement from "@/components/LegacyStatement";
 import SignalLost from "@/components/SignalLost";
 import Footer from "@/components/Footer";
 
+/**
+ * ホームは「宇宙の奥へ進む」1ページ体験。
+ * Hero で UFO が出てタイトルが現れたあと、スクロールするたびにカメラが奥へ進み、
+ * いま見ているセクションが拡大して通り過ぎ、次のセクションが奥から現れる。
+ * 各セクションの中身は従来のまま（ZoomStage は見せ方だけを担当する）。
+ */
 export default function Home() {
   return (
     <SmoothScroll>
@@ -25,40 +31,34 @@ export default function Home() {
       <WarpOverlay />
       <BootSequence />
       <Navbar />
-      <div className="relative z-10">
-        {/* Hero でタイトルが出たあと、スクロールするほど宇宙の奥へ進み、
-            各セクションが遠くから近づいてくる（DepthArrival）。
-            Hero・マーキー・Footer は包まない（Hero は自前のスクロール演出を持ち、
-            マーキーは装飾、Footer は最下部で到着が完了しないため）。 */}
-        <main>
-          <Hero />
-          <DepthArrival>
-            <Manifesto />
-          </DepthArrival>
-          <MarqueeDivider />
-          <DepthArrival from={0.78}>
-            <ConstellationMap />
-          </DepthArrival>
-          <DepthArrival>
-            <SoundVisionSection />
-          </DepthArrival>
-          <DepthArrival>
-            <DigitalAISection />
-          </DepthArrival>
-          {/* <WorkSection /> Collection 一旦非公開 */}
-          {/* Connect は .glass（backdrop-filter）を8枚使うため変化量を小さく保つ */}
-          <DepthArrival from={0.9}>
-            <ConnectSection />
-          </DepthArrival>
-          <DepthArrival from={0.68}>
-            <LegacyStatement />
-          </DepthArrival>
-          <DepthArrival from={0.68}>
-            <SignalLost />
-          </DepthArrival>
-        </main>
-        <Footer />
-      </div>
+      <ZoomStage
+        stations={[
+          { id: "home", node: <Hero />, scroll: 1.1 },
+          {
+            id: "manifesto",
+            node: (
+              <>
+                <Manifesto />
+                <MarqueeDivider />
+              </>
+            ),
+          },
+          { id: "universe", node: <ConstellationMap />, scroll: 1.5 },
+          { id: "sound", node: <SoundVisionSection /> },
+          { id: "digital", node: <DigitalAISection /> },
+          { id: "connect", node: <ConnectSection />, scroll: 1.4 },
+          { id: "report", node: <LegacyStatement />, scroll: 1.4 },
+          {
+            id: "end",
+            node: (
+              <>
+                <SignalLost />
+                <Footer />
+              </>
+            ),
+          },
+        ]}
+      />
     </SmoothScroll>
   );
 }

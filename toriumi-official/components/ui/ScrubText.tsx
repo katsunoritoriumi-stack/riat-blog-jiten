@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 
 function Char({
@@ -34,6 +34,24 @@ export default function ScrubText({
     offset: ["start 0.9", "end 0.5"],
   });
   const chars = Array.from(text);
+
+  /**
+   * ZoomStage のステーション内では要素が画面に固定されるため、
+   * スクロール連動の進捗が動かず文字が薄いまま止まってしまう。
+   * その場合は素直に全文を表示する（登場演出はステーション側が担当する）。
+   */
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    setPinned(!!ref.current?.closest("[data-station]"));
+  }, []);
+
+  if (pinned) {
+    return (
+      <p ref={ref} className={className}>
+        {text}
+      </p>
+    );
+  }
 
   return (
     <p ref={ref} className={className}>

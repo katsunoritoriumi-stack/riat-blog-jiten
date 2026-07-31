@@ -409,3 +409,31 @@
   }
   .grain-overlay { display: none; }
 }
+
+/* ─────────────────────────────────────────────
+   ZoomStage：ステーションは画面1枚に収める。
+   各セクション本来の大きな上下余白のままだと 100svh に入りきらないため、
+   ステーション内でだけ圧縮する（[data-station] は付くが .zoom-station が
+   無い＝reduced-motion の縦積み表示では元の余白のまま）。
+   ───────────────────────────────────────────── */
+.zoom-station :is(section, footer) {
+  padding-top: clamp(0.5rem, 2vh, 1.75rem);
+  padding-bottom: clamp(0.5rem, 2vh, 1.75rem);
+}
+/* 見出しと本文の間の大きな余白も、画面1枚に収まるよう詰める */
+.zoom-station :is(.mb-16, .mb-14, .mb-12) {
+  margin-bottom: clamp(0.75rem, 2.6vh, 2.25rem);
+}
+.zoom-station :is(.mt-14, .mt-16) {
+  margin-top: clamp(0.75rem, 2.6vh, 2.25rem);
+}
+.zoom-station .gap-y-12 {
+  row-gap: clamp(1rem, 3vh, 2.5rem);
+}
+/* ステーション内のスクロールバーは出さない（はみ出す時だけ内部スクロール） */
+.zoom-station {
+  scrollbar-width: none;
+}
+.zoom-station::-webkit-scrollbar {
+  display: none;
+}

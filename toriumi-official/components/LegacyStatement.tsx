@@ -23,7 +23,7 @@ const line: Variants = {
 
 export default function LegacyStatement() {
   return (
-    <section id="report" className="relative overflow-hidden py-36 sm:py-52">
+    <section data-section="report" className="relative overflow-hidden py-36 sm:py-52">
       {/* 上下のヘアラインで"特別な通信"として隔てる */}
       <div className="mx-auto mb-20 h-px w-40 bg-gradient-to-r from-transparent via-aurum-400/50 to-transparent sm:mb-28" />
 

@@ -7,7 +7,7 @@ import { YOUTUBE } from "@/lib/content";
 
 export default function SoundVisionSection() {
   return (
-    <section id="sound" className="relative mx-auto max-w-5xl px-6 py-28 sm:py-36">
+    <section data-section="sound" className="relative mx-auto max-w-5xl px-6 py-28 sm:py-36">
       <div className="mb-14 max-w-2xl">
         <SectionHeader eyebrow="Sound & Vision" titleEn="EXODUS" titleJp="音楽と映像" />
       </div>

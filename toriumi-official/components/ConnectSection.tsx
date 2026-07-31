@@ -19,7 +19,7 @@ const links = [
 
 export default function ConnectSection() {
   return (
-    <section id="connect" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
+    <section data-section="connect" className="relative mx-auto max-w-7xl px-6 py-28 sm:py-36">
       <div className="mb-16 text-center">
         <SectionHeader
           eyebrow="Reach the Universe"
