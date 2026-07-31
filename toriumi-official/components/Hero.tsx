@@ -35,9 +35,24 @@ export default function Hero() {
     target: ref,
     offset: ["start start", "end start"],
   });
-  const yText = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+  const yTextRaw = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
+  const opacityRaw = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const scaleRaw = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+
+  /**
+   * ZoomStage のステーション内では Hero が画面に固定されるため、
+   * このスクロール連動パララックスは意味を持たないうえ、
+   * 表示が切り替わる瞬間に進捗が 1 のまま固まって
+   * ロゴが 60% 下へずれたままになる不具合が出る（ロゴをクリックして
+   * トップへ戻ったときに再現）。固定表示のときは素直に無効化する。
+   */
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    setPinned(!!ref.current?.closest("[data-station]"));
+  }, []);
+  const yText = pinned ? 0 : yTextRaw;
+  const opacity = pinned ? 1 : opacityRaw;
+  const scale = pinned ? 1 : scaleRaw;
 
   // マウス追従の微細な 3D パララックス
   const mx = useMotionValue(0);
@@ -239,8 +254,10 @@ export default function Hero() {
           {/* ロゴの背後にやわらかい星雲の光 */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[135%] w-[135%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
+              width: "135%",
+              height: "135%",
               background: "radial-gradient(circle, rgba(124,58,237,0.3), transparent 68%)",
             }}
           />

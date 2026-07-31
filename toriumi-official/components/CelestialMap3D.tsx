@@ -227,11 +227,12 @@ function PlanetLabel({
     >
       {focused && (
         <div
-          className="mb-3 w-[190px] overflow-hidden rounded-xl backdrop-blur-md"
+          className="mb-3 w-[196px] overflow-hidden rounded-2xl backdrop-blur-md"
           style={{
-            background: "rgba(4,3,12,0.94)",
-            border: `1px solid ${accent}2e`,
-            boxShadow: `0 18px 40px -18px rgba(0,0,0,0.95), 0 0 26px -14px ${accent}`,
+            background:
+              "linear-gradient(180deg, rgba(10,7,26,0.95) 0%, rgba(3,2,10,0.96) 100%)",
+            border: `1px solid ${accent}26`,
+            boxShadow: `0 20px 44px -20px rgba(0,0,0,0.95), 0 0 30px -16px ${accent}, inset 0 1px 0 ${accent}1f`,
           }}
         >
           {/* 上端に一本だけ光の線を通す */}
@@ -255,31 +256,57 @@ function PlanetLabel({
         onClick={onSelect}
         aria-label={data.titleEn}
         aria-expanded={focused}
-        className="block px-3 py-1 text-center"
-        style={{
-          // 枠のない楕円の暗幕。惑星や星の上に文字が乗っても沈まないようにする
-          background:
-            "radial-gradient(ellipse 130% 150% at 50% 50%, rgba(2,1,8,0.82) 0%, rgba(2,1,8,0.62) 45%, rgba(2,1,8,0) 78%)",
-        }}
+        className="relative isolate block px-4 py-1.5 text-center"
       >
+        {/*
+          可読性のための暗幕。四角い箱にならないよう、楕円のグラデーションを
+          さらにぼかして輪郭を完全に消している（角が出ない）。
+        */}
         <span
-          className="block font-mono text-[11px] uppercase tracking-[0.26em] transition-colors duration-300"
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-300"
           style={{
-            color: active ? accent : "rgba(244,242,255,0.94)",
-            textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.85)",
+            background:
+              "radial-gradient(closest-side, rgba(3,2,12,0.94), rgba(3,2,12,0.55) 58%, rgba(3,2,12,0) 100%)",
+            width: "145%",
+            height: "230%",
+            filter: "blur(5px)",
+            opacity: active ? 1 : 0.85,
+          }}
+        />
+        {/* 選択中はその星の色がふわっと灯る */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(closest-side, ${accent}2b, transparent 100%)`,
+            width: "170%",
+            height: "260%",
+            filter: "blur(9px)",
+            opacity: active ? 1 : 0,
+          }}
+        />
+
+        {/* 上の目盛り線。ホバー・選択で伸びる */}
+        <span
+          aria-hidden
+          className="mx-auto mb-[5px] block h-px transition-all duration-500"
+          style={{
+            width: active ? 34 : 16,
+            background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+            opacity: active ? 0.95 : 0.4,
+          }}
+        />
+
+        <span
+          className="block whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.3em] transition-colors duration-300"
+          style={{
+            color: active ? accent : "rgba(246,244,255,0.95)",
+            textShadow: "0 1px 4px rgba(0,0,0,0.95), 0 0 14px rgba(0,0,0,0.9)",
           }}
         >
           {data.titleEn}
         </span>
-        {/* ホバー・選択で下線がすっと引かれる */}
-        <span
-          aria-hidden
-          className="mt-1.5 block h-px w-full transition-transform duration-500"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
-            transform: `scaleX(${active ? 1 : 0})`,
-          }}
-        />
       </button>
 
       {/* 惑星へ伸びる引き出し線 */}
@@ -405,48 +432,56 @@ function CoreStar({
         <button
           ref={labelRef as unknown as React.RefObject<HTMLButtonElement>}
           onClick={open}
-          className="flex select-none flex-col items-center px-3 py-1"
-          style={{
-            transformOrigin: "50% 100%",
-            background:
-              "radial-gradient(ellipse 130% 150% at 50% 50%, rgba(2,1,8,0.82) 0%, rgba(2,1,8,0.6) 45%, rgba(2,1,8,0) 78%)",
-          }}
+          className="relative isolate flex select-none flex-col items-center px-4 py-1.5"
+          style={{ transformOrigin: "50% 100%" }}
         >
+          {/* 角の出ないぼかし楕円の暗幕 */}
           <span
-            className="whitespace-nowrap font-mono text-[11.5px] uppercase tracking-[0.3em] transition-colors duration-300"
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgba(12,6,2,0.94), rgba(12,6,2,0.55) 58%, rgba(12,6,2,0) 100%)",
+              width: "150%",
+              height: "230%",
+              filter: "blur(5px)",
+            }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-500"
+            style={{
+              background: "radial-gradient(closest-side, rgba(255,190,90,0.22), transparent 100%)",
+              width: "180%",
+              height: "265%",
+              filter: "blur(10px)",
+              opacity: hovered ? 1 : 0.45,
+            }}
+          />
+          <span
+            aria-hidden
+            className="mx-auto mb-[5px] block h-px transition-all duration-500"
+            style={{
+              width: hovered ? 38 : 20,
+              background: "linear-gradient(90deg, transparent, #ffd77a, transparent)",
+              opacity: hovered ? 0.95 : 0.5,
+            }}
+          />
+          <span
+            className="whitespace-nowrap font-mono text-[11.5px] uppercase tracking-[0.32em] transition-colors duration-300"
             style={{
               color: hovered ? "#fff6de" : "#ffe9b4",
-              textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.85)",
+              textShadow: "0 1px 4px rgba(0,0,0,0.95), 0 0 14px rgba(0,0,0,0.9)",
             }}
           >
             Connect
           </span>
           <span
-            className="mt-[3px] text-[10px] tracking-[0.18em]"
-            style={{
-              color: "rgba(255,231,175,0.72)",
-              textShadow: "0 1px 3px rgba(0,0,0,0.95)",
-            }}
+            className="mt-[3px] font-mono text-[9px] tracking-[0.3em]"
+            style={{ color: "rgba(255,231,175,0.62)", textShadow: "0 1px 3px rgba(0,0,0,0.95)" }}
           >
             LINE
           </span>
-          <span
-            aria-hidden
-            className="mt-1.5 block h-px w-full transition-transform duration-500"
-            style={{
-              background: "linear-gradient(90deg, transparent, #ffd77a, transparent)",
-              transform: `scaleX(${hovered ? 1 : 0.35})`,
-            }}
-          />
-          <span
-            aria-hidden
-            className="mt-1 block w-px transition-all duration-500"
-            style={{
-              height: hovered ? 26 : 16,
-              background: "linear-gradient(180deg, #ffd77a, transparent)",
-              opacity: hovered ? 0.9 : 0.45,
-            }}
-          />
         </button>
       </Html>
     </group>

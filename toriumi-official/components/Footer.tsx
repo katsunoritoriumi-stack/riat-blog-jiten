@@ -23,8 +23,10 @@ export default function Footer() {
             aria-hidden="true"
             animate={{ opacity: [0.25, 0.5, 0.25] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[190%] w-[190%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
+              width: "190%",
+              height: "190%",
               background: "radial-gradient(circle, rgba(124,58,237,0.4), transparent 65%)",
             }}
           />
