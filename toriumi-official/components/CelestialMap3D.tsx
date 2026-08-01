@@ -904,7 +904,7 @@ export default function CelestialMap3D({ paused = false }: { paused?: boolean })
     <Canvas
       shadows={shadows}
       camera={{ position: homeRef.current, fov: CAMERA_FOV, near: 0.1, far: 400 }}
-      dpr={[1, 2]}
+      dpr={compact ? [1, 1.5] : [1, 2]}
       frameloop={paused ? "demand" : "always"}
       onPointerMissed={handleMissed}
       gl={{ antialias: true, alpha: true }}

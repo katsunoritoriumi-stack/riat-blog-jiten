@@ -60,7 +60,11 @@ export default function Home() {
           { id: "digital",
             caption: { en: "The shape of creation.", jp: "創造の形" }, node: <DigitalAISection />, scroll: 2.9 },
           { id: "connect",
-            caption: { en: "This is the final transmission.", jp: "これが、最後の通信" }, node: <ConnectSection />, scroll: 3.4 },
+            caption: {
+              en: "This is the final transmission.",
+              jp: "これが、最後の通信",
+              counter: { to: 7400, en: "Reincarnations on Earth", jp: "地球での転生回数" },
+            }, node: <ConnectSection />, scroll: 3.4 },
           { id: "report",
             caption: { en: "A grand voyage begins.", jp: "壮大な旅の始まり" }, node: <LegacyStatement />, scroll: 3.4 },
           {

@@ -267,7 +267,7 @@ export default function Hero() {
             aria-hidden="true"
             width={846}
             height={1024}
-            className="logo-drift block h-[34svh] max-h-[400px] w-auto"
+            className="logo-drift block h-[25svh] max-h-[260px] w-auto sm:h-[34svh] sm:max-h-[400px]"
           />
         </motion.h1>
 

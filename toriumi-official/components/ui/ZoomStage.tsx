@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
+  animate,
   cubicBezier,
   motion,
   useMotionValue,
@@ -36,7 +37,12 @@ export type StationDef = {
    * このステーションを通り過ぎたあとの「航行区間」に出す予告編のコピー。
    * 何も表示されない時間を、次の場面への引きとして使う。
    */
-  caption?: { en: string; jp: string };
+  caption?: {
+    en: string;
+    jp: string;
+    /** 添えるカウンター（一気に数え上がる数字）。転生回数などの提示に使う */
+    counter?: { to: number; en: string; jp: string };
+  };
 };
 
 /**
@@ -72,18 +78,64 @@ const CARD_OUT = 0.81;
  * 大きな字間の大文字が、ぼけた状態から一度に焦点を結び（＝打ち込まれ）、
  * しばらく留まってから静かに引いていく。映画の予告編の呼吸に合わせている。
  */
+/** 0 から目標値まで一気に駆け上がるカウンター。カードが現れるたびに数え直す */
+function CountUp({ to, en, jp, run }: { to: number; en: string; jp: string; run: boolean }) {
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (!run) {
+      setN(0);
+      return;
+    }
+    const controls = animate(0, to, {
+      duration: 1.1,
+      ease: [0.12, 0.8, 0.2, 1], // 一気に伸びて、最後だけ静かに止まる
+      onUpdate: (v) => setN(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [run, to]);
+
+  return (
+    <div className="mt-7 flex flex-col items-center">
+      <span
+        className="font-display text-[clamp(2.6rem,10vw,6rem)] font-light leading-none tracking-[0.08em] text-aurum-100"
+        style={{
+          textShadow: "0 2px 20px rgba(0,0,0,0.9), 0 0 60px rgba(240,180,41,0.35)",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {n.toLocaleString("en-US")}
+      </span>
+      <span
+        className="mt-3 font-mono text-[clamp(0.55rem,2vw,0.7rem)] uppercase tracking-[0.35em] text-aurum-200/70"
+        style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+      >
+        {en}
+      </span>
+      <span
+        className="mt-1.5 font-serif text-[clamp(0.65rem,2.2vw,0.85rem)] tracking-[0.2em] text-nebula-200/60"
+        style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+      >
+        {jp}
+      </span>
+    </div>
+  );
+}
+
 function TrailerCard({
   progress,
   start,
   span,
   en,
   jp,
+  counter,
 }: {
   progress: MotionValue<number>;
   start: number;
   span: number;
   en: string;
   jp: string;
+  counter?: { to: number; en: string; jp: string };
 }) {
   const q = useTransform(progress, (v) => (v - start) / span);
   const stops = [CARD_IN, CARD_SHARP, CARD_HOLD, CARD_OUT];
@@ -136,6 +188,8 @@ function TrailerCard({
       >
         {jp}
       </p>
+
+      {counter && <CountUp to={counter.to} en={counter.en} jp={counter.jp} run={live} />}
     </motion.div>
   );
 }
@@ -349,6 +403,7 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
               span={bands[i].span}
               en={s.caption.en}
               jp={s.caption.jp}
+              counter={s.caption.counter}
             />
           ) : null
         )}

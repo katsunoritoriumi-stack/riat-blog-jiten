@@ -43,15 +43,30 @@ export default function SoundVisionSection() {
     };
   }, []);
 
+  /**
+   * 再生開始。スマホで音が出なかったので次の点を守っている：
+   * - preload="none" の状態で currentTime を触ると読み込み前の要素を操作することになり、
+   *   iOS では再生が始まらないことがある。頭出しはしない（そもそも初回は先頭から）。
+   * - play() はクリックハンドラの中で「同期的に」呼ぶ。await などを挟むと
+   *   ユーザー操作の許可が切れて弾かれる。
+   * - それでも音ありが拒否された端末では、消音で再生だけ通し、
+   *   音声ボタンで鳴らせる状態にしておく（無音のまま黙って失敗させない）。
+   */
   function start() {
     const v = videoRef.current;
     if (!v) return;
-    v.muted = false;
-    setMuted(false);
-    v.currentTime = 0;
-    void v.play();
     setStarted(true);
     setSoundOn(true);
+    v.muted = false;
+    setMuted(false);
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => {
+        v.muted = true;
+        setMuted(true);
+        void v.play();
+      });
+    }
   }
 
   function togglePlay() {

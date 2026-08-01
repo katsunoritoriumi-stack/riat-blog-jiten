@@ -450,3 +450,26 @@
 @media (prefers-reduced-motion: reduce) {
   .logo-drift { animation: none; }
 }
+
+/* ─────────────────────────────────────────────
+   スマホのスクロールを軽くする。
+   ZoomStage はセクションを拡大しながら動かすため、backdrop-filter が
+   掛かった要素はそのあいだ毎フレーム背景を取り直すことになる
+   （Connect のガラスカード8枚などが該当し、これが一番の負荷）。
+   指で操作する端末では、見た目をほぼ保ったまま合成をやめる。
+   ───────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(18, 14, 46, 0.86);
+  }
+  .zoom-station [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* 動いている最中のちらつきを避ける */
+  .zoom-station {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
