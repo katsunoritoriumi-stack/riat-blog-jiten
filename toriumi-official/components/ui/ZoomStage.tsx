@@ -12,6 +12,7 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
+import { computeBands, type StationSpec } from "@/lib/stations";
 
 /**
  * スクロールで宇宙の奥へ進む「ステーション」方式のページ。
@@ -27,23 +28,12 @@ import {
  * （lenis の scrollTo は実レイアウト上のスペーサーを掴む）。
  */
 
-export type StationDef = {
-  /** アンカー用 id。Navbar の SECTIONS と一致させる */
-  id: string;
-  node: ReactNode;
-  /** このステーションに割り当てるスクロール量（画面高さの倍数） */
-  scroll?: number;
-  /**
-   * このステーションを通り過ぎたあとの「航行区間」に出す予告編のコピー。
-   * 何も表示されない時間を、次の場面への引きとして使う。
-   */
-  caption?: {
-    en: string;
-    jp: string;
-    /** 添えるカウンター（一気に数え上がる数字）。転生回数などの提示に使う */
-    counter?: { to: number; en: string; jp: string };
-  };
-};
+/**
+ * id・スクロール配分・予告編コピーは lib/stations.ts が唯一の出典。
+ * 背景の宇宙（components/Universe.tsx）が同じ配分を読んでいるので、
+ * ここで独自に持つと「セクションが出る位置」と「宇宙の見せ場」がずれる。
+ */
+export type StationDef = StationSpec & { node: ReactNode };
 
 /**
  * 1ステーションの帯（q: 0〜1）の使い方。
@@ -203,6 +193,7 @@ function StationStage({
   span,
   blurMax,
   last,
+  passthrough = false,
 }: {
   children: ReactNode;
   progress: MotionValue<number>;
@@ -212,6 +203,8 @@ function StationStage({
   blurMax: number;
   /** 最後のステーションは通過させない（次が無いので静止したまま終わる） */
   last: boolean;
+  /** クリックを受け取らず、背後（宇宙のキャンバス）へ通す */
+  passthrough?: boolean;
 }) {
   // q < 0: まだ奥　0〜0.76: 到着して静止　> 0.76: 通過中
   const q = useTransform(progress, (v) => (v - start) / span);
@@ -309,7 +302,7 @@ function StationStage({
         opacity,
         filter,
         display: live ? undefined : "none",
-        pointerEvents: interactive ? "auto" : "none",
+        pointerEvents: interactive && !passthrough ? "auto" : "none",
       }}
       className="zoom-station absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain"
     >
@@ -324,15 +317,9 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll();
 
-  // 各ステーションのスクロール帯を、重みから求める
+  // 各ステーションのスクロール帯。計算式は lib/stations.ts と共有する
   const weights = stations.map((s) => s.scroll ?? 1);
-  const total = weights.reduce((a, b) => a + b, 0);
-  let acc = 0;
-  const bands = weights.map((wgt) => {
-    const start = acc / total;
-    acc += wgt;
-    return { start, span: wgt / total };
-  });
+  const bands = computeBands(weights);
 
   /**
    * フルスクリーンのぼかしはモバイルで重いので、細かいポインタ（＝PC）でだけ有効にする。
@@ -390,6 +377,7 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
             span={bands[i].span}
             blurMax={blurMax}
             last={i === stations.length - 1}
+            passthrough={s.passthrough}
           >
             {s.node}
           </StationStage>
