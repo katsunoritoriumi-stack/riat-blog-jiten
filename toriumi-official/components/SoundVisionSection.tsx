@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, Volume2, VolumeX, ArrowUpRight } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, ArrowUpRight, Loader2 } from "lucide-react";
 import SectionHeader from "./ui/SectionHeader";
 import { YOUTUBE } from "@/lib/content";
 import { setSoundOn } from "@/lib/soundStore";
@@ -17,6 +17,8 @@ import { setSoundOn } from "@/lib/soundStore";
  * - ZoomStage は画面外のセクションを display:none にするが、それだけでは音は止まらない。
  *   IntersectionObserver で見えなくなったら必ず一時停止する。
  * - 再生を始めたらサイト全体の soundOn を立て、他の効果音と足並みを揃える。
+ * - この端末で再生できない／読み込みに失敗したときは、黙って止まらず必ず画面に出す。
+ *   以前 AV1 でエンコードした動画を置いてしまい、iPhone では押しても無反応に見えていた。
  */
 export default function SoundVisionSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -24,6 +26,8 @@ export default function SoundVisionSection() {
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   // 画面から外れたら止める（ステーションが切り替わっても曲が流れ続けないように）
   useEffect(() => {
@@ -51,11 +55,15 @@ export default function SoundVisionSection() {
    *   ユーザー操作の許可が切れて弾かれる。
    * - それでも音ありが拒否された端末では、消音で再生だけ通し、
    *   音声ボタンで鳴らせる状態にしておく（無音のまま黙って失敗させない）。
+   * - play() が拒否されたのが「音の許可」ではなく「再生そのものの失敗」だったときは
+   *   消音での再試行も失敗するので、そこで諦めて失敗表示に切り替える。
    */
   function start() {
     const v = videoRef.current;
     if (!v) return;
     setStarted(true);
+    setFailed(false);
+    setBuffering(true);
     setSoundOn(true);
     v.muted = false;
     setMuted(false);
@@ -64,7 +72,13 @@ export default function SoundVisionSection() {
       p.catch(() => {
         v.muted = true;
         setMuted(true);
-        void v.play();
+        const retry = v.play();
+        if (retry && typeof retry.catch === "function") {
+          retry.catch(() => {
+            setBuffering(false);
+            setFailed(true);
+          });
+        }
       });
     }
   }
@@ -108,10 +122,19 @@ export default function SoundVisionSection() {
           loop
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onWaiting={() => setBuffering(true)}
+          onPlaying={() => {
+            setBuffering(false);
+            setFailed(false);
+          }}
+          onError={() => {
+            setBuffering(false);
+            setFailed(true);
+          }}
         />
 
         {/* 未再生：ポスターの上に、光が周回する再生ボタン */}
-        {!started && (
+        {!started && !failed && (
           <button
             onClick={start}
             aria-label="テーマソングを再生"
@@ -133,8 +156,39 @@ export default function SoundVisionSection() {
           </button>
         )}
 
+        {/* 読み込み中：21MB あるので回線によっては数秒かかる。無反応に見せない */}
+        {started && buffering && !failed && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-void-950/45">
+            <Loader2 size={30} className="animate-spin text-aurum-100" />
+            <span className="font-mono text-[0.65rem] uppercase tracking-cosmic text-nebula-100/80">
+              Loading transmission…
+            </span>
+          </div>
+        )}
+
+        {/* 再生できなかったとき：黙って固まらせず、必ず逃げ道を出す */}
+        {failed && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-void-950/80 px-6 text-center">
+            <span className="font-mono text-[0.65rem] uppercase tracking-cosmic text-aurum-200/80">
+              Signal unavailable
+            </span>
+            <span className="max-w-xs font-serif text-sm leading-relaxed text-nebula-200/75">
+              この端末では動画を再生できませんでした。
+            </span>
+            <a
+              href={YOUTUBE.channelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-aurum-200/40 px-5 py-2 text-xs uppercase tracking-cosmic text-aurum-100 transition-colors hover:bg-aurum-200/10"
+            >
+              YouTube で見る
+              <ArrowUpRight size={14} />
+            </a>
+          </div>
+        )}
+
         {/* 再生後：邪魔をしない最小限の操作 */}
-        {started && (
+        {started && !failed && (
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-void-950/85 to-transparent p-3 opacity-0 transition-opacity duration-300 focus-within:opacity-100 group-hover:opacity-100">
             <button
               onClick={togglePlay}

@@ -88,8 +88,10 @@ function CountUp({ to, en, jp, run }: { to: number; en: string; jp: string; run:
       return;
     }
     const controls = animate(0, to, {
-      duration: 1.1,
-      ease: [0.12, 0.8, 0.2, 1], // 一気に伸びて、最後だけ静かに止まる
+      duration: 2.2,
+      // 前半はほぼ一定の速さで一気に駆け上がり（0.6秒で5,400あたり）、
+      // 7,000が見えてきたところから目に見えて減速して、最後の数十を数えながら止まる。
+      ease: [0.25, 0.55, 0.1, 1],
       onUpdate: (v) => setN(Math.round(v)),
     });
     return () => controls.stop();
