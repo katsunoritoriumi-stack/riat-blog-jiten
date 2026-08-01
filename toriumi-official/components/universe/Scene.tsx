@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { clamp01, smoothstep } from "@/lib/flightMath";
 import { STATIONS, STATION_BANDS } from "@/lib/stations";
 import { makeMilkyBand, makeNebulaSprite, makeStarSprite, NEBULA_PALETTE } from "@/lib/spaceTextures";
+import Flybys from "./Flybys";
 import { CORRIDOR, depthOf, flight, RUSH_FULL } from "./flightState";
 import SolarSystem, { openDomain } from "./SolarSystem";
 import { makeStarLayer, pointSizeBase, TUBE_LEN } from "./starfield";
@@ -353,8 +354,18 @@ export default function Scene({ quality }: { quality: Quality }) {
       <MilkyWay />
       <Nebulae quality={quality} />
       <Stars quality={quality} />
+      {/*
+        遠い星明かり。飛来天体の明暗境界を作り、太陽系の手前側が
+        真っ黒に潰れるのも防ぐ。three.js のライトはオブジェクト単位で
+        分けられないので、両者で 1 つを共用している。
+      */}
+      <ambientLight intensity={0.09} color="#1a1830" />
+      <directionalLight position={[-40, 32, 60]} intensity={1.5} color="#fff2e0" />
+
+      {/* 航行区間ですれ違う天体と、到着の予兆 */}
+      <Flybys enabled />
+
       {/* 旅の途中に浮かんでいる太陽系（創造の座標軸） */}
-      <ambientLight intensity={0.06} color="#1a1830" />
       <SolarSystem onPick={openDomain} />
     </>
   );

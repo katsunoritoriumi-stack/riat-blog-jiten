@@ -17,6 +17,8 @@ import {
 import { makeStarSprite } from "@/lib/spaceTextures";
 import { STATIONS, STATION_BANDS } from "@/lib/stations";
 import { depthOf, flight } from "./flightState";
+import { makeRingGeometry } from "./ringGeometry";
+import { bakeOnce, diffuseKey } from "./textureCache";
 
 /**
  * 創造の座標軸 — 旅の途中の、ある領域に浮かんでいる太陽系。
@@ -178,48 +180,22 @@ function useTextures(active: boolean): TextureSet | null {
     if (!active || started.current) return;
     started.current = true;
     let alive = true;
-    const skins = [...new Set(Object.values(PLANETS).map((p) => p.skin))];
-    const diffuse: Record<string, THREE.Texture> = {};
-    const queue: (() => void)[] = [];
 
-    for (const skin of skins) {
-      const seed = Object.values(PLANETS).find((p) => p.skin === skin)!.seed;
-      queue.push(() => {
-        diffuse[skin] = makeDiffuse(skin, seed);
-      });
-    }
-    queue.push(() => {
-      diffuse.plasma = makeDiffuse("plasma", 3);
-    });
-
-    let normal: THREE.Texture;
-    let roughness: THREE.Texture;
-    let clouds: THREE.Texture;
-    let ring: THREE.Texture;
-    queue.push(() => {
-      normal = makeCommonNormal(101);
-    });
-    queue.push(() => {
-      roughness = makeRoughness("living", 55);
-    });
-    queue.push(() => {
-      clouds = makeClouds(154);
-    });
-    queue.push(() => {
-      ring = makeRing(31);
-    });
-
-    let i = 0;
-    const tick = () => {
-      if (!alive) return;
-      if (i < queue.length) {
-        queue[i++]();
-        window.setTimeout(tick, 16);
-        return;
+    (async () => {
+      const diffuse: Record<string, THREE.Texture> = {};
+      const skins = [...new Set(Object.values(PLANETS).map((p) => p.skin))];
+      for (const skin of skins) {
+        const seed = Object.values(PLANETS).find((p) => p.skin === skin)!.seed;
+        diffuse[skin] = await bakeOnce(diffuseKey(skin, seed), () => makeDiffuse(skin, seed));
       }
-      setSet({ diffuse, normal: normal!, roughness: roughness!, clouds: clouds!, ring: ring! });
-    };
-    window.setTimeout(tick, 16);
+      diffuse.plasma = await bakeOnce(diffuseKey("plasma", 3), () => makeDiffuse("plasma", 3));
+      const normal = await bakeOnce("normal:101", () => makeCommonNormal(101));
+      const roughness = await bakeOnce("rough:living:55", () => makeRoughness("living", 55));
+      const clouds = await bakeOnce("clouds:154", () => makeClouds(154));
+      const ring = await bakeOnce("ring:31", () => makeRing(31));
+      if (alive) setSet({ diffuse, normal, roughness, clouds, ring });
+    })();
+
     return () => {
       alive = false;
     };
@@ -293,6 +269,12 @@ function Planet({
   const cloud = useRef<THREE.Mesh>(null);
   const angle = useRef(cfg.phase);
   const [hover, setHover] = useState(false);
+  const ringGeo = useMemo(
+    () =>
+      cfg.ring ? makeRingGeometry(cfg.size * cfg.ring.inner, cfg.size * cfg.ring.outer, 96) : null,
+    [cfg]
+  );
+  useEffect(() => () => ringGeo?.dispose(), [ringGeo]);
 
   useFrame((_, dt) => {
     // 左巻き（反時計回りではなく時計回り）に統一する
@@ -365,9 +347,8 @@ function Planet({
         )}
 
         {/* 環 */}
-        {cfg.ring && (
-          <mesh rotation={[Math.PI / 2 - cfg.ring.tilt, 0, 0.3]}>
-            <ringGeometry args={[cfg.size * cfg.ring.inner, cfg.size * cfg.ring.outer, 96, 1]} />
+        {cfg.ring && ringGeo && (
+          <mesh geometry={ringGeo} rotation={[Math.PI / 2 - cfg.ring.tilt, 0, 0.3]}>
             <meshBasicMaterial
               map={tex.ring}
               side={THREE.DoubleSide}
@@ -466,8 +447,12 @@ export default function SolarSystem({ onPick }: { onPick: (d: Domain) => void })
     >
       {tex && (
         <>
-          {/* 手前側の面が完全に潰れないようにする、ごく弱い補助光 */}
-          <directionalLight position={[2, 8, 22]} intensity={0.7} color="#cfd8ff" />
+          {/*
+            手前側が潰れないようにする補助光は、シーン側の「遠い星明かり」
+            （components/universe/Scene.tsx の directionalLight）が兼ねる。
+            three.js のライトはカメラのレイヤーでしか絞れず、オブジェクト単位で
+            当てるライトを分けられないため、飛来天体と共用にしてある。
+          */}
           <CoreStar map={tex.diffuse.plasma} />
           {domains.map((d) => (
             <OrbitRing key={`o-${d.key}`} radius={PLANETS[d.key].radius} />
