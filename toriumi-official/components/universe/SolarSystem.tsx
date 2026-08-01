@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DOMAINS, type Domain } from "@/lib/content";
+import { smoothstep } from "@/lib/flightMath";
 import { playSfx } from "@/lib/sfx";
 import {
   makeClouds,
@@ -144,6 +145,16 @@ const SYS_TILT: [number, number, number] = [-0.36, 0, 0.07];
 
 const UNI_INDEX = STATIONS.findIndex((s) => s.id === "universe");
 
+/**
+ * 見ている間の公転の遅さ。
+ * 遠くにいるときは 1（通常速度）、目の前にいるときは 0.16 まで落ちる。
+ *
+ * 回っている惑星は、それだけで狙って押しにくい。とくにスマホは
+ * ホバーで止めることもできないので、近づいたら自動でゆっくりにする。
+ * 完全に止めないのは「生きている系」に見せたいため。
+ */
+const sysView = { slow: 1 };
+
 /** 太陽系の中心が置かれる深度 */
 function systemDepth() {
   const b = STATION_BANDS[UNI_INDEX];
@@ -277,8 +288,8 @@ function Planet({
   useEffect(() => () => ringGeo?.dispose(), [ringGeo]);
 
   useFrame((_, dt) => {
-    // 左巻き（反時計回りではなく時計回り）に統一する
-    angle.current -= dt * cfg.speed;
+    // 左巻きに統一する。近づいたら遅く、掴んでいる（ホバー中の）星は止める
+    angle.current -= dt * cfg.speed * (hover ? 0 : sysView.slow);
     const g = orbit.current;
     if (g) {
       g.position.x = Math.cos(angle.current) * cfg.radius;
@@ -307,9 +318,9 @@ function Planet({
           onPick(domain);
         }}
       >
-        {/* 当たり判定を広げる透明球 */}
+        {/* 当たり判定を広げる透明球。指で押すので本体よりかなり大きく取る */}
         <mesh visible={false}>
-          <sphereGeometry args={[cfg.size * 2.4, 8, 8]} />
+          <sphereGeometry args={[Math.max(cfg.size * 3.4, 2.1), 10, 10]} />
         </mesh>
 
         <mesh ref={body}>
@@ -359,26 +370,40 @@ function Planet({
         )}
       </group>
 
-      {/* 名前は画面上で一定の大きさに保つ（距離で拡大させない） */}
-      <Html
-        position={[0, cfg.size * 1.9, 0]}
-        center
-        zIndexRange={[8, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
+      {/*
+        名前は画面上で一定の大きさに保つ（距離で拡大させない）。
+        回っている球を指で狙うのは難しいので、このラベル自体も押せるようにして
+        大きな的を用意する（スマホではこちらが主な入口になる）。
+      */}
+      <Html position={[0, cfg.size * 1.9, 0]} center zIndexRange={[8, 0]}>
+        <button
+          type="button"
+          aria-label={`${domain.titleEn} を開く`}
+          onPointerEnter={() => setHover(true)}
+          onPointerLeave={() => setHover(false)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPick(domain);
+          }}
           className="whitespace-nowrap font-mono uppercase"
           style={{
+            // 指で押せる大きさの余白を持たせる（見た目は文字だけ）
+            padding: "10px 14px",
+            margin: "-10px -14px",
+            background: "none",
+            border: 0,
+            cursor: "pointer",
             fontSize: 10,
             letterSpacing: "0.24em",
             color: hover ? "#fff" : cfg.accent,
             textShadow: "0 1px 10px rgba(0,0,0,0.95)",
             opacity: hover ? 1 : 0.82,
             transition: "opacity 200ms, color 200ms",
+            touchAction: "manipulation",
           }}
         >
           {domain.titleEn}
-        </div>
+        </button>
       </Html>
     </group>
   );
@@ -433,6 +458,8 @@ export default function SolarSystem({ onPick }: { onPick: (d: Domain) => void })
     // 遠すぎる／通り過ぎた区間は丸ごと描かない
     const on = dz < 1600 && dz > -300;
     if (on !== g.visible) g.visible = on;
+    // 目の前に来たら公転をゆっくりにする（狙って押せるように）
+    sysView.slow = 1 - 0.84 * smoothstep(760, 260, dz);
     // 到達のかなり手前でテクスチャを焼き始める（間に合わせるため）
     if (!near && dz < 2600) setNear(true);
   });

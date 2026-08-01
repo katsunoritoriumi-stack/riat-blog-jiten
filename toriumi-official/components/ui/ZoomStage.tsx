@@ -12,7 +12,8 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { computeBands, type StationSpec } from "@/lib/stations";
+import { smoothstep } from "@/lib/flightMath";
+import { computeBands, type Band, type StationSpec } from "@/lib/stations";
 
 /**
  * スクロールで宇宙の奥へ進む「ステーション」方式のページ。
@@ -183,6 +184,50 @@ function TrailerCard({
 
       {counter && <CountUp to={counter.to} en={counter.en} jp={counter.jp} run={live} />}
     </motion.div>
+  );
+}
+
+/**
+ * 読ませるための暗幕。
+ *
+ * 背景がひとつながりの宇宙になったので、惑星や飛来天体が本文の真後ろに来ると
+ * 文字が読めなくなる（実機で発生した）。セクションが到着して静止している間だけ
+ * 背後を沈め、通り過ぎて航行区間に入ると消す。
+ * こうすると「読むときは静か・旅の途中は宇宙が主役」を両立できる。
+ *
+ * 天球図（passthrough）は太陽系そのものが主役なので、ここでは沈めない。
+ */
+function ReadScrim({
+  progress,
+  bands,
+  stations,
+}: {
+  progress: MotionValue<number>;
+  bands: Band[];
+  stations: StationDef[];
+}) {
+  const opacity = useTransform(progress, (p) => {
+    let best = 0;
+    for (let i = 0; i < bands.length; i++) {
+      if (stations[i]?.passthrough) continue;
+      const q = (p - bands[i].start) / bands[i].span;
+      // 到着の直前から立ち上げ、通過とともに引く
+      const v = smoothstep(-0.16, 0.01, q) * (1 - smoothstep(0.36, 0.5, q));
+      if (v > best) best = v;
+    }
+    return best;
+  });
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{
+        opacity,
+        background:
+          "radial-gradient(ellipse 78% 62% at 50% 50%, rgba(3,2,10,0.82) 0%, rgba(3,2,10,0.66) 55%, rgba(3,2,10,0.3) 100%)",
+      }}
+      className="pointer-events-none absolute inset-0"
+    />
   );
 }
 
@@ -369,6 +414,9 @@ export default function ZoomStage({ stations }: { stations: StationDef[] }) {
 
       {/* 固定ステージ（Navbar の下・銀河背景の上） */}
       <div className="zoom-stage pointer-events-none fixed inset-0 z-10">
+        {/* 本文の背後を沈める暗幕。ステーションより先に描くので必ず後ろに来る */}
+        <ReadScrim progress={scrollYProgress} bands={bands} stations={stations} />
+
         {stations.map((s, i) => (
           <StationStage
             key={s.id}
