@@ -187,22 +187,35 @@ export default function SoundVisionSection() {
           </div>
         )}
 
-        {/* 再生後：邪魔をしない最小限の操作 */}
+        {/* 一時停止中：中央に大きな再生ボタン。止めたあと戻れないと困るので必ず出す */}
+        {started && !failed && !playing && !buffering && (
+          <button
+            onClick={togglePlay}
+            aria-label="再生"
+            className="absolute inset-0 flex items-center justify-center bg-void-950/35 transition-colors hover:bg-void-950/20"
+          >
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-void-950/55 ring-1 ring-aurum-200/70 transition-transform hover:scale-110">
+              <Play size={26} className="translate-x-0.5 text-aurum-100" fill="currentColor" />
+            </span>
+          </button>
+        )}
+
+        {/* 再生後の操作列。ホバーのないスマホでも押せるよう、常に表示しておく */}
         {started && !failed && (
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-void-950/85 to-transparent p-3 opacity-0 transition-opacity duration-300 focus-within:opacity-100 group-hover:opacity-100">
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-void-950/85 to-transparent p-3">
             <button
               onClick={togglePlay}
               aria-label={playing ? "一時停止" : "再生"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-void-950/60 text-nebula-100 ring-1 ring-nebula-400/30 backdrop-blur-sm transition-colors hover:text-aurum-200"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-void-950/70 text-nebula-100 ring-1 ring-nebula-400/40 backdrop-blur-sm transition-colors hover:text-aurum-200"
             >
-              {playing ? <Pause size={16} /> : <Play size={16} className="translate-x-px" />}
+              {playing ? <Pause size={18} /> : <Play size={18} className="translate-x-px" />}
             </button>
             <button
               onClick={toggleMute}
               aria-label={muted ? "音を出す" : "消音"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-void-950/60 text-nebula-100 ring-1 ring-nebula-400/30 backdrop-blur-sm transition-colors hover:text-aurum-200"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-void-950/70 text-nebula-100 ring-1 ring-nebula-400/40 backdrop-blur-sm transition-colors hover:text-aurum-200"
             >
-              {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
           </div>
         )}
