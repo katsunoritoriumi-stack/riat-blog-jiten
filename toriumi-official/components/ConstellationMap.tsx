@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import SectionHeader from "./ui/SectionHeader";
 import { DOMAINS } from "@/lib/content";
+import { setPickedDomain, usePickedDomain } from "@/lib/domainPick";
 
 /**
  * 創造の座標軸。
@@ -81,9 +82,102 @@ function DomainListFallback() {
   );
 }
 
+/**
+ * 行き先が複数ある星（Fashion / Work / SNS）を選んだときに出す一覧。
+ *
+ * 3D の中に浮かべると、カメラ距離で拡大されて画面からはみ出す
+ * （以前それで操作できなくなった）。画面下に固定した DOM として出すことで、
+ * 大きさも位置も安定し、指でも押しやすい。
+ */
+function DomainLinks({ domainKey, onClose }: { domainKey: string; onClose: () => void }) {
+  // その場を離れたら閉じる（開きっぱなしで次のセクションまで付いてこない）
+  useEffect(() => {
+    const from = window.scrollY;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - from) > 90) onClose();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [onClose]);
+
+  const d = DOMAINS.find((x) => x.key === domainKey);
+  if (!d) return null;
+  const links = d.links ?? (d.href ? [{ label: d.titleJp, href: d.href }] : []);
+
+  return (
+    <div className="pointer-events-auto absolute inset-x-4 bottom-24 z-10 mx-auto max-w-sm sm:bottom-28">
+      <div className="rounded-2xl border border-nebula-500/25 bg-void-950/90 p-4 shadow-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-aurum-300/80">
+              {d.titleEn}
+            </p>
+            <p className="mt-0.5 font-serif text-sm text-nebula-100/90">{d.titleJp}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="閉じる"
+            className="-m-2 p-2 font-mono text-xs text-nebula-300/70 transition-colors hover:text-aurum-200"
+          >
+            ✕
+          </button>
+        </div>
+
+        <ul className="mt-3 flex flex-col gap-1">
+          {links.map((l) =>
+            l.href.startsWith("/") ? (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  onClick={onClose}
+                  className="block rounded-lg px-3 py-2.5 text-sm text-nebula-100/90 transition-colors hover:bg-nebula-500/15 hover:text-aurum-200"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ) : (
+              <li key={l.href}>
+                <a
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  className="block rounded-lg px-3 py-2.5 text-sm text-nebula-100/90 transition-colors hover:bg-nebula-500/15 hover:text-aurum-200"
+                >
+                  {l.label}
+                </a>
+              </li>
+            )
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function ConstellationMap() {
   const [webgl, setWebgl] = useState<boolean | null>(null);
+  const picked = usePickedDomain();
   useEffect(() => setWebgl(detectWebGL()), []);
+
+  // このステーションを離れたら開きっぱなしにしない
+  useEffect(() => () => setPickedDomain(null), []);
+
+  /**
+   * 検証用の入口（開発時のみ）。
+   * 星を押すには WebGL のキャンバスが要るが、作業環境ではフレーム合成が止まって
+   * キャンバスが立ち上がらないことがある。リンク一覧そのものは DOM なので、
+   * ここから直接開いて確かめられるようにしておく。本番ビルドには含めない。
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const w = window as unknown as { __pickDomain?: (k: string | null) => void };
+    w.__pickDomain = setPickedDomain;
+    return () => {
+      delete w.__pickDomain;
+    };
+  }, []);
 
   const domainCount = DOMAINS.filter((d) => d.key !== "connect" && !d.hidden).length;
 
@@ -106,6 +200,8 @@ export default function ConstellationMap() {
       </div>
 
       {webgl === false && <DomainListFallback />}
+
+      {picked && <DomainLinks domainKey={picked} onClose={() => setPickedDomain(null)} />}
 
       <p className="self-end font-mono text-[8px] uppercase tracking-[0.25em] text-nebula-300/45 sm:text-[9px]">
         {domainCount} Domains · 1 Core

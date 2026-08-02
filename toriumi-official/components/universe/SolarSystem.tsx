@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { DOMAINS, type Domain } from "@/lib/content";
+import { setPickedDomain } from "@/lib/domainPick";
 import { smoothstep } from "@/lib/flightMath";
 import { playSfx } from "@/lib/sfx";
 import {
@@ -493,8 +494,24 @@ export default function SolarSystem({ onPick }: { onPick: (d: Domain) => void })
   );
 }
 
-/** 星をクリックしたときの既定の動き（外部リンクを開く） */
+/**
+ * 星をクリックしたときの動き。
+ *
+ * 行き先がひとつなら直接開く。複数ある星（Fashion / Work / SNS）は
+ * 開きようがないので、DOM 側（ConstellationMap）に一覧を出してもらう。
+ * ここを href だけ見る実装にしていたため、複数リンクの星が
+ * 押しても何も起きない状態になっていた。
+ */
 export function openDomain(d: Domain) {
   playSfx("chime");
-  if (d.href) window.open(d.href, "_blank", "noopener,noreferrer");
+  const links = d.links ?? [];
+  if (links.length > 1) {
+    setPickedDomain(d.key);
+    return;
+  }
+  const href = d.href ?? links[0]?.href;
+  if (!href) return;
+  setPickedDomain(null);
+  if (href.startsWith("/") || href.startsWith("#")) window.location.href = href;
+  else window.open(href, "_blank", "noopener,noreferrer");
 }

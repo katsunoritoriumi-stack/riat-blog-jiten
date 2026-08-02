@@ -39,8 +39,8 @@ export type StationDef = StationSpec & { node: ReactNode };
 /**
  * 1ステーションの帯（q: 0〜1）の使い方。
  *
- *   -0.18 ┄┄ 0 ────────── 0.34 ─────── 0.52 ┄┄┄┄┄┄┄┄┄ 0.82(=次の出現開始)
- *     現れる    静止して読める      通り過ぎる      何も無い＝航行区間
+ *   -0.18 ┄┄ 0 ──────────── 0.42 ────── 0.56 ┄┄┄┄┄┄┄ 0.82(=次の出現開始)
+ *     現れる     静止して読める      通り過ぎる     何も無い＝航行区間
  *
  * 通り過ぎたあとに「何も無い区間」をわざと空けている。ここでは星屑だけが流れ、
  * 次のセクションはまだ現れない＝宇宙を移動している時間になる。
@@ -48,8 +48,13 @@ export type StationDef = StationSpec & { node: ReactNode };
  */
 const ENTER_FROM = -0.18; // ここから奥に現れ始める
 const ENTER_TO = 0; // ここで実寸に到着
-const HOLD_TO = 0.34; // ここまで静止（読める・押せる）
-const EXIT_TO = 0.52; // ここで完全に通過（以降 0.82 までは何も無い）
+/**
+ * ここまで静止（読める・押せる）。
+ * 0.34 だと見出しが一瞬しか読めないという指摘があり、0.42 まで伸ばした。
+ * 帯の 42% ＝ 1画面ぶん強のスクロールのあいだ、実寸で静止していることになる。
+ */
+const HOLD_TO = 0.42;
+const EXIT_TO = 0.56; // ここで完全に通過（以降 0.82 までは何も無い）
 const SCALE_FAR = 0.34; // 現れ始めの大きさ（遠いほど旅の距離を感じる）
 const SCALE_PAST = 2.6; // 通り過ぎるときの大きさ
 const BLUR_MAX = 11; // ピント外れの最大量(px)
@@ -58,11 +63,15 @@ const BLUR_MAX = 11; // ピント外れの最大量(px)
 const EASE_APPROACH = cubicBezier(0.16, 0.62, 0.24, 1); // easeOut 寄り
 const EASE_DEPART = cubicBezier(0.62, 0, 0.9, 0.4); // easeIn 寄り
 
-/* 予告編のタイトルカードが出ている区間（帯の 0.52〜0.81＝航行区間の内側） */
-const CARD_IN = 0.53;
-const CARD_SHARP = 0.62;
-const CARD_HOLD = 0.72;
-const CARD_OUT = 0.81;
+/**
+ * 予告編のタイトルカードが出ている区間（帯の 0.58〜0.93＝航行区間の内側）。
+ * 焦点が合って静止している CARD_SHARP〜CARD_HOLD が「読める時間」で、
+ * ここが 0.10 しかなく一瞬で消えていたため 0.21 まで倍に伸ばした。
+ */
+const CARD_IN = 0.58;
+const CARD_SHARP = 0.65;
+const CARD_HOLD = 0.86;
+const CARD_OUT = 0.93;
 
 /**
  * 航行区間に差し込む予告編のタイトルカード。
@@ -211,8 +220,8 @@ function ReadScrim({
     for (let i = 0; i < bands.length; i++) {
       if (stations[i]?.passthrough) continue;
       const q = (p - bands[i].start) / bands[i].span;
-      // 到着の直前から立ち上げ、通過とともに引く
-      const v = smoothstep(-0.16, 0.01, q) * (1 - smoothstep(0.36, 0.5, q));
+      // 到着の直前から立ち上げ、通過とともに引く（HOLD_TO / EXIT_TO に合わせる）
+      const v = smoothstep(-0.16, 0.01, q) * (1 - smoothstep(HOLD_TO + 0.02, EXIT_TO - 0.02, q));
       if (v > best) best = v;
     }
     return best;
