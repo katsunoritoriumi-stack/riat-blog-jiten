@@ -161,6 +161,9 @@ def ask():
 
     data = request.json or {}
     user_message = (data.get("message") or "").strip()
+    # ブログ銀河から「この星について聞く」場合に渡ってくる記事URL。
+    # ベクトル検索は必ずしもその記事を引かないため、指定があれば文脈の先頭に固定する
+    focus_url = (data.get("url") or "").strip()
 
     if not user_message:
         return jsonify({"response": "メッセージを入力してください", "sources": []}), 400
@@ -186,22 +189,44 @@ def ask():
 
             context_parts = []
             sources = []
+            seen_urls = set()
+
+            def add_article(title, url, article_content):
+                if not url or url in seen_urls:
+                    return
+                seen_urls.add(url)
+                context_parts.append("タイトル: " + title + "\n本文:\n" + article_content)
+                sources.append({"title": title, "url": url})
+
+            # 読者が開いている記事は検索結果より先に、必ず文脈へ入れる
+            focus_title = ""
+            focus = url_to_article.get(focus_url) if focus_url else None
+            if focus:
+                focus_title = focus.get("title", "")
+                add_article(focus_title, focus_url, focus.get("content", ""))
+
             for match in search_result["matches"]:
                 meta = match["metadata"]
-                title = meta.get("title", "")
                 url = meta.get("url", "")
                 # URLで全文を引く（メタデータに本文は無いため）
                 article_content = url_to_article.get(url, {}).get("content", meta.get("content", ""))
-                context_parts.append("タイトル: " + title + "\n本文:\n" + article_content)
-                sources.append({"title": title, "url": url})
+                add_article(meta.get("title", ""), url, article_content)
 
             # 3. 出典を先に送る
             yield sse({"type": "sources", "sources": sources})
 
             context_text = "\n---\n".join(context_parts)
+            focus_note = (
+                "読者は「" + focus_title + "」という記事を読んでいます。"
+                "「この記事」とはこの記事を指します。まずこの記事の内容に基づいて答え、"
+                "足りない部分だけ他の記事で補ってください。\n"
+                if focus_title else ""
+            )
             prompt = (
                 "以下のブログ記事を読んで質問に丁寧に答えてください。\n"
-                "回答文にURLは含めないでください。\n\n"
+                "回答文にURLは含めないでください。\n"
+                + focus_note
+                + "\n"
                 + context_text
                 + "\n\n質問: "
                 + user_message
