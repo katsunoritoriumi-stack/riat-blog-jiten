@@ -29,8 +29,6 @@ export const LINKS = {
 export const YOUTUBE = {
   channelUrl: LINKS.youtube,
   channelName: "Exodus チャンネル",
-  thumbnail:
-    "https://yt3.googleusercontent.com/cHhKFrE1rF9GXeCxRB0wQmLcMbCsKJBj-rxAkVPvLt-DnJnGQKF4RUWycVcze_OhVLjCgloG=w1280-h720",
 } as const;
 
 export type Domain = {

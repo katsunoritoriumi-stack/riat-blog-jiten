@@ -11,8 +11,9 @@ import { setSoundOn } from "@/lib/soundStore";
  * このサイトのテーマソング（ミュージックビデオ）を置く場所。
  *
  * 実装上の要点：
- * - 21MB あるので preload="none"。ポスターには既存の EXODUS チャンネルアートを使い、
- *   再生ボタンを押して初めて読み込みが始まる（勝手に通信量を使わせない）。
+ * - 21MB あるので preload="none"。ポスターは MV 用に描き下ろした
+ *   /theme-mv-poster.webp（自前で持つので外部ホストの都合で消えない）。
+ *   再生ボタンを押して初めて動画の読み込みが始まる（勝手に通信量を使わせない）。
  * - 最初のクリックが「音を鳴らす許可」になるので、そこで音ありで頭から再生する。
  * - ZoomStage は画面外のセクションを display:none にするが、それだけでは音は止まらない。
  *   IntersectionObserver で見えなくなったら必ず一時停止する。
@@ -116,7 +117,7 @@ export default function SoundVisionSection() {
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           src="/theme-mv.mp4"
-          poster={YOUTUBE.thumbnail}
+          poster="/theme-mv-poster.webp"
           preload="none"
           playsInline
           loop
@@ -133,25 +134,25 @@ export default function SoundVisionSection() {
           }}
         />
 
-        {/* 未再生：ポスターの上に、光が周回する再生ボタン */}
+        {/**
+         * 未再生：ポスターの上に、光が周回する再生ボタン。
+         *
+         * ポスターが描き下ろしのキーアートになったので、置き方を二点だけ変えている。
+         * - 暗幕を薄くする（絵を潰さない）
+         * - ボタンを真ん中より少し下げる。ど真ん中は人物の顔にちょうど重なるため。
+         *   pt はパーセントだと「幅」に対する比になる。カードは 16:9 固定なので
+         *   高さの 0.32 ＝ 幅の 0.32×9/16 ＝ 18%。これで中心が高さの 66% に来る。
+         * 説明文はカードの外へ出した。絵の中の「オリジナルMV」の文字と重なるため。
+         */}
         {!started && !failed && (
           <button
             onClick={start}
-            aria-label="テーマソングを再生"
-            className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center"
+            aria-label="テーマソングを音ありで再生"
+            className="absolute inset-0 flex items-center justify-center pt-[18%]"
           >
-            <span className="pointer-events-none absolute inset-0 bg-void-950/45 transition-colors duration-500 group-hover:bg-void-950/25" />
+            <span className="pointer-events-none absolute inset-0 bg-void-950/30 transition-colors duration-500 group-hover:bg-void-950/12" />
             <span className="orbit-ring relative flex h-20 w-20 items-center justify-center rounded-full bg-void-950/40 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110">
               <Play size={30} className="translate-x-0.5 text-aurum-100" fill="currentColor" />
-            </span>
-            <span className="relative flex items-center gap-3 text-xs uppercase tracking-cosmic text-nebula-100/85 drop-shadow">
-              <span className="eq" aria-hidden="true">
-                <span /><span /><span /><span /><span />
-              </span>
-              Theme — play with sound
-              <span className="eq" aria-hidden="true">
-                <span /><span /><span /><span /><span />
-              </span>
             </span>
           </button>
         )}
@@ -220,6 +221,19 @@ export default function SoundVisionSection() {
           </div>
         )}
       </motion.div>
+
+      {/* 「押すと音が鳴る」ことの予告。カードの中に置くと絵の文字と喧嘩するので外に出した */}
+      {!started && !failed && (
+        <p className="mt-6 flex items-center justify-center gap-3 text-xs uppercase tracking-cosmic text-nebula-100/75">
+          <span className="eq" aria-hidden="true">
+            <span /><span /><span /><span /><span />
+          </span>
+          Theme — play with sound
+          <span className="eq" aria-hidden="true">
+            <span /><span /><span /><span /><span />
+          </span>
+        </p>
+      )}
 
       <div className="mt-8 flex justify-center">
         <a
