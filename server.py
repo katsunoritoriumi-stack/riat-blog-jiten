@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import re
+import threading
+import time
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_file, Response, stream_with_context
 from flask_cors import CORS
@@ -24,10 +26,16 @@ BASIC_AUTH_USER = os.environ.get("BASIC_AUTH_USER", "katsu")
 BASIC_AUTH_PASS = os.environ.get("BASIC_AUTH_PASS")
 
 
+# 認証不要のパス。
+#   /warmup — UptimeRobot 等のキープアライブ用（機密情報を返さない）
+#   /ask    — 公開中のブログ銀河（galaxy）から呼ぶため。裸で開けると Gemini の無料枠を
+#             枯らされるので、ask() の冒頭で Origin・レート・日次上限の3段で絞っている
+PUBLIC_PATHS = {"/warmup", "/ask"}
+
+
 @app.before_request
 def _require_basic_auth():
-    # /warmup は UptimeRobot 等のキープアライブ用に認証不要（機密情報を返さない）
-    if request.path == "/warmup":
+    if request.path in PUBLIC_PATHS:
         return None
     if not BASIC_AUTH_PASS:
         return Response(
@@ -76,6 +84,58 @@ def sse(obj) -> str:
     return "data: " + json.dumps(obj, ensure_ascii=False) + "\n\n"
 
 
+# --- /ask の流量制限 ------------------------------------------------------
+# Origin チェックは他サイトからの埋め込みを防ぐだけで、認証ではない（非ブラウザからは
+# 詐称できる）。実効的な保護は下のレート制限と日次上限のほう。
+ALLOWED_ORIGINS = {
+    "https://galaxy-wheat-zeta.vercel.app",
+    "https://riat-blog-jiten-2.onrender.com",
+    "http://localhost:5900",
+    "http://127.0.0.1:5900",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+}
+RATE_WINDOW_SEC = 600   # 10分あたり
+RATE_MAX = 20           # 同一IPからの上限
+DAILY_MAX = 300         # 全体の1日上限（ブログ辞典本体と Gemini 無料枠を共有するため）
+
+_rate_lock = threading.Lock()
+_ip_hits: dict[str, list[float]] = {}
+_daily = {"date": None, "count": 0}
+
+
+def _client_ip() -> str:
+    fwd = request.headers.get("X-Forwarded-For", "")
+    return fwd.split(",")[0].strip() if fwd else (request.remote_addr or "?")
+
+
+def _check_quota():
+    """許可されていれば None、拒否なら (本文, ステータス) を返す。"""
+    origin = request.headers.get("Origin")
+    if origin and origin not in ALLOWED_ORIGINS:
+        return "この場所からは利用できません", 403
+
+    now = time.time()
+    today = time.strftime("%Y-%m-%d")
+    with _rate_lock:
+        if _daily["date"] != today:
+            _daily["date"], _daily["count"] = today, 0
+            _ip_hits.clear()
+        if _daily["count"] >= DAILY_MAX:
+            return "本日の利用枠を使い切りました。明日またお試しください", 429
+
+        ip = _client_ip()
+        hits = [t for t in _ip_hits.get(ip, []) if now - t < RATE_WINDOW_SEC]
+        if len(hits) >= RATE_MAX:
+            return "アクセスが集中しています。少し時間をおいてからお試しください", 429
+
+        hits.append(now)
+        _ip_hits[ip] = hits
+        _daily["count"] += 1
+    return None
+# --------------------------------------------------------------------------
+
+
 @app.route("/warmup", methods=["GET"])
 def warmup():
     return jsonify({"status": "ok"})
@@ -94,6 +154,11 @@ def blog_data():
 
 @app.route("/ask", methods=["POST"])
 def ask():
+    denied = _check_quota()
+    if denied:
+        message, status = denied
+        return jsonify({"response": message, "sources": []}), status
+
     data = request.json or {}
     user_message = (data.get("message") or "").strip()
 
