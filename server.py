@@ -95,6 +95,11 @@ ALLOWED_ORIGINS = {
     "http://localhost:5000",
     "http://127.0.0.1:5000",
 }
+# 本番へ出す前に実機で確かめられるよう、galaxy 自身の Vercel プレビューURLも許可する
+# （スコープ名まで固定しているので、他人のデプロイは通らない）
+PREVIEW_ORIGIN_RE = re.compile(
+    r"^https://galaxy-[a-z0-9]+-katsunoritoriumi-2409s-projects\.vercel\.app$"
+)
 RATE_WINDOW_SEC = 600   # 10分あたり
 RATE_MAX = 20           # 同一IPからの上限
 DAILY_MAX = 300         # 全体の1日上限（ブログ辞典本体と Gemini 無料枠を共有するため）
@@ -112,7 +117,7 @@ def _client_ip() -> str:
 def _check_quota():
     """許可されていれば None、拒否なら (本文, ステータス) を返す。"""
     origin = request.headers.get("Origin")
-    if origin and origin not in ALLOWED_ORIGINS:
+    if origin and origin not in ALLOWED_ORIGINS and not PREVIEW_ORIGIN_RE.match(origin):
         return "この場所からは利用できません", 403
 
     now = time.time()
@@ -164,6 +169,9 @@ def ask():
     # ブログ銀河から「この星について聞く」場合に渡ってくる記事URL。
     # ベクトル検索は必ずしもその記事を引かないため、指定があれば文脈の先頭に固定する
     focus_url = (data.get("url") or "").strip()
+    # 「この記事の要約」のように、その記事だけで完結する用途。
+    # 埋め込みと Pinecone 検索を丸ごと省けるので API 消費も減る
+    focus_only = bool(data.get("only")) and focus_url in url_to_article
 
     if not user_message:
         return jsonify({"response": "メッセージを入力してください", "sources": []}), 400
@@ -172,20 +180,23 @@ def ask():
 
     def generate():
         try:
-            # 1. 質問を埋め込み（768次元）
-            embed_result = client.models.embed_content(
-                model=EMBED_MODEL,
-                contents=user_message,
-                config={"output_dimensionality": EMBED_DIM},
-            )
-            query_vector = embed_result.embeddings[0].values
+            matches = []
+            if not focus_only:
+                # 1. 質問を埋め込み（768次元）
+                embed_result = client.models.embed_content(
+                    model=EMBED_MODEL,
+                    contents=user_message,
+                    config={"output_dimensionality": EMBED_DIM},
+                )
+                query_vector = embed_result.embeddings[0].values
 
-            # 2. Pinecone で類似記事を検索
-            search_result = index.query(
-                vector=query_vector,
-                top_k=TOP_K,
-                include_metadata=True,
-            )
+                # 2. Pinecone で類似記事を検索
+                search_result = index.query(
+                    vector=query_vector,
+                    top_k=TOP_K,
+                    include_metadata=True,
+                )
+                matches = search_result["matches"]
 
             context_parts = []
             sources = []
@@ -205,7 +216,7 @@ def ask():
                 focus_title = focus.get("title", "")
                 add_article(focus_title, focus_url, focus.get("content", ""))
 
-            for match in search_result["matches"]:
+            for match in matches:
                 meta = match["metadata"]
                 url = meta.get("url", "")
                 # URLで全文を引く（メタデータに本文は無いため）
