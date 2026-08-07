@@ -115,17 +115,23 @@ git push https://katsunoritoriumi-stack@github.com/katsunoritoriumi-stack/riat-b
 - **構造化データは `lib/jsonLd.ts` に集約**（`components/JsonLd.tsx` が埋め込む）
   - 全ページ: `Person`（**sameAs で SNS・ショップ 7 件を同一人物として束ねる**）／`WebSite`／
     `ProfessionalService`（サービス 6 件 ＋ `areaServed`）
-  - ホーム: `WebPage` ＋ `VideoObject`（MV「星の彼方へ」）
+  - ホーム: `WebPage` ＋ `VideoObject`（MV「星の彼方へ」）＋ `MusicAlbum`（全 11 曲を
+    `MusicRecording` ＋ `AudioObject` で。総再生時間は各曲の合計から組み立てるので二重管理にならない）
   - /apps・/websites: `CollectionPage` ／ `BreadcrumbList` ／ `ItemList`
 - 検証スクリプトは `out/` の HTML を node で読んで JSON.parse・必須項目・canonical・
   og:image・BOM 混入まで 3 ページぶん確認する方式（scratchpad の `checkld.mjs`）。
 
 ### ユーザー側の残作業
 
-1. **Google Search Console に登録し sitemap.xml を送信**（所有権確認の meta タグが要るなら埋め込む）
-2. **Google ビジネスプロフィールの作成**（地域で受注を狙うならサイトより先に効く）
-3. 各 SNS のプロフィール「ウェブサイト」欄を本番URLに統一（sameAs は双方向で強くなる）
-4. JSON-LD に**事業者名・対応エリア・住所を出すか**の確認（住所は実在のものが無いと入れられない）
+1. **Search Console に sitemap.xml を送信**（所有権確認タグは埋め込み済み。
+   インデックス登録リクエストは 1 日 10 件ほどの上限あり、送信済みなら翌日まで待つ）
+2. **Google ビジネスプロフィールのオーナー確認**。2026-08-07 時点でプロフィールは作成済みだが
+   「あなただけが閲覧できます」＝**未公開**。確認が通るまで地図にも検索にも出ない。
+   ※ 2026-08-07 にユーザー判断で一旦保留中
+3. 各 SNS のプロフィール「ウェブサイト」欄を本番URLに統一（sameAs は双方向で強くなる）→ 実施済み
+4. 「SUWARAJ合同会社」は **JSON-LD の中にしか無く、画面に表示される文字としては 1 度も出ない**。
+   社名で検索されたときに自社サイトを取りたいなら、フッターに 1 行入れるのが最短
+   （2026-08-07 に提案済み、返答待ち）。住所は本人の許可が無いので入れていない。
 
 ### 効果が頭打ちになったら
 
@@ -134,10 +140,51 @@ git push https://katsunoritoriumi-stack@github.com/katsunoritoriumi-stack/riat-b
 
 ---
 
+## 6.5. SOUND & VISION には別々の作品が 2 つ並ぶ（2026-08-07 追加）
+
+同じセクションの中に、**独立した作品を 2 つ**並べている。混ざって見えないよう、
+どちらにも通し番号つきの見出し（`WorkLabel`）を付け、間に区切り線を入れてある。
+
+| | 作品 | 実体 |
+|---|---|---|
+| 01 | Original MV「星の彼方へ」 | `theme-mv.mp4`（24.6MB）＋ `theme-mv-poster.webp` |
+| 02 | Music Album「ANCIENT VOICES」— Homage to Deep Forest | `public/music/` の MP3 11 曲（41分10秒 / 55.8MB） |
+
+- **曲を足す/減らすときは `lib/content.ts` の `ALBUM.tracks` に 1 行足すだけ**。
+  プレイヤー（`components/AlbumPlayer.tsx`）も JSON-LD も触らなくていい。
+  音源は `public/music/<id>.mp3`、曲ごとのアートは `public/music/art/<id>.webp`。
+- **`duration` は必ず `ffprobe` の実測値**を入れる。目分量で書くと構造化データに嘘が載る。
+- アルバム名・副題・説明文（`ALBUM.titleEn` / `titleJp` / `note` / `tribute`）は
+  ここを直せば見出しにも JSON-LD にも同時に反映される。
+
+### 再生まわりで壊してはいけない約束
+
+1. **`<audio>` は 1 個を使い回す**。曲ごとに要素を作ると、iOS では
+   「最初のタップで解錠された要素」以外は音が出ず、2 曲目から無音になる。
+2. **`src` の差し替えと `play()` はクリックハンドラの中で同期的に**。
+   間に `await` や `setState` を挟むとユーザー操作の許可が切れて弾かれる。
+3. **`preload="none"` を外さない**。1 曲 4〜7MB あるので、外すとトップを開いただけで
+   数十MBを取りにいく。実測でも押す前の MP3 リクエストは 0 件であることを確認している。
+4. **MV と同時に鳴らさない**。`lib/mediaBus.ts` が調停する
+   （「鳴らす側が名乗り出たら他は自分で止まる」）。音源を増やすときも `registerMedia` に登録する。
+5. **画面外に出たら止める**。ZoomStage は表示外のセクションを `display:none` にするが、
+   それだけでは音は止まらない。IntersectionObserver で必ず `pause()` する。
+6. **曲目リストの入れ子スクロールはスマホでは無効にしてある**（`sm:` 以上でのみ内部スクロール）。
+   ステーション自体が縦スクロールなので、中にもう一段作ると指がどちらを掴んだか分からなくなる。
+
+### 音源の容量について
+
+再エンコードせず原盤（約190kbps）のまま置いている。lossy→lossy の再圧縮が
+このアルバムのリバーブ成分に出やすいため（2026-08-07 にユーザーが判断）。
+結果 `out/` は 45MB → **101MB**。Vercel のデプロイは通ることを本番で確認済み。
+将来これ以上増やすなら、MP3 128k で約 35% 減らせる（音質は落ちる）。
+
+---
+
 ## 7. コンテンツの一元管理 → `lib/content.ts`
 
-`SITE` / `LINKS` / `YOUTUBE` / `DOMAINS`（座標軸の 6 領域）/ `APPS` / `WEBSITES` / `WORKS` /
-`MANIFESTO` / `ROLES` / `NIRAV_ITEMS`。文言・リンクはほぼ全部ここ。
+`SITE` / `LINKS` / `YOUTUBE` / `ALBUM`（アルバムと全曲）/ `DOMAINS`（座標軸の 6 領域）/
+`APPS` / `WEBSITES` / `WORKS` / `MANIFESTO` / `ROLES` / `NIRAV_ITEMS`。文言・リンクはほぼ全部ここ。
 
 **⚠️ `WORKS` と `APPS` の Voyage のリンクが `voyage-ai-travel-planner-8gw80ve11.vercel.app`
 （ハッシュ付きの不変URL）になっている。これは旧版が永久表示される既知の罠で、正しくはスコープ付きURL。要修正。**
