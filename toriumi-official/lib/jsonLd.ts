@@ -25,6 +25,23 @@ const SERVICES = [
 const PERSON_ID = abs("/#person");
 const SITE_ID = abs("/#website");
 const SERVICE_ID = abs("/#service");
+const ORG_ID = abs("/#organization");
+
+/**
+ * 事業者。
+ * 名称だけを出す（ユーザー確認済み）。住所・登記情報・設立日は
+ * 実在の値を持っていないので入れない。
+ * 住所を出せるようになれば LocalBusiness のリッチリザルトも狙える。
+ */
+export function organizationLd() {
+  return {
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: "SUWARAJ合同会社",
+    url: SITE_URL,
+    logo: abs("/logo-ktoriumi.webp"),
+  };
+}
 
 /** 各SNS・ショップ。ここに並べたURLが「同じ人物の別の顔」として扱われる */
 const sameAs = [
@@ -50,6 +67,7 @@ export function personLd() {
     image: abs("/logo-ktoriumi.webp"),
     sameAs,
     knowsAbout: SERVICES.map((s) => s.name),
+    worksFor: { "@id": ORG_ID },
   };
 }
 
@@ -60,7 +78,8 @@ export function websiteLd() {
     name: `${SITE.nameEn} — ${SITE.roleEn}`,
     url: SITE_URL,
     inLanguage: "ja",
-    publisher: { "@id": PERSON_ID },
+    author: { "@id": PERSON_ID },
+    publisher: { "@id": ORG_ID },
   };
 }
 
@@ -76,7 +95,8 @@ export function serviceLd() {
     name: `${SITE.nameEn} — 制作・開発`,
     url: SITE_URL,
     image: abs("/opengraph-image.jpg"),
-    founder: { "@id": PERSON_ID },
+    legalName: "SUWARAJ合同会社",
+    parentOrganization: { "@id": ORG_ID },
     provider: { "@id": PERSON_ID },
     areaServed: [
       { "@type": "AdministrativeArea", name: "長野県" },
@@ -163,7 +183,7 @@ export function worksLd(opts: {
 export function siteLd() {
   return {
     "@context": "https://schema.org",
-    "@graph": [personLd(), websiteLd(), serviceLd()],
+    "@graph": [personLd(), organizationLd(), websiteLd(), serviceLd()],
   };
 }
 

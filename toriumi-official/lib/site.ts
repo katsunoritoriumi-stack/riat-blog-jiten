@@ -21,3 +21,12 @@ export const abs = (path: string) => `${SITE_URL}${path}`;
  * サブページではこれを明示的に渡す。
  */
 export const OG_IMAGE = "/opengraph-image.jpg";
+
+/**
+ * Google Search Console の所有権確認トークン。
+ * 「HTMLタグ」方式で出る <meta content="..."> の中身だけを、
+ * Vercel の環境変数 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION に入れる。
+ * 空なら meta タグ自体を出さない（未設定のタグを残さないため）。
+ */
+export const GOOGLE_SITE_VERIFICATION =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || "";

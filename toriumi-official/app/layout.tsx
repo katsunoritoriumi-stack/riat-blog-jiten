@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Sora, Space_Mono, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import JsonLd from "@/components/JsonLd";
 import { siteLd } from "@/lib/jsonLd";
-import { SITE_URL } from "@/lib/site";
+import { GOOGLE_SITE_VERIFICATION, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const sora = Sora({
@@ -75,6 +75,13 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
+  /**
+   * Search Console の所有権確認タグ。
+   * Vercel の環境変数 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION に
+   * Search Console が出す文字列（content="..." の中身だけ）を入れて再デプロイすれば
+   * <meta name="google-site-verification"> が出る。未設定なら何も出ない。
+   */
+  verification: GOOGLE_SITE_VERIFICATION ? { google: GOOGLE_SITE_VERIFICATION } : undefined,
 };
 
 export default function RootLayout({
