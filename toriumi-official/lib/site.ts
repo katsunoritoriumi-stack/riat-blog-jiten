@@ -24,9 +24,12 @@ export const OG_IMAGE = "/opengraph-image.jpg";
 
 /**
  * Google Search Console の所有権確認トークン。
- * 「HTMLタグ」方式で出る <meta content="..."> の中身だけを、
- * Vercel の環境変数 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION に入れる。
- * 空なら meta タグ自体を出さない（未設定のタグを残さないため）。
+ *
+ * これは秘密情報ではない（HTML に公開されることが前提の値で、
+ * 権限も持たない）ため、そのままコードに置いてよい。
+ * 別プロパティを追加したときは環境変数
+ * NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION で上書きできる。
  */
 export const GOOGLE_SITE_VERIFICATION =
-  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || "";
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() ||
+  "YwhSvqpQZGLxTaWuqXAfGpoGg1urhKx2feckgj4jOHI";
