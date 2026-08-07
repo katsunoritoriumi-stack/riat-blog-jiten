@@ -31,6 +31,57 @@ export const YOUTUBE = {
   channelName: "Exodus チャンネル",
 } as const;
 
+export type Track = {
+  /** ファイル名と DOM のキーに使う識別子。半角英数とハイフンだけ */
+  id: string;
+  /** 主題名（英語）。曲名の『』は外してある */
+  title: string;
+  /** 副題。原題の括弧の中身をそのまま置く（日本語のものはそのまま日本語） */
+  sub?: string;
+  /** 秒。すべて ffprobe の実測値（小数第一位を四捨五入） */
+  duration: number;
+};
+
+/**
+ * Exodus 名義のアルバム。
+ *
+ * 曲を足すときは tracks に 1 行足すだけでよい（プレイヤー側は触らない）。
+ * 音源は public/music/<id>.mp3、曲ごとのアートは public/music/art/<id>.webp。
+ * duration は必ず ffprobe の実測値を入れること。目分量で書くと
+ * 構造化データ（MusicRecording.duration）に嘘が載る。
+ */
+export const ALBUM = {
+  titleEn: "ANCIENT VOICES",
+  titleJp: "古（いにしえ）の声",
+  /** 何に対するオマージュなのか。見出しにも構造化データにも同じ値を使う */
+  tribute: "Deep Forest",
+  note: "深い森のざわめきと、遠い時代のうた。敬愛する Deep Forest へのオマージュとして編んだ11曲。",
+  /**
+   * ジャケット。MV とは別の作品なので、MV のキーアートは使わない。
+   * 曲ごとのアートは元が 360px しかなく大きく出すと粗が見えるため、
+   * 最も作品の質感に近い一枚を土台に、拡大・調整して起こしたもの。
+   */
+  cover: "/music/album-cover.webp",
+  tracks: [
+    { id: "symphony-of-the-wild", title: "SYMPHONY OF THE WILD", sub: "森のオーケストラ", duration: 211 },
+    { id: "cosmic-celebration", title: "COSMIC CELEBRATION", sub: "Galactic Dance", duration: 286 },
+    { id: "exodus", title: "EXODUS", sub: "Earth to the Stars", duration: 216 },
+    { id: "wewe-ni-upendo", title: "WEWE NI UPENDO", sub: "あなたは愛", duration: 248 },
+    { id: "genesis-prima", title: "GENESIS PRIMA", sub: "First Breath of Awakening", duration: 187 },
+    { id: "velo-aether", title: "VELO AETHER", sub: "Message from the Air", duration: 223 },
+    { id: "celestia", title: "CELÉSTIA", sub: "Ancient Echoes from the Edge", duration: 248 },
+    { id: "gaia-primal", title: "GAIA PRIMAL", sub: "Explosion of Life", duration: 156 },
+    { id: "lala-salama", title: "LALA SALAMA", sub: "Lullaby Under the Baobab", duration: 209 },
+    { id: "miracle-eyes", title: "MIRACLE EYES", duration: 236 },
+    { id: "ancient-voices", title: "Ancient Voices in a Digital Biosphere", duration: 249 },
+  ] as Track[],
+};
+
+export const trackSrc = (t: Track) => `/music/${t.id}.mp3`;
+export const trackArt = (t: Track) => `/music/art/${t.id}.webp`;
+/** アルバムの総再生時間（秒） */
+export const albumDuration = () => ALBUM.tracks.reduce((s, t) => s + t.duration, 0);
+
 export type Domain = {
   key: string;
   titleEn: string;

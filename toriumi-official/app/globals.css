@@ -294,6 +294,57 @@
 }
 .eq span { transform-origin: bottom; }
 
+/* ─── Seek bar (album player) ───
+   当たり判定は指で掴める高さを確保しつつ、見た目の線は細く保つ。
+   --p に再生位置のパーセントが入る（React 側からインラインで渡す）。 */
+.seekbar {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+.seekbar:disabled { cursor: default; opacity: 0.45; }
+
+.seekbar::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-aurum-300) var(--p, 0%),
+    rgba(221, 214, 254, 0.2) var(--p, 0%)
+  );
+}
+.seekbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4px;
+  border-radius: 999px;
+  background: var(--color-aurum-200);
+  box-shadow: 0 0 8px rgba(246, 211, 101, 0.7);
+}
+.seekbar:disabled::-webkit-slider-thumb { box-shadow: none; background: var(--color-nebula-300); }
+
+.seekbar::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(221, 214, 254, 0.2);
+}
+.seekbar::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-aurum-300);
+}
+.seekbar::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-aurum-200);
+  box-shadow: 0 0 8px rgba(246, 211, 101, 0.7);
+}
+
 /* ─── Rotating light ring (play button) ─── */
 .orbit-ring::before {
   content: "";

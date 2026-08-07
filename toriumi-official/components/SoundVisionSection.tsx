@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX, ArrowUpRight, Loader2 } from "lucide-react";
 import SectionHeader from "./ui/SectionHeader";
-import { YOUTUBE } from "@/lib/content";
+import AlbumPlayer from "./AlbumPlayer";
+import { ALBUM, YOUTUBE } from "@/lib/content";
+import { claimPlayback, registerMedia } from "@/lib/mediaBus";
 import { setSoundOn } from "@/lib/soundStore";
 
 /**
@@ -33,6 +35,13 @@ export default function SoundVisionSection() {
   const [hasPlayed, setHasPlayed] = useState(false);
   // このセクションが一度でも画面に入ったか（ポスター画像を読み始める合図）
   const [seen, setSeen] = useState(false);
+
+  /** アルバムが鳴り出したら MV は黙る。その入口を mediaBus に預けておく */
+  const stopSelf = useCallback(() => {
+    videoRef.current?.pause();
+  }, []);
+
+  useEffect(() => registerMedia(stopSelf), [stopSelf]);
 
   // 画面から外れたら止める（ステーションが切り替わっても曲が流れ続けないように）
   useEffect(() => {
@@ -83,6 +92,7 @@ export default function SoundVisionSection() {
   function start() {
     const v = videoRef.current;
     if (!v) return;
+    claimPlayback(stopSelf);
     setStarted(true);
     setFailed(false);
     setBuffering(true);
@@ -108,8 +118,10 @@ export default function SoundVisionSection() {
   function togglePlay() {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) void v.play();
-    else v.pause();
+    if (v.paused) {
+      claimPlayback(stopSelf);
+      void v.play();
+    } else v.pause();
   }
 
   function toggleMute() {
@@ -125,6 +137,12 @@ export default function SoundVisionSection() {
       <div className="mb-14 max-w-2xl">
         <SectionHeader eyebrow="Sound & Vision" titleEn="EXODUS" titleJp="音楽と映像" />
       </div>
+
+      {/*
+        このセクションには別々の作品がふたつ並ぶ。
+        混ざって見えないよう、どちらにも作品名の見出しを付けて対にしてある。
+      */}
+      <WorkLabel index={1} kind="Original MV" title="星の彼方へ" sub="Beyond the Stars" />
 
       <motion.div
         ref={boxRef}
@@ -276,6 +294,7 @@ export default function SoundVisionSection() {
         </p>
       )}
 
+      {/* この外部リンクは MV（YouTube 側）に属するので、アルバムより前に置く */}
       <div className="mt-8 flex justify-center">
         <a
           href={YOUTUBE.channelUrl}
@@ -287,6 +306,76 @@ export default function SoundVisionSection() {
           <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
       </div>
+
+      {/* ── 作品の境目 ── ここから先は MV とは別のアルバム */}
+      <motion.div
+        aria-hidden="true"
+        initial={{ scaleX: 0, opacity: 0 }}
+        whileInView={{ scaleX: 1, opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="mx-auto mt-24 h-px w-full max-w-sm bg-gradient-to-r from-transparent via-nebula-400/35 to-transparent sm:mt-28"
+      />
+
+      {/* ── アルバム ── 音は MV と同時に鳴らない（mediaBus が調停する） */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-8%" }}
+        transition={{ duration: 0.7 }}
+        className="mt-14 sm:mt-16"
+      >
+        <WorkLabel
+          index={2}
+          kind={`Music Album — Homage to ${ALBUM.tribute}`}
+          title={ALBUM.titleEn}
+          sub={ALBUM.titleJp}
+        />
+        <p className="mb-7 max-w-xl font-serif text-sm leading-relaxed text-nebula-200/75">
+          {ALBUM.note}
+        </p>
+
+        <AlbumPlayer />
+      </motion.div>
     </section>
+  );
+}
+
+/**
+ * 作品の見出し。
+ * ひとつのセクションに別々の作品が並ぶので、通し番号を振って
+ * 「これは何番目の、何という作品か」をひと目で分かるようにする。
+ */
+function WorkLabel({
+  index,
+  kind,
+  title,
+  sub,
+}: {
+  index: number;
+  kind: string;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="mb-6 flex flex-col gap-2"
+    >
+      <span className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-cosmic text-aurum-300/80">
+        <span className="tabular-nums text-nebula-300/50">
+          {String(index).padStart(2, "0")}
+        </span>
+        <span className="h-px w-6 bg-aurum-300/40" />
+        {kind}
+      </span>
+      <h3 className="font-display text-2xl font-bold leading-tight tracking-tight text-nebula-50 sm:text-3xl">
+        {title}
+      </h3>
+      <p className="font-serif text-sm text-nebula-300">{sub}</p>
+    </motion.div>
   );
 }

@@ -1,4 +1,15 @@
-import { APPS, LINKS, SITE, WEBSITES, YOUTUBE, type WorkItem } from "./content";
+import {
+  ALBUM,
+  albumDuration,
+  APPS,
+  LINKS,
+  SITE,
+  trackArt,
+  trackSrc,
+  WEBSITES,
+  YOUTUBE,
+  type WorkItem,
+} from "./content";
 import { abs, SITE_URL } from "./site";
 
 /**
@@ -132,6 +143,55 @@ export function videoLd() {
   };
 }
 
+/** ISO 8601 の再生時間（PT4M11S）。秒数から作る */
+function iso8601Duration(sec: number) {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `PT${m}M${s}S`;
+}
+
+const ALBUM_ID = abs("/#album");
+
+/**
+ * アルバム。
+ * 音源をこのサイトで直接配信しているので、MusicRecording ごとに
+ * AudioObject（contentUrl）まで書いて「ここで聴ける」ことを明示する。
+ * byArtist は Person を参照して、人物と作品を同じグラフの中で繋ぐ。
+ */
+export function albumLd() {
+  return {
+    "@type": "MusicAlbum",
+    "@id": ALBUM_ID,
+    name: ALBUM.titleEn,
+    alternateName: ALBUM.titleJp,
+    description: ALBUM.note,
+    url: SITE_URL,
+    image: abs(ALBUM.cover),
+    numTracks: ALBUM.tracks.length,
+    albumProductionType: "https://schema.org/StudioAlbum",
+    byArtist: { "@id": PERSON_ID },
+    genre: ["World music", "Ambient", "Ethnic electronica"],
+    inLanguage: "en",
+    track: ALBUM.tracks.map((t, i) => ({
+      "@type": "MusicRecording",
+      position: i + 1,
+      name: t.sub ? `${t.title}（${t.sub}）` : t.title,
+      duration: iso8601Duration(t.duration),
+      image: abs(trackArt(t)),
+      byArtist: { "@id": PERSON_ID },
+      inAlbum: { "@id": ALBUM_ID },
+      audio: {
+        "@type": "AudioObject",
+        contentUrl: abs(trackSrc(t)),
+        encodingFormat: "audio/mpeg",
+        duration: iso8601Duration(t.duration),
+      },
+    })),
+    // 総再生時間。トラックの実測値の合計なので、ここだけ別管理にはならない
+    duration: iso8601Duration(albumDuration()),
+  };
+}
+
 /** 制作物の一覧ページ（/apps・/websites）用 */
 export function worksLd(opts: {
   path: string;
@@ -187,7 +247,7 @@ export function siteLd() {
   };
 }
 
-/** ホーム固有（MV はこのページにしか無いのでここに置く） */
+/** ホーム固有（MV とアルバムはこのページにしか無いのでここに置く） */
 export function homePageLd() {
   return {
     "@context": "https://schema.org",
@@ -203,6 +263,7 @@ export function homePageLd() {
         primaryImageOfPage: abs("/opengraph-image.jpg"),
       },
       videoLd(),
+      albumLd(),
     ],
   };
 }
