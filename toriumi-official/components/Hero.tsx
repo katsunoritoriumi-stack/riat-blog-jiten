@@ -87,7 +87,8 @@ export default function Hero() {
     const v = ufoRef.current;
     if (v && v.paused && !v.ended) {
       try {
-        v.currentTime = 0;
+        // preload="none" なのでここで初めて読み込みを始める（load() は頭出しも兼ねる）
+        v.load();
         void v.play();
       } catch {}
     }
@@ -179,6 +180,7 @@ export default function Hero() {
         style={{ scale }}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         src="/cosmos-loop.mp4"
+        poster="/cosmos-poster.webp"
         autoPlay
         muted
         loop
@@ -187,7 +189,13 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      {/* ── 背景レイヤー②：UFO登場（一度だけ再生）。終わると静かにフェードして①へ受け渡す ── */}
+      {/*
+        ── 背景レイヤー②：UFO登場（一度だけ再生）。終わると静かにフェードして①へ受け渡す ──
+
+        この動画はブート演出が明けるまで再生しないので、最初から取りに行かない
+        （preload="none"）。ブートが明けた時点で load() → play() する。
+        その間ポスター画像（1コマ目）が出ているので、見え方はこれまでと変わらない。
+      */}
       <motion.video
         ref={ufoRef}
         style={{ scale }}
@@ -196,9 +204,10 @@ export default function Hero() {
         transition={{ duration: 1.8, ease: "easeInOut" }}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         src="/hero-space.mp4"
+        poster="/hero-poster.webp"
         muted
         playsInline
-        preload="auto"
+        preload="none"
         onTimeUpdate={onTimeUpdate}
         onEnded={onEnded}
         aria-hidden="true"

@@ -38,6 +38,7 @@ export default function Universe() {
       {/*
         WebGL が立ち上がるまで（と、使えない環境で）出しておく静止した宇宙。
         これがあるので、SSR の HTML は軽いまま最初の一枚が真っ黒にならない。
+        マウント前は components/UniverseGate.tsx が同じものを出している。
       */}
       <div className="absolute inset-0 universe-fallback" />
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import dynamic from "next/dynamic";
+import UniverseGate from "@/components/UniverseGate";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
 import ZoomStage from "@/components/ui/ZoomStage";
@@ -19,12 +19,6 @@ import SignalLost from "@/components/SignalLost";
 import FinaleBackdrop from "@/components/FinaleBackdrop";
 import Footer from "@/components/Footer";
 import { STATIONS } from "@/lib/stations";
-
-/**
- * 背景の宇宙は WebGL なのでクライアント専用。
- * SSR の HTML には出さず、読み込みまでは CSS の静止星空（.universe-fallback）が見える。
- */
-const Universe = dynamic(() => import("@/components/Universe"));
 
 /**
  * ホームは「宇宙の奥へ進む」1ページ体験。
@@ -61,7 +55,8 @@ const NODES: Record<string, ReactNode> = {
 export default function Home() {
   return (
     <SmoothScroll>
-      <Universe />
+      {/* 背景の宇宙は WebGL。ブート演出が明けてからマウントする（UniverseGate） */}
+      <UniverseGate />
       <CustomCursor />
       <WarpOverlay />
       <BootSequence />

@@ -29,6 +29,10 @@ export default function SoundVisionSection() {
   const [muted, setMuted] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const [failed, setFailed] = useState(false);
+  // 一度でも実際に映像が出たか（ポスター画像を引っ込める判断に使う）
+  const [hasPlayed, setHasPlayed] = useState(false);
+  // このセクションが一度でも画面に入ったか（ポスター画像を読み始める合図）
+  const [seen, setSeen] = useState(false);
 
   // 画面から外れたら止める（ステーションが切り替わっても曲が流れ続けないように）
   useEffect(() => {
@@ -37,13 +41,30 @@ export default function SoundVisionSection() {
     if (!el || !v) return;
     const io = new IntersectionObserver(
       ([e]) => {
-        if (!e.isIntersecting && !v.paused) v.pause();
+        if (e.isIntersecting) setSeen(true);
+        else if (!v.paused) v.pause();
       },
       { threshold: 0.15 }
     );
     io.observe(el);
+
+    /**
+     * ポスター表示の保険。
+     * 通常は上の IntersectionObserver で十分だが、万一それが働かない環境でも
+     * 絵が出ないまま終わらないように、1画面ぶんスクロールしたら読み始める。
+     * ここまで来ていれば最初の描画はとうに終わっているので、速度には響かない。
+     */
+    const onScroll = () => {
+      if (window.scrollY > window.innerHeight) {
+        setSeen(true);
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => {
       io.disconnect();
+      window.removeEventListener("scroll", onScroll);
       v.pause();
     };
   }, []);
@@ -117,7 +138,6 @@ export default function SoundVisionSection() {
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           src="/theme-mv.mp4"
-          poster="/theme-mv-poster.webp"
           preload="none"
           playsInline
           loop
@@ -127,12 +147,33 @@ export default function SoundVisionSection() {
           onPlaying={() => {
             setBuffering(false);
             setFailed(false);
+            setHasPlayed(true);
           }}
           onError={() => {
             setBuffering(false);
             setFailed(true);
           }}
         />
+
+        {/*
+          ポスターは video の poster 属性ではなく <img> で出す。
+          poster 属性は preload="none" でも、画面外でも必ず読み込まれてしまい、
+          トップを開いただけで 261KB を取りにいっていた。
+          さらに ZoomStage は表示外のセクションを display:none にするが、
+          その中の loading="lazy" は効かない（Chrome は即読み込む。実測で確認）。
+          なので「このセクションが一度画面に入るまで DOM に出さない」で止める。
+        */}
+        {seen && !hasPlayed && (
+          <img
+            src="/theme-mv-poster.webp"
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            width={1600}
+            height={894}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
 
         {/**
          * 未再生：ポスターの上に、光が周回する再生ボタン。
