@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import JsonLd from "@/components/JsonLd";
+import { homePageLd } from "@/lib/jsonLd";
 import UniverseGate from "@/components/UniverseGate";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
@@ -55,6 +57,7 @@ const NODES: Record<string, ReactNode> = {
 export default function Home() {
   return (
     <SmoothScroll>
+      <JsonLd data={homePageLd()} />
       {/* 背景の宇宙は WebGL。ブート演出が明けてからマウントする（UniverseGate） */}
       <UniverseGate />
       <CustomCursor />
