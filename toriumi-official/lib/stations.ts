@@ -46,8 +46,18 @@ export const STATIONS: StationSpec[] = [
     caption: { en: "Some of them sing.", jp: "歌になるもの" },
     passthrough: true,
   },
+  /**
+   * 音楽と映像には独立した作品が 2 つある（MV とアルバム）。
+   * 1 つのステーションに両方を積むと画面 2.6 枚ぶんの高さになり、
+   * 中央寄せの結果どちらも上下が切れる。作品ごとに 1 画面を与える。
+   */
   {
     id: "sound",
+    scroll: 2.6,
+    caption: { en: "Some of them are ancient.", jp: "古（いにしえ）から続くもの" },
+  },
+  {
+    id: "album",
     scroll: 2.9,
     caption: { en: "Some of them are built.", jp: "形になるもの" },
   },

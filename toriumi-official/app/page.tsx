@@ -13,6 +13,7 @@ import Manifesto from "@/components/Manifesto";
 import MarqueeDivider from "@/components/MarqueeDivider";
 import ConstellationMap from "@/components/ConstellationMap";
 import SoundVisionSection from "@/components/SoundVisionSection";
+import AlbumSection from "@/components/AlbumSection";
 import DigitalAISection from "@/components/DigitalAISection";
 // import WorkSection from "@/components/WorkSection"; // Collection 一旦非公開
 import ConnectSection from "@/components/ConnectSection";
@@ -40,6 +41,7 @@ const NODES: Record<string, ReactNode> = {
   ),
   universe: <ConstellationMap />,
   sound: <SoundVisionSection />,
+  album: <AlbumSection />,
   digital: <DigitalAISection />,
   connect: <ConnectSection />,
   report: <LegacyStatement />,

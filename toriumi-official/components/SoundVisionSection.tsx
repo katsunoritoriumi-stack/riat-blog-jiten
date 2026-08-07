@@ -4,13 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX, ArrowUpRight, Loader2 } from "lucide-react";
 import SectionHeader from "./ui/SectionHeader";
-import AlbumPlayer from "./AlbumPlayer";
-import { ALBUM, YOUTUBE } from "@/lib/content";
+import WorkLabel from "./ui/WorkLabel";
+import { YOUTUBE } from "@/lib/content";
 import { claimPlayback, registerMedia } from "@/lib/mediaBus";
 import { setSoundOn } from "@/lib/soundStore";
 
 /**
  * このサイトのテーマソング（ミュージックビデオ）を置く場所。
+ *
+ * アルバム（AlbumSection）は別のステーションにある。
+ * 1 画面に両方を積むと画面 2.6 枚ぶんの高さになり、ZoomStage は中身を
+ * 中央に置くので上下が同時に切れる（実際にそうなって直した）。
  *
  * 実装上の要点：
  * - 21MB あるので preload="none"。ポスターは MV 用に描き下ろした
@@ -133,14 +137,14 @@ export default function SoundVisionSection() {
   }
 
   return (
-    <section data-section="sound" className="relative mx-auto max-w-5xl px-6 py-28 sm:py-36">
-      <div className="mb-14 max-w-2xl">
+    <section data-section="sound" className="relative mx-auto max-w-5xl px-6 py-16 sm:py-20">
+      <div className="mb-8 max-w-2xl sm:mb-10">
         <SectionHeader eyebrow="Sound & Vision" titleEn="EXODUS" titleJp="音楽と映像" />
       </div>
 
       {/*
-        このセクションには別々の作品がふたつ並ぶ。
-        混ざって見えないよう、どちらにも作品名の見出しを付けて対にしてある。
+        「音楽と映像」には独立した作品が 2 つある。
+        次のステーションにアルバムが控えているので、どちらにも通し番号を振って対にする。
       */}
       <WorkLabel index={1} kind="Original MV" title="星の彼方へ" sub="Beyond the Stars" />
 
@@ -294,7 +298,7 @@ export default function SoundVisionSection() {
         </p>
       )}
 
-      {/* この外部リンクは MV（YouTube 側）に属するので、アルバムより前に置く */}
+      {/* この外部リンクは MV（YouTube 側）に属する。アルバムは次のステーション */}
       <div className="mt-8 flex justify-center">
         <a
           href={YOUTUBE.channelUrl}
@@ -306,76 +310,6 @@ export default function SoundVisionSection() {
           <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </a>
       </div>
-
-      {/* ── 作品の境目 ── ここから先は MV とは別のアルバム */}
-      <motion.div
-        aria-hidden="true"
-        initial={{ scaleX: 0, opacity: 0 }}
-        whileInView={{ scaleX: 1, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className="mx-auto mt-24 h-px w-full max-w-sm bg-gradient-to-r from-transparent via-nebula-400/35 to-transparent sm:mt-28"
-      />
-
-      {/* ── アルバム ── 音は MV と同時に鳴らない（mediaBus が調停する） */}
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-8%" }}
-        transition={{ duration: 0.7 }}
-        className="mt-14 sm:mt-16"
-      >
-        <WorkLabel
-          index={2}
-          kind={`Music Album — Homage to ${ALBUM.tribute}`}
-          title={ALBUM.titleEn}
-          sub={ALBUM.titleJp}
-        />
-        <p className="mb-7 max-w-xl font-serif text-sm leading-relaxed text-nebula-200/75">
-          {ALBUM.note}
-        </p>
-
-        <AlbumPlayer />
-      </motion.div>
     </section>
-  );
-}
-
-/**
- * 作品の見出し。
- * ひとつのセクションに別々の作品が並ぶので、通し番号を振って
- * 「これは何番目の、何という作品か」をひと目で分かるようにする。
- */
-function WorkLabel({
-  index,
-  kind,
-  title,
-  sub,
-}: {
-  index: number;
-  kind: string;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="mb-6 flex flex-col gap-2"
-    >
-      <span className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-cosmic text-aurum-300/80">
-        <span className="tabular-nums text-nebula-300/50">
-          {String(index).padStart(2, "0")}
-        </span>
-        <span className="h-px w-6 bg-aurum-300/40" />
-        {kind}
-      </span>
-      <h3 className="font-display text-2xl font-bold leading-tight tracking-tight text-nebula-50 sm:text-3xl">
-        {title}
-      </h3>
-      <p className="font-serif text-sm text-nebula-300">{sub}</p>
-    </motion.div>
   );
 }

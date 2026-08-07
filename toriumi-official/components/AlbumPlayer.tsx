@@ -196,7 +196,8 @@ export default function AlbumPlayer() {
 
       <div className="grid gap-6 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-8">
         {/* ── ジャケット ── */}
-        <div className="relative mx-auto w-full max-w-[280px] sm:max-w-none">
+        {/* スマホでは 1 画面に収めるためジャケットを小さめに置く */}
+        <div className="relative mx-auto w-full max-w-[190px] sm:max-w-none">
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-nebula-500/25 bg-void-950">
             {seen && (
               <img
@@ -235,12 +236,16 @@ export default function AlbumPlayer() {
         {/* ── 曲目 ── */}
         <div className="min-w-0">
           {/*
-            スマホでは入れ子スクロールにしない。
-            ZoomStage のステーション自体が縦スクロールなので、その中にもう一段
-            スクロール領域を作ると指がどちらを掴んだか分からなくなる。
-            画面が広いときだけ、ジャケットと高さを揃えるために中でスクロールさせる。
+            曲目は 11 曲あるので、全部展開すると 1 画面に収まらない。
+            ここだけ中でスクロールさせる。
+
+            data-lenis-prevent が要る。付けないと lenis がホイールを横取りして
+            ページ側だけが動き、この中身は永久にスクロールできない。
           */}
-          <ol className="-mx-2 sm:max-h-[26rem] sm:overflow-y-auto sm:pr-1">
+          <ol
+            data-lenis-prevent
+            className="-mx-2 max-h-[15rem] overflow-y-auto pr-1 sm:max-h-[19rem] lg:max-h-[23rem]"
+          >
             {ALBUM.tracks.map((t, i) => (
               <TrackRow
                 key={t.id}
