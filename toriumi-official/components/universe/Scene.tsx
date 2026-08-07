@@ -366,7 +366,7 @@ export default function Scene({ quality }: { quality: Quality }) {
       <Flybys enabled />
 
       {/* 旅の途中に浮かんでいる太陽系（創造の座標軸） */}
-      <SolarSystem onPick={openDomain} />
+      <SolarSystem fov={quality.fov} onPick={openDomain} />
     </>
   );
 }

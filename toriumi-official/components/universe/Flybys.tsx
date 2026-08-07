@@ -9,6 +9,7 @@ import { makeStarSprite } from "@/lib/spaceTextures";
 import { STATIONS, STATION_BANDS } from "@/lib/stations";
 import { depthOf, flight } from "./flightState";
 import { makeRingGeometry } from "./ringGeometry";
+import { SYSTEM_DEPTH } from "./SolarSystem";
 import { bakeOnce, diffuseKey } from "./textureCache";
 
 /**
@@ -46,11 +47,37 @@ const FLYBY_SKINS: [PlanetSkin, number][] = [
 const SHOW_FAR = 1700;
 const SHOW_NEAR = -260;
 
+/**
+ * 太陽系を見ている間は通過天体をいっさい出さない。
+ *
+ * 飛来天体は直径 26〜88 単位のまま近くを通る。一方、太陽系は画面の
+ * 縦横比に合わせて縮むので、スマホでは通過天体 1 個が太陽系全体と同じ
+ * 大きさになる。実際、隣の区間の天体が太陽系の真上に重なり、
+ * 別の 1 個は画面の右端で切れていた（ユーザー報告の 2 症状そのもの）。
+ * 「創造の座標軸」の間は主役だけを見せる。
+ */
+const BUSY_FAR = 900;
+const BUSY_NEAR = -300;
+const systemBusy = () => {
+  const dz = SYSTEM_DEPTH - flight.depth;
+  return dz < BUSY_FAR && dz > BUSY_NEAR;
+};
+
+/**
+ * 「創造の座標軸」の帯だけは飛来天体を置かない。
+ *
+ * 太陽系はこの帯の 0.34 の地点から 200 単位先に浮いていて、深度でいうと
+ * ちょうど飛来天体のスロット（0.58 / 0.76）と重なる。置いたままだと
+ * 太陽系より手前に直径 26〜88 単位の球が現れ、主役を隠してしまう。
+ */
+const UNI_INDEX = STATIONS.findIndex((s) => s.id === "universe");
+
 function useBodies(): Body[] {
   return useMemo(() => {
     const rnd = mulberry32(9182);
     const out: Body[] = [];
     for (let i = 0; i < STATIONS.length - 1; i++) {
+      if (i === UNI_INDEX) continue;
       const b = STATION_BANDS[i];
       // 航行区間のなかに 1〜2 個。毎回同じ場所に出るよう種から決める
       const slots = i % 2 === 0 ? [0.58, 0.76] : [0.66];
@@ -95,7 +122,7 @@ function Flyby({ body, tex, ring }: { body: Body; tex: THREE.Texture; ring: THRE
     const g = group.current;
     if (!g) return;
     const dz = body.depth - flight.depth;
-    const on = dz < SHOW_FAR && dz > SHOW_NEAR;
+    const on = !systemBusy() && dz < SHOW_FAR && dz > SHOW_NEAR;
     if (on !== g.visible) g.visible = on;
     if (on && mesh.current) mesh.current.rotation.y += dt * body.spin;
   });
