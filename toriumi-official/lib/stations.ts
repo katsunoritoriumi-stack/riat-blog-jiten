@@ -52,9 +52,10 @@ export const STATIONS: StationSpec[] = [
    * 中央寄せの結果どちらも上下が切れる。作品ごとに 1 画面を与える。
    */
   {
+    // caption を持たせない。MV とアルバムは同じ「音楽と映像」の続きなので、
+    // 間に予告編を挟むと別の章が始まったように見える
     id: "sound",
     scroll: 2.6,
-    caption: { en: "Some of them are ancient.", jp: "古（いにしえ）から続くもの" },
   },
   {
     id: "album",
