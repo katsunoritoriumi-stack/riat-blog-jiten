@@ -17,8 +17,9 @@ export default function WorkLabel({
 }: {
   index: number;
   kind: string;
-  title: string;
-  sub: string;
+  /** 省略できる。アルバムのように、題字を作品の絵の中に置く場合に使う */
+  title?: string;
+  sub?: string;
 }) {
   return (
     <motion.div
@@ -33,10 +34,12 @@ export default function WorkLabel({
         <span className="h-px w-6 bg-aurum-300/40" />
         {kind}
       </span>
-      <h3 className="font-display text-2xl font-bold leading-tight tracking-tight text-nebula-50 sm:text-3xl">
-        {title}
-      </h3>
-      <p className="font-serif text-sm text-nebula-300">{sub}</p>
+      {title && (
+        <h3 className="font-display text-2xl font-bold leading-tight tracking-tight text-nebula-50 sm:text-3xl">
+          {title}
+        </h3>
+      )}
+      {sub && <p className="font-serif text-sm text-nebula-300">{sub}</p>}
     </motion.div>
   );
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Loader2 } from "lucide-react";
-import { ALBUM, albumDuration, trackArt, trackSrc, type Track } from "@/lib/content";
+import { ALBUM, albumDuration, trackArt, trackCover, trackSrc, type Track } from "@/lib/content";
 import { claimPlayback, registerMedia, setDucked } from "@/lib/mediaBus";
 import { setSoundOn } from "@/lib/soundStore";
 
@@ -203,35 +203,84 @@ export default function AlbumPlayer() {
       <div className="grid gap-6 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-8">
         {/* ── ジャケット ── */}
         {/* スマホでは 1 画面に収めるためジャケットを小さめに置く */}
-        <div className="relative mx-auto w-full max-w-[190px] sm:max-w-none">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-nebula-500/25 bg-void-950">
+        <div className="relative mx-auto w-full max-w-[210px] sm:max-w-none">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-nebula-500/25 bg-void-950 shadow-[0_18px_50px_-18px_rgba(3,2,10,0.95)]">
+            {/*
+              アルバムの絵と、選ばれた曲の絵を重ねて置き、上を出し入れして入れ替える。
+              img を 1 枚にして src を差し替えると、読み込みの一瞬だけ絵が消える。
+            */}
             {seen && (
               <img
                 src={ALBUM.cover}
                 alt={`${ALBUM.titleEn} — アルバムジャケット`}
                 decoding="async"
-                width={1600}
-                height={894}
+                width={900}
+                height={900}
                 className="absolute inset-0 h-full w-full object-cover"
               />
             )}
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void-950 via-void-950/25 to-transparent" />
+            {current && (
+              <img
+                key={current.id}
+                src={trackCover(current)}
+                alt={`${current.title} — ジャケット`}
+                decoding="async"
+                width={760}
+                height={760}
+                onLoad={(e) => e.currentTarget.classList.remove("opacity-0")}
+                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700"
+              />
+            )}
+
+            {/* 文字の座を作る暗幕。下を強めに落として、絵の情報量は残す */}
+            <span
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(3,2,10,0.45) 0%, rgba(3,2,10,0.08) 34%, rgba(3,2,10,0.62) 74%, rgba(3,2,10,0.94) 100%)",
+              }}
+            />
 
             <button
               onClick={toggle}
               aria-label={playing ? "一時停止" : "アルバムを再生"}
-              className="group absolute inset-0 flex items-end justify-center pb-5"
+              className="group absolute inset-0 flex items-center justify-center"
             >
-              <span className="orbit-ring relative flex h-16 w-16 items-center justify-center rounded-full bg-void-950/55 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110">
+              <span className="orbit-ring relative flex h-14 w-14 items-center justify-center rounded-full bg-void-950/50 ring-1 ring-aurum-200/70 backdrop-blur-sm transition-transform group-hover:scale-110 sm:h-16 sm:w-16">
                 {buffering ? (
-                  <Loader2 size={24} className="animate-spin text-aurum-100" />
+                  <Loader2 size={22} className="animate-spin text-aurum-100 sm:h-6 sm:w-6" />
                 ) : playing ? (
-                  <Pause size={24} className="text-aurum-100" fill="currentColor" />
+                  <Pause size={22} className="text-aurum-100 sm:h-6 sm:w-6" fill="currentColor" />
                 ) : (
-                  <Play size={24} className="translate-x-0.5 text-aurum-100" fill="currentColor" />
+                  <Play size={22} className="translate-x-0.5 text-aurum-100 sm:h-6 sm:w-6" fill="currentColor" />
                 )}
               </span>
             </button>
+
+            {/* ── ジャケットの題字 ── CD の表面のように、絵の中に組み込む */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4">
+              <p
+                className="font-display text-[clamp(0.95rem,3.4vw,1.5rem)] font-extrabold leading-[1.08] tracking-tight text-nebula-50"
+                style={{ textShadow: "0 2px 12px rgba(3,2,10,0.95), 0 0 30px rgba(3,2,10,0.8)" }}
+              >
+                {ALBUM.titleEn}
+              </p>
+              <p
+                className="mt-0.5 font-serif text-[10px] text-nebula-200/85 sm:text-xs"
+                style={{ textShadow: "0 1px 8px rgba(3,2,10,0.95)" }}
+              >
+                {ALBUM.titleJp}
+              </p>
+              {/* いま鳴っている曲。ジャケットの絵が変わる理由を言葉でも示す */}
+              <p
+                className={`mt-1.5 truncate font-mono text-[9px] uppercase tracking-cosmic text-aurum-200/90 transition-opacity duration-500 sm:text-[10px] ${
+                  current ? "opacity-100" : "opacity-0"
+                }`}
+                style={{ textShadow: "0 1px 8px rgba(3,2,10,0.95)" }}
+              >
+                {current ? `${String((index ?? 0) + 1).padStart(2, "0")} ${current.title}` : " "}
+              </p>
+            </div>
           </div>
 
           <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-cosmic text-nebula-300/60 sm:text-left">

@@ -78,7 +78,10 @@ export const ALBUM = {
 };
 
 export const trackSrc = (t: Track) => `/music/${t.id}.mp3`;
+/** 曲目一覧のサムネイル（160px） */
 export const trackArt = (t: Track) => `/music/art/${t.id}.webp`;
+/** 大ジャケットに出す絵（760px）。選ばれた曲の分だけ読み込む */
+export const trackCover = (t: Track) => `/music/cover/${t.id}.webp`;
 /** アルバムの総再生時間（秒） */
 export const albumDuration = () => ALBUM.tracks.reduce((s, t) => s + t.duration, 0);
 
