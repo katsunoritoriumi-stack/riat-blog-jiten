@@ -13,18 +13,17 @@ import { ArrowUpRight } from "lucide-react";
  *
  * 座標は globals.css の .finale-frame / .finale-book が持つ。
  * 絵を差し替えたらそこの数字だけ直せばよい。
+ *
+ * 外側の overflow は hidden ではなく clip。hidden はスクロール可能な箱を作るので、
+ * リンクを Tab でフォーカスしたりブラウザが scrollIntoView したりすると
+ * この層だけが縦にずれ、リンクが本から外れる（実測で 48px ずれた）。
+ * clip なら切り取るだけでスクロールしない。
  */
 
 const HREF = "https://seimeiron.com/riat-blog/";
 
 export default function FinaleBookLink() {
   return (
-    {/*
-      overflow は hidden ではなく clip。hidden はスクロール可能な箱を作るので、
-      リンクを Tab でフォーカスしたりブラウザが scrollIntoView したりすると
-      この層だけが縦にずれ、リンクが本から外れる（実測で 48px ずれた）。
-      clip なら切り取るだけでスクロールしない。
-    */}
     <div
       className="pointer-events-none absolute inset-0 z-30 overflow-clip"
       style={{ containerType: "size" }}
