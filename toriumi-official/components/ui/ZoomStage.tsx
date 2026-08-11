@@ -68,10 +68,11 @@ const EASE_DEPART = cubicBezier(0.62, 0, 0.9, 0.4); // easeIn 寄り
  * 焦点が合って静止している CARD_SHARP〜CARD_HOLD が「読める時間」で、
  * ここが 0.10 しかなく一瞬で消えていたため 0.21 まで倍に伸ばした。
  */
-const CARD_IN = 0.58;
-const CARD_SHARP = 0.65;
-const CARD_HOLD = 0.86;
-const CARD_OUT = 0.93;
+/** 予告編カードの出入り。裏に流す映像（MemoryFlashback）も同じ刻みを使う */
+export const CARD_IN = 0.58;
+export const CARD_SHARP = 0.65;
+export const CARD_HOLD = 0.86;
+export const CARD_OUT = 0.93;
 
 /**
  * 航行区間に差し込む予告編のタイトルカード。

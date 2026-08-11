@@ -14,6 +14,11 @@ export type StationCaption = {
   jp: string;
   /** 予告編カードに出す数え上げ */
   counter?: { to: number; en: string; jp: string };
+  /**
+   * 文字の裏で流す映像（public/ からのパス）。
+   * 黒地の素材を screen で重ねるので、背景の宇宙は消えずに透ける。
+   */
+  memoryVideo?: string;
 };
 
 export type StationSpec = {
@@ -74,6 +79,8 @@ export const STATIONS: StationSpec[] = [
       en: "This is the final transmission.",
       jp: "これが、最後の通信",
       counter: { to: 7400, en: "Reincarnations on Earth", jp: "地球での転生回数" },
+      // 数えている転生の中身を、思い出しかけの像として裏に流す
+      memoryVideo: "/memories.mp4",
     },
   },
   {

@@ -41,37 +41,43 @@ export default function FinaleBookLink() {
           className="finale-book group pointer-events-auto absolute block"
           style={{ left: "var(--bx)", top: "var(--by)", width: "var(--bw)", height: "var(--bh)" }}
         >
-          {/* 本の縁をなぞる光。ゆっくり明滅して「押せる」ことを知らせる */}
+          {/*
+            本そのものが内側から呼吸するように光る。輪郭線は描かない。
+            枠で囲むと「絵の上に貼った UI」に見えてしまうため。
+            はみ出した光は絵に溶けるので、少し大きめに置いてぼかす。
+          */}
           <span
             aria-hidden="true"
-            className="book-glow absolute inset-0 rounded-[6px] border border-aurum-200/70 transition-[border-color,box-shadow] duration-300 group-hover:border-aurum-100"
+            className="book-glow pointer-events-none absolute -inset-[12%] transition-opacity duration-500 group-hover:opacity-90"
           />
 
-          {/* 角の印。額装のように四隅だけを光らせて、絵を邪魔しない */}
-          <span aria-hidden="true" className="pointer-events-none absolute inset-0">
-            {[
-              "left-0 top-0 border-l-2 border-t-2 rounded-tl-[6px]",
-              "right-0 top-0 border-r-2 border-t-2 rounded-tr-[6px]",
-              "left-0 bottom-0 border-b-2 border-l-2 rounded-bl-[6px]",
-              "right-0 bottom-0 border-b-2 border-r-2 rounded-br-[6px]",
-            ].map((c) => (
-              <span
-                key={c}
-                className={`absolute h-3 w-3 border-aurum-100/90 transition-all duration-300 group-hover:h-4 group-hover:w-4 ${c}`}
-              />
-            ))}
-          </span>
-
-          {/* ホバーでほんのり持ち上げる（絵の一部が起きるように） */}
+          {/* ホバーで表紙にだけ光が差す。角の出ない楕円で、紙が起きるように */}
           <span
             aria-hidden="true"
-            className="absolute inset-0 rounded-[6px] bg-aurum-200/0 transition-colors duration-300 group-hover:bg-aurum-200/12"
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 40%, rgba(252,234,187,0.22), rgba(252,234,187,0.06) 55%, transparent 75%)",
+            }}
           />
 
-          {/* 何のリンクなのかを言葉で置く。本の真下、絵の外には出さない */}
-          <span className="absolute left-1/2 top-full mt-2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-aurum-200/45 bg-void-950/75 px-3 py-1.5 font-mono text-[9px] uppercase tracking-cosmic text-aurum-100 shadow-[0_2px_14px_rgba(3,2,10,0.8)] backdrop-blur-sm transition-colors duration-300 group-hover:border-aurum-100 group-hover:bg-void-950/90 sm:text-[10px]">
-            宇宙生命論を読む
-            <ArrowUpRight size={11} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          {/*
+            栞。本の下端から細い光が一本だけ垂れて、そのまま文字につながる。
+            吹き出しやボタンの形にしないことで、絵の中の小道具のように見せる。
+          */}
+          <span
+            aria-hidden="true"
+            className="book-thread pointer-events-none absolute left-1/2 top-full h-5 w-px -translate-x-1/2 bg-gradient-to-b from-aurum-200/80 to-transparent sm:h-7"
+          />
+
+          <span className="absolute left-1/2 top-full mt-5 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.28em] text-aurum-100/85 transition-colors duration-500 group-hover:text-aurum-100 sm:mt-7 sm:text-[10px]"
+            style={{ textShadow: "0 1px 10px rgba(3,2,10,0.95), 0 0 24px rgba(3,2,10,0.9)" }}
+          >
+            宇宙生命論
+            <ArrowUpRight
+              size={11}
+              className="opacity-70 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+            />
           </span>
         </motion.a>
       </div>

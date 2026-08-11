@@ -351,29 +351,55 @@
   }
 }
 
-/* 本の縁をなぞる光。押せることを、絵を壊さずに知らせる */
+/* 本が押せることの知らせ。
+   枠線で囲むと「絵の上に貼った UI」に見えてしまうので、輪郭は描かない。
+   本そのものが内側からゆっくり呼吸するように光る、という見せ方にする。
+   角が出ないよう楕円のグラデーションで、縁は完全に溶かす。 */
 @keyframes book-breathe {
   0%,
   100% {
-    opacity: 0.55;
-    box-shadow: 0 0 14px 2px rgba(246, 211, 101, 0.28), inset 0 0 18px rgba(246, 211, 101, 0.16);
+    opacity: 0.34;
+    transform: scale(1);
   }
   50% {
-    opacity: 1;
-    box-shadow: 0 0 26px 5px rgba(246, 211, 101, 0.5), inset 0 0 26px rgba(246, 211, 101, 0.26);
+    opacity: 0.72;
+    transform: scale(1.06);
   }
 }
 .book-glow {
-  animation: book-breathe 3.6s ease-in-out infinite;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(252, 234, 187, 0.5) 0%,
+    rgba(246, 211, 101, 0.26) 38%,
+    rgba(240, 180, 41, 0.08) 66%,
+    transparent 78%
+  );
+  filter: blur(10px);
+  animation: book-breathe 5.2s ease-in-out infinite;
+}
+
+/* 栞のように、本の端から細い光が一本だけ伸びて文字につながる */
+@keyframes book-thread {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.book-thread {
+  animation: book-thread 5.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .finale-zoom {
     animation: none;
   }
-  .book-glow {
+  .book-glow,
+  .book-thread {
     animation: none;
-    opacity: 0.85;
+    opacity: 0.6;
   }
 }
 

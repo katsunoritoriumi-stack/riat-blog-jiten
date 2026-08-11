@@ -7,6 +7,7 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import ZoomStage from "@/components/ui/ZoomStage";
 import BootSequence from "@/components/BootSequence";
 import BackgroundMusic from "@/components/BackgroundMusic";
+import MemoryFlashback from "@/components/MemoryFlashback";
 import WarpOverlay from "@/components/WarpOverlay";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -66,6 +67,12 @@ export default function Home() {
       <JsonLd data={homePageLd()} />
       {/* 背景の宇宙は WebGL。ブート演出が明けてからマウントする（UniverseGate） */}
       <UniverseGate />
+      {/*
+        記憶の回想。宇宙(z-0)と ZoomStage(z-10) の間に敷く。
+        ZoomStage の中に入れると、予告編カードが作る合成グループに閉じ込められて
+        screen 合成が背景の宇宙まで届かず、黒い矩形として乗ってしまう。
+      */}
+      <MemoryFlashback />
       <CustomCursor />
       {/* サウンドボタンが押されたら、スクロールの開始に合わせて小さく流れ出す */}
       <BackgroundMusic />
