@@ -172,6 +172,38 @@ git push https://katsunoritoriumi-stack@github.com/katsunoritoriumi-stack/riat-b
 6. **曲目リストの入れ子スクロールはスマホでは無効にしてある**（`sm:` 以上でのみ内部スクロール）。
    ステーション自体が縦スクロールなので、中にもう一段作ると指がどちらを掴んだか分からなくなる。
 
+## 6.6. BGM と、終章の本のリンク（2026-08-12 追加）
+
+### サイト全体の BGM（`components/BackgroundMusic.tsx`）
+`public/bgm-neon-horizon.mp3`（4分10秒 / 5.5MB）。
+
+- ページ上部のサウンドボタンで**点火待ち**になり、**最初のスクロールで**入ってくる。
+  ボタンを押した瞬間に鳴らさないのは、Hero のイントロ効果音と重なって濁るため。
+- 音量は 0.18（`MAX_VOL`）。MV やアルバムが鳴っている間は 0.02 まで絞る
+  （`lib/mediaBus.ts` の `setDucked` / `subscribeDuck`。止めずに絞るのは、止めると戻す機会が無いから）。
+- **別タブに出ている間は止め、戻ったら鳴らし直す**（`visibilitychange`）。
+  同じタブで移動して戻った場合は sessionStorage の印（`toriumi.bgm.armed`）で自動再開。
+  自動再生を拒否されたら次の操作（pointerdown / keydown）で拾う。
+- `document.hidden` のとき鳴らさない。**Browser ペインを閉じていると hidden=true なので、
+  検証時は `Object.defineProperty(document,'hidden',{get:()=>false})` で可視に偽装する。**
+
+### 終章の絵の中の本 → 宇宙生命論ブログへのリンク
+`components/FinaleBookLink.tsx`。リンク先は `https://seimeiron.com/riat-blog/`。
+
+- **`object-fit: cover` を使っていない。** cover は絵と要素の座標系がずれるので、
+  本の位置を % で指定できない。代わりに `.finale-frame`（globals.css）が
+  「絵の比率のまま画面を覆う最小の箱」になり、その中を % で置いている。
+- 絵は文字の下・リンクは文字の上に置く必要があるので**枠が 2 つある**。
+  ずれないよう、寄りの動きは framer ではなく**同一の CSS アニメーション**
+  （`.finale-zoom`）にしてある。別々に動かすと 2 つの枠がずれてリンクが本から外れる。
+- **両方の層は `overflow: clip`。`hidden` にしてはいけない。**
+  hidden はスクロール可能な箱を作るので、リンクを Tab でフォーカスしただけで
+  その層が 48px ずれ、当たり判定が本から外れる（実際に踏んで直した）。
+- 絵を差し替えたときは globals.css の `.finale-frame`（`--arw` / `--arh` / `--oy`）と
+  `.finale-book`（`--bx` / `--by` / `--bw` / `--bh`）の数字だけ直せばよい。
+  本の位置は ffmpeg で矩形を切り出して目視確認するのが早い。
+  現在値: スマホ 29.5/62.5/28/30%、PC 7.4/66/13/30%。
+
 ### 音源の容量について
 
 再エンコードせず原盤（約190kbps）のまま置いている。lossy→lossy の再圧縮が
