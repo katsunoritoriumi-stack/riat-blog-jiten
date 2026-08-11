@@ -30,10 +30,12 @@ const INDEX = STATIONS.findIndex((s) => s.caption?.memoryVideo);
 const SRC = INDEX >= 0 ? STATIONS[INDEX].caption!.memoryVideo! : null;
 
 /**
- * いちばん濃いときでもこのくらい。回想なので像は結ばせきらない。
- * 背景が暗い場面なので、0.34 では写真がはっきり出すぎた（合成して見比べて決めた）。
+ * いちばん濃いときの不透明度。
+ * 0.24 では薄すぎて何が映っているか分からなかったので上げた。
+ * 文字の真後ろは予告編カード側の暗幕（このレイヤーより手前）が守るので、
+ * ここを濃くしてもカウンターの可読性は落ちない。合成して見比べて 0.45 にした。
  */
-const PEAK = 0.24;
+const PEAK = 0.45;
 
 export default function MemoryFlashback() {
   const { scrollYProgress } = useScroll();
@@ -87,7 +89,7 @@ export default function MemoryFlashback() {
           className="absolute inset-0 h-full w-full object-cover"
           style={{
             mixBlendMode: "screen",
-            filter: "blur(1.6px) saturate(0.72) contrast(0.95)",
+            filter: "blur(1.8px) saturate(0.78) contrast(0.95)",
             maskImage: fade,
             WebkitMaskImage: fade,
           }}

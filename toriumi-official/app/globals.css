@@ -352,54 +352,68 @@
 }
 
 /* 本が押せることの知らせ。
-   枠線で囲むと「絵の上に貼った UI」に見えてしまうので、輪郭は描かない。
-   本そのものが内側からゆっくり呼吸するように光る、という見せ方にする。
-   角が出ないよう楕円のグラデーションで、縁は完全に溶かす。 */
-@keyframes book-breathe {
-  0%,
-  100% {
-    opacity: 0.34;
-    transform: scale(1);
+   枠線で囲むと「絵の上に貼った UI」に見え、
+   ぼんやり光らせるだけだと何が起きるのか伝わらない。
+   そこで「押せる一点」を示す目印を置く。動きがあるので静止画の中でも必ず気づく。 */
+@keyframes hotspot-ping {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.85;
   }
-  50% {
-    opacity: 0.72;
-    transform: scale(1.06);
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.9);
+    opacity: 0;
   }
 }
-.book-glow {
-  background: radial-gradient(
-    ellipse at 50% 50%,
-    rgba(252, 234, 187, 0.5) 0%,
-    rgba(246, 211, 101, 0.26) 38%,
-    rgba(240, 180, 41, 0.08) 66%,
-    transparent 78%
-  );
-  filter: blur(10px);
-  animation: book-breathe 5.2s ease-in-out infinite;
+.hotspot-ping {
+  animation: hotspot-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.hotspot-ping-2 {
+  animation-delay: 1.3s;
 }
 
-/* 栞のように、本の端から細い光が一本だけ伸びて文字につながる */
+@keyframes hotspot-core {
+  0%,
+  100% {
+    box-shadow: 0 0 8px 2px rgba(246, 211, 101, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(246, 211, 101, 0.85);
+  }
+}
+.hotspot-core {
+  animation: hotspot-core 2.6s ease-in-out infinite;
+}
+
+/* 目印から文字へ伸びる細い線 */
 @keyframes book-thread {
   0%,
   100% {
-    opacity: 0.45;
+    opacity: 0.5;
   }
   50% {
-    opacity: 0.9;
+    opacity: 0.95;
   }
 }
 .book-thread {
-  animation: book-thread 5.2s ease-in-out infinite;
+  animation: book-thread 2.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .finale-zoom {
     animation: none;
   }
-  .book-glow,
+  .hotspot-ping {
+    animation: none;
+    opacity: 0.5;
+    transform: scale(1.9);
+  }
+  .hotspot-core,
   .book-thread {
     animation: none;
-    opacity: 0.6;
   }
 }
 
