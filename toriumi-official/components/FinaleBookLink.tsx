@@ -19,8 +19,14 @@ const HREF = "https://seimeiron.com/riat-blog/";
 
 export default function FinaleBookLink() {
   return (
+    {/*
+      overflow は hidden ではなく clip。hidden はスクロール可能な箱を作るので、
+      リンクを Tab でフォーカスしたりブラウザが scrollIntoView したりすると
+      この層だけが縦にずれ、リンクが本から外れる（実測で 48px ずれた）。
+      clip なら切り取るだけでスクロールしない。
+    */}
     <div
-      className="pointer-events-none absolute inset-0 z-30 overflow-hidden"
+      className="pointer-events-none absolute inset-0 z-30 overflow-clip"
       style={{ containerType: "size" }}
     >
       <div className="finale-frame finale-zoom">

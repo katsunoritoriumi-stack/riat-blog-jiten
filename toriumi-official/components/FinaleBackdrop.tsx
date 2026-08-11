@@ -20,7 +20,8 @@
 export default function FinaleBackdrop() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      // overflow は clip。hidden だとスクロール可能な箱になり、リンク側の層とずれる
+      className="pointer-events-none absolute inset-0 -z-10 overflow-clip"
       style={{ containerType: "size" }}
     >
       {/* 絵。ゆっくり寄っていく（宇宙の只中に留まっている感じ） */}
