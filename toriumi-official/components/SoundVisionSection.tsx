@@ -6,7 +6,7 @@ import { Play, Pause, Volume2, VolumeX, ArrowUpRight, Loader2 } from "lucide-rea
 import SectionHeader from "./ui/SectionHeader";
 import WorkLabel from "./ui/WorkLabel";
 import { YOUTUBE } from "@/lib/content";
-import { claimPlayback, registerMedia } from "@/lib/mediaBus";
+import { claimPlayback, registerMedia, setDucked } from "@/lib/mediaBus";
 import { setSoundOn } from "@/lib/soundStore";
 
 /**
@@ -163,8 +163,14 @@ export default function SoundVisionSection() {
           preload="none"
           playsInline
           loop
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
+          onPlay={() => {
+            setPlaying(true);
+            setDucked(true); // MV が鳴っている間、BGM を絞る
+          }}
+          onPause={() => {
+            setPlaying(false);
+            setDucked(false);
+          }}
           onWaiting={() => setBuffering(true)}
           onPlaying={() => {
             setBuffering(false);

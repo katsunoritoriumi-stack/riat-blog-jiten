@@ -358,7 +358,12 @@ function StationStage({
         display: live ? undefined : "none",
         pointerEvents: interactive && !passthrough ? "auto" : "none",
       }}
-      className="zoom-station absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-contain"
+      /**
+       * overscroll は contain にしない。中に縦スクロールする箱（アルバムの曲目リスト）が
+       * あるとき、contain だと箱の端まで来たスクロールがここで止まり、
+       * ページが先へ進まなくなる（スマホでカードの上に指を置くと固定される）。
+       */
+      className="zoom-station absolute inset-0 flex items-center justify-center overflow-y-auto overscroll-y-auto"
     >
       <div ref={innerRef} className="w-full">
         {children}

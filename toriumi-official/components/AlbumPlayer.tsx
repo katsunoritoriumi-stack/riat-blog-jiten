@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { ALBUM, albumDuration, trackArt, trackSrc, type Track } from "@/lib/content";
-import { claimPlayback, registerMedia } from "@/lib/mediaBus";
+import { claimPlayback, registerMedia, setDucked } from "@/lib/mediaBus";
 import { setSoundOn } from "@/lib/soundStore";
 
 /**
@@ -174,8 +174,14 @@ export default function AlbumPlayer() {
       <audio
         ref={audioRef}
         preload="none"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
+        onPlay={() => {
+          setPlaying(true);
+          setDucked(true); // 曲が鳴っている間、BGM を絞る
+        }}
+        onPause={() => {
+          setPlaying(false);
+          setDucked(false);
+        }}
         onWaiting={() => setBuffering(true)}
         onPlaying={() => {
           setBuffering(false);
@@ -236,16 +242,13 @@ export default function AlbumPlayer() {
         {/* ── 曲目 ── */}
         <div className="min-w-0">
           {/*
-            曲目は 11 曲あるので、全部展開すると 1 画面に収まらない。
-            ここだけ中でスクロールさせる。
+            曲目は 11 曲あるので、全部展開すると 1 画面に収まらない。ここだけ中でスクロールさせる。
 
-            data-lenis-prevent が要る。付けないと lenis がホイールを横取りして
-            ページ側だけが動き、この中身は永久にスクロールできない。
+            overscroll-y-auto が要る。contain にすると端まで来ても外へ連鎖せず、
+            カードの上でページが進まなくなる（スマホで画面が固定される）。
+            ホイール側は lenis の allowNestedScroll が同じ役割を果たす。
           */}
-          <ol
-            data-lenis-prevent
-            className="-mx-2 max-h-[15rem] overflow-y-auto pr-1 sm:max-h-[19rem] lg:max-h-[23rem]"
-          >
+          <ol className="-mx-2 max-h-[15rem] overflow-y-auto overscroll-y-auto pr-1 sm:max-h-[19rem] lg:max-h-[23rem]">
             {ALBUM.tracks.map((t, i) => (
               <TrackRow
                 key={t.id}

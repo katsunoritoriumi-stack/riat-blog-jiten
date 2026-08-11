@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
 import ZoomStage from "@/components/ui/ZoomStage";
 import BootSequence from "@/components/BootSequence";
+import BackgroundMusic from "@/components/BackgroundMusic";
 import WarpOverlay from "@/components/WarpOverlay";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -20,6 +21,7 @@ import ConnectSection from "@/components/ConnectSection";
 import LegacyStatement from "@/components/LegacyStatement";
 import SignalLost from "@/components/SignalLost";
 import FinaleBackdrop from "@/components/FinaleBackdrop";
+import FinaleBookLink from "@/components/FinaleBookLink";
 import Footer from "@/components/Footer";
 import { STATIONS } from "@/lib/stations";
 
@@ -52,6 +54,8 @@ const NODES: Record<string, ReactNode> = {
       <FinaleBackdrop />
       <SignalLost />
       <Footer />
+      {/* 絵の中の本へのリンク。文字より上に出さないと押せないので最後に置く */}
+      <FinaleBookLink />
     </div>
   ),
 };
@@ -63,6 +67,8 @@ export default function Home() {
       {/* 背景の宇宙は WebGL。ブート演出が明けてからマウントする（UniverseGate） */}
       <UniverseGate />
       <CustomCursor />
+      {/* サウンドボタンが押されたら、スクロールの開始に合わせて小さく流れ出す */}
+      <BackgroundMusic />
       <WarpOverlay />
       <BootSequence />
       <Navbar />

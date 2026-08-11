@@ -34,3 +34,31 @@ export function claimPlayback(self: Stopper) {
 export function stopAllMedia() {
   for (const stop of stoppers) stop();
 }
+
+/**
+ * BGM の一時的な音量下げ（ダッキング）。
+ *
+ * MV やアルバムを鳴らしている間、BGM を止めてしまうと戻すきっかけが無くなる。
+ * かといって鳴らしたままでは曲が濁る。そこで「聞こえるか聞こえないか」まで
+ * 絞っておき、作品の再生が終わったら自然に戻す。
+ *
+ * 数を数えているのは、MV とアルバムが立て続けに切り替わったときに
+ * 片方の停止でうっかり BGM が戻ってしまわないようにするため。
+ */
+let duckCount = 0;
+const duckListeners = new Set<(ducked: boolean) => void>();
+
+export function subscribeDuck(fn: (ducked: boolean) => void): () => void {
+  duckListeners.add(fn);
+  fn(duckCount > 0);
+  return () => {
+    duckListeners.delete(fn);
+  };
+}
+
+export function setDucked(on: boolean) {
+  const next = Math.max(0, duckCount + (on ? 1 : -1));
+  const changed = next > 0 !== duckCount > 0;
+  duckCount = next;
+  if (changed) duckListeners.forEach((fn) => fn(duckCount > 0));
+}

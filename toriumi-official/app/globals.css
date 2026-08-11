@@ -294,6 +294,89 @@
 }
 .eq span { transform-origin: bottom; }
 
+/* ─── 終章の絵と、その中の本のリンク ───
+   絵の中の「宇宙生命論」の本にリンクを重ねたい。
+   img に object-fit: cover を使うと、絵の座標と要素の座標がずれて
+   本の位置を % で指定できない。そこで枠のほうを
+   「絵の比率のまま画面を覆う最小の箱」にして、中身を % で置く。
+   （= object-fit: cover と同じ収まり方を、当たり判定ごと再現する）
+
+   絵とリンクは別レイヤーに置く必要がある（絵は文字の下、リンクは文字の上）。
+   ずれないよう、寄りの動きは framer ではなく同一の CSS アニメーションにして、
+   2 つの枠が必ず同じ進行で動くようにしている。 */
+.finale-frame {
+  /* スマホの絵 1100x1310 / object-position: 50% 42% */
+  --arw: 1100;
+  --arh: 1310;
+  --oy: 0.42;
+  position: absolute;
+  width: max(100cqw, calc(100cqh * var(--arw) / var(--arh)));
+  height: max(100cqh, calc(100cqw * var(--arh) / var(--arw)));
+  left: calc((100cqw - max(100cqw, calc(100cqh * var(--arw) / var(--arh)))) * 0.5);
+  top: calc((100cqh - max(100cqh, calc(100cqw * var(--arh) / var(--arw)))) * var(--oy));
+}
+
+/* 絵の中の本の位置（絵に対する割合。実測値） */
+.finale-book {
+  --bx: 29.5%;
+  --by: 62.5%;
+  --bw: 28%;
+  --bh: 30%;
+}
+
+@media (min-width: 768px) {
+  .finale-frame {
+    /* PC の絵 1672x942 */
+    --arw: 1672;
+    --arh: 942;
+    --oy: 0.5;
+  }
+  .finale-book {
+    --bx: 7.4%;
+    --by: 66%;
+    --bw: 13%;
+    --bh: 30%;
+  }
+}
+
+.finale-zoom {
+  animation: finale-zoom 26s linear both;
+}
+@keyframes finale-zoom {
+  from {
+    scale: 1.1;
+  }
+  to {
+    scale: 1;
+  }
+}
+
+/* 本の縁をなぞる光。押せることを、絵を壊さずに知らせる */
+@keyframes book-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    box-shadow: 0 0 14px 2px rgba(246, 211, 101, 0.28), inset 0 0 18px rgba(246, 211, 101, 0.16);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 26px 5px rgba(246, 211, 101, 0.5), inset 0 0 26px rgba(246, 211, 101, 0.26);
+  }
+}
+.book-glow {
+  animation: book-breathe 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finale-zoom {
+    animation: none;
+  }
+  .book-glow {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
 /* ─── Seek bar (album player) ───
    当たり判定は指で掴める高さを確保しつつ、見た目の線は細く保つ。
    --p に再生位置のパーセントが入る（React 側からインラインで渡す）。 */

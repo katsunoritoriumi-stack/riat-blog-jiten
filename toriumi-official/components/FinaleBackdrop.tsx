@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-
 /**
  * 終章（SIGNAL LOST → ロゴの署名）の背景。
  * 画面いっぱいに絵を敷き、その上に文字とロゴが乗る。
@@ -11,32 +9,35 @@ import { motion, useReducedMotion } from "framer-motion";
  *   ・縦長（スマホ）… 人物が中央にいる構図。横長の絵を縦に切ると人物が外れるため
  * <picture> の media で切り替えるので、読み込まれるのは片方だけ。
  *
+ * 絵の中の本には FinaleBookLink がリンクを重ねる。位置合わせのため、
+ * ここでは object-fit を使わず .finale-frame（絵の比率のまま画面を覆う箱）に
+ * 収めている。寄りの動きも CSS 側（.finale-zoom）に持たせて、
+ * リンク側の枠と必ず同じ進行で動くようにしてある。
+ *
  * 暗幕は「上を軽く・下を強く」。上は円盤と銀河という見せ場なので沈めすぎず、
  * 下はロゴの署名の座を作るためにしっかり落とす。
  */
 export default function FinaleBackdrop() {
-  const reduce = useReducedMotion();
-
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <div
+      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      style={{ containerType: "size" }}
+    >
       {/* 絵。ゆっくり寄っていく（宇宙の只中に留まっている感じ） */}
-      <picture>
-        <source media="(min-width: 768px)" srcSet="/finale-pc.webp" />
-        <motion.img
-          src="/finale-mobile.webp"
-          alt=""
-          aria-hidden="true"
-          width={1500}
-          height={837}
-          loading="lazy"
-          initial={reduce ? undefined : { scale: 1.1 }}
-          animate={reduce ? undefined : { scale: 1 }}
-          transition={{ duration: 26, ease: "linear" }}
-          className="absolute inset-0 h-full w-full object-cover"
-          // 縦長の画面では人物の顔が入るよう、やや上寄りを芯にする
-          style={{ objectPosition: "50% 42%" }}
-        />
-      </picture>
+      <div className="finale-frame finale-zoom">
+        <picture>
+          <source media="(min-width: 768px)" srcSet="/finale-pc.webp" />
+          <img
+            src="/finale-mobile.webp"
+            alt=""
+            aria-hidden="true"
+            width={1100}
+            height={1310}
+            loading="lazy"
+            className="h-full w-full"
+          />
+        </picture>
+      </div>
 
       {/* 上下から締める暗幕：上は見せ場なので軽く、下はロゴの座なので強く */}
       <div
