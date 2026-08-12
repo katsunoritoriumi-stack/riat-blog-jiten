@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>RIAT KNOWLEDGE GALAXY — ブログ銀河</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #d1d1c7;
+    --gold: #b5a67d;
+    --blue: #5b8fa8;
+    --bg: #06070c;
+    --panel: rgba(13, 15, 24, 0.88);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%; overflow: hidden; background: var(--bg);
+    /* スマホで画面全体が横に流れないよう、ページ側のパン・スクロール連鎖を止める */
+    position: fixed; inset: 0; overscroll-behavior: none;
+  }
+  body { font-family: "Shippori Mincho", serif; color: var(--ink); }
+  #scene { position: fixed; inset: 0; display: block; }
+
+  /* ---- ブートシーケンス ---- */
+  #boot {
+    position: fixed; inset: 0; z-index: 50; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; transition: opacity 1.4s ease;
+  }
+  #boot.hidden { opacity: 0; pointer-events: none; }
+  #boot .en {
+    font-family: "Cormorant Garamond", serif; letter-spacing: 0.55em;
+    font-size: clamp(14px, 2.4vw, 22px); color: var(--gold); text-indent: 0.55em;
+    opacity: 0; animation: rise 1.6s ease 0.3s forwards;
+  }
+  #boot .ja {
+    font-size: clamp(20px, 4vw, 34px); letter-spacing: 0.3em; text-indent: 0.3em;
+    opacity: 0; animation: rise 1.6s ease 0.9s forwards;
+  }
+  #boot .status {
+    margin-top: 14px; font-size: 11px; letter-spacing: 0.25em; color: var(--blue);
+    opacity: 0; animation: rise 1s ease 1.6s forwards;
+  }
+  #boot .line {
+    width: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: line 2s ease 0.6s forwards;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes line { to { width: min(360px, 70vw); } }
+
+  /* ---- ヘッダ ---- */
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 20px; padding: 18px 26px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(6,7,12,0.7), transparent);
+  }
+  #hud h1 { font-size: 15px; font-weight: 500; letter-spacing: 0.35em; color: var(--ink); }
+  #hud h1 .en { font-family: "Cormorant Garamond", serif; color: var(--gold); margin-right: 12px; letter-spacing: 0.3em; }
+  #hud .count { display: block; margin-top: 7px; font-size: 11px; letter-spacing: 0.2em; color: var(--blue); }
+  #hud-right { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+
+  /* ---- 銀河への質問 ---- */
+  #search { position: relative; color: var(--ink); }
+  #search .icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 13px; height: 13px; opacity: 0.5; pointer-events: none;
+  }
+  #search input {
+    font-family: inherit; font-size: 12.5px; letter-spacing: 0.08em; color: var(--ink);
+    width: 210px; padding: 9px 13px 9px 33px; background: rgba(13,15,24,0.7);
+    border: 1px solid rgba(209,209,199,0.22); transition: border-color .3s, width .4s ease;
+  }
+  #search input::placeholder { color: rgba(209,209,199,0.35); letter-spacing: 0.12em; }
+  #search input:focus { outline: none; border-color: var(--gold); width: 260px; }
+  #search input::-webkit-search-cancel-button { filter: invert(0.7); cursor: pointer; }
+
+  /* ---- 龍神マップへの導線 ---- */
+  #dragon {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap;
+    font-size: 11.5px; letter-spacing: 0.18em; color: var(--ink);
+    padding: 9px 15px; background: rgba(13,15,24,0.7);
+    border: 1px solid rgba(181,166,125,0.4); transition: border-color .3s, color .3s, background .3s;
+  }
+  #dragon:hover { border-color: var(--gold); color: #fff; background: rgba(181,166,125,0.14); }
+  #dragon .mark { font-size: 13px; color: var(--gold); letter-spacing: 0; }
+
+  /* ---- ツールチップ ---- */
+  #tip {
+    position: fixed; z-index: 20; pointer-events: none; display: none;
+    max-width: 300px; padding: 8px 14px; font-size: 12.5px; line-height: 1.7;
+    letter-spacing: 0.06em; color: var(--ink);
+    background: var(--panel); border: 1px solid rgba(181, 166, 125, 0.35);
+    backdrop-filter: blur(6px);
+  }
+  #tip .c { color: var(--gold); font-size: 10.5px; letter-spacing: 0.2em; display: block; }
+
+  /* ---- 星座リスト ---- */
+  #legend {
+    position: fixed; left: 18px; bottom: 16px; z-index: 10;
+    display: flex; flex-wrap: wrap; gap: 6px; max-width: min(560px, 62vw);
+  }
+  #legend button {
+    font-family: inherit; font-size: 11px; letter-spacing: 0.12em; cursor: pointer;
+    color: var(--ink); background: rgba(13,15,24,0.6); border: 1px solid rgba(209,209,199,0.18);
+    padding: 5px 11px; border-radius: 999px; transition: border-color .3s, color .3s;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  #legend button:hover { border-color: var(--gold); color: #fff; }
+  #legend button.on { border-color: var(--gold); color: #fff; background: rgba(181,166,125,0.2); }
+  #legend .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* ---- 記事パネル ---- */
+  #panel {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 30;
+    width: min(430px, 92vw); padding: 84px 34px 34px;
+    background: var(--panel); border-left: 1px solid rgba(181,166,125,0.3);
+    backdrop-filter: blur(14px);
+    transform: translateX(105%); transition: transform 0.65s cubic-bezier(.22,.9,.24,1);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  #panel.open { transform: none; }
+  #panel .constellation { font-size: 11px; letter-spacing: 0.3em; color: var(--gold); }
+  #panel .constellation .desc { color: var(--blue); letter-spacing: 0.1em; margin-left: 10px; }
+  #panel h2 { font-size: 20px; font-weight: 500; line-height: 1.75; letter-spacing: 0.05em; }
+  #panel .summary { font-size: 13.5px; line-height: 2.1; letter-spacing: 0.05em; color: rgba(209,209,199,0.85); }
+  #panel .no { font-family: "Cormorant Garamond", serif; font-size: 13px; color: var(--blue); letter-spacing: 0.2em; }
+  #panel a.read {
+    margin-top: auto; text-align: center; text-decoration: none;
+    font-size: 13px; letter-spacing: 0.3em; text-indent: 0.3em; color: #0a0a0a;
+    background: linear-gradient(135deg, #cbbb8e, var(--gold)); padding: 14px 10px;
+    transition: filter .3s;
+  }
+  #panel a.read:hover { filter: brightness(1.12); }
+
+  /* ---- パネル内タブ ---- */
+  #tabs { display: flex; border-bottom: 1px solid rgba(209,209,199,0.16); }
+  #tabs button {
+    flex: 1; font-family: inherit; font-size: 11.5px; letter-spacing: 0.24em;
+    text-indent: 0.24em; cursor: pointer; padding: 9px 0 11px;
+    color: rgba(209,209,199,0.5); background: none; border: none;
+    border-bottom: 1px solid transparent; margin-bottom: -1px; transition: color .3s, border-color .3s;
+  }
+  #tabs button:hover { color: var(--ink); }
+  #tabs button.on { color: var(--gold); border-bottom-color: var(--gold); }
+  .tabbody { display: none; flex: 1; min-height: 0; overflow-y: auto; }
+  .tabbody.on { display: flex; flex-direction: column; gap: 18px; }
+  .tabbody::-webkit-scrollbar { width: 4px; }
+  .tabbody::-webkit-scrollbar-thumb { background: rgba(181,166,125,0.3); }
+
+  /* ---- クイズ ---- */
+  .qsrc { font-size: 10.5px; letter-spacing: 0.18em; color: var(--blue); }
+  .qsrc .prog { float: right; font-family: "Cormorant Garamond", serif; letter-spacing: 0.2em; }
+  #q-text { font-size: 14.5px; line-height: 2; letter-spacing: 0.04em; }
+  #q-choices { display: flex; flex-direction: column; gap: 8px; }
+  #q-choices button {
+    font-family: inherit; text-align: left; cursor: pointer;
+    font-size: 12.5px; line-height: 1.85; letter-spacing: 0.03em; color: var(--ink);
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(209,209,199,0.18);
+    padding: 11px 14px; transition: border-color .25s, background .25s;
+  }
+  #q-choices button:hover:not(:disabled) { border-color: var(--gold); background: rgba(181,166,125,0.08); }
+  #q-choices button:disabled { cursor: default; }
+  #q-choices button.correct { border-color: #7fc9a6; background: rgba(127,201,166,0.12); }
+  #q-choices button.wrong { border-color: #d98f8f; background: rgba(217,143,143,0.1); }
+  #q-exp {
+    font-size: 12px; line-height: 2; letter-spacing: 0.04em;
+    color: rgba(209,209,199,0.78); border-left: 1px solid var(--gold); padding-left: 14px;
+  }
+  #q-exp .verdict { display: block; letter-spacing: 0.2em; margin-bottom: 6px; }
+  #q-exp .verdict.ok { color: #7fc9a6; }
+  #q-exp .verdict.ng { color: #d98f8f; }
+  .qbtn {
+    font-family: inherit; cursor: pointer; font-size: 12px; letter-spacing: 0.25em;
+    text-indent: 0.25em; color: var(--ink); background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(181,166,125,0.45); padding: 12px 10px; transition: background .3s;
+  }
+  .qbtn:hover { background: rgba(181,166,125,0.14); }
+  #q-result { text-align: center; display: flex; flex-direction: column; gap: 18px; }
+  #q-result[hidden] { display: none; } /* display 指定は hidden 属性より強いので明示的に消す */
+  #q-result .score { font-family: "Cormorant Garamond", serif; font-size: 40px; color: var(--gold); letter-spacing: 0.1em; }
+  #q-result .msg { font-size: 12.5px; letter-spacing: 0.15em; color: rgba(209,209,199,0.8); }
+
+  /* ---- 質問（RAGチャット） ---- */
+  #tab-ask.on { gap: 14px; }
+  #a-log { display: flex; flex-direction: column; gap: 14px; }
+  /* 縦フレックスの中で縮められると、あふれた要約本文が下の注記に重なる。
+     縮ませずタブ本体側をスクロールさせる */
+  #tab-ask > * { flex: none; }
+  #a-log .q { font-size: 12px; letter-spacing: 0.08em; color: var(--gold); line-height: 1.9; }
+  #a-log .a { font-size: 13px; line-height: 2.1; letter-spacing: 0.04em; white-space: pre-wrap; }
+  #a-log .status { font-size: 11.5px; letter-spacing: 0.18em; color: var(--blue); }
+  #a-log .status.err { color: #d98f8f; letter-spacing: 0.08em; line-height: 1.9; }
+  #close {
+    position: absolute; top: 26px; right: 26px; width: 36px; height: 36px; cursor: pointer;
+    background: none; border: 1px solid rgba(209,209,199,0.3); border-radius: 50%;
+    color: var(--ink); font-size: 15px; line-height: 1; transition: border-color .3s;
+  }
+  #close:hover { border-color: var(--gold); }
+
+  /* ---- 質問ページ（銀河の上に開く別画面） ---- */
+  #askpage {
+    position: fixed; inset: 0; z-index: 40; overflow-y: auto;
+    background: rgba(6,7,12,0.96); backdrop-filter: blur(10px);
+    animation: fadein .35s ease;
+  }
+  #askpage[hidden] { display: none; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  #askpage .inner {
+    max-width: 720px; margin: 0 auto; padding: 76px 26px 90px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  #askpage .label { font-size: 10.5px; letter-spacing: 0.3em; color: var(--gold); }
+  #ap-question { font-size: 18px; font-weight: 500; line-height: 1.9; letter-spacing: 0.04em; }
+  #ap-body { display: flex; flex-direction: column; gap: 14px; }
+  #ap-body .a { font-size: 14px; line-height: 2.15; letter-spacing: 0.04em; white-space: pre-wrap; }
+  #ap-body .status { font-size: 11.5px; letter-spacing: 0.18em; color: var(--blue); }
+  #ap-body .status.err { color: #d98f8f; letter-spacing: 0.08em; line-height: 1.9; }
+  #ap-srcwrap {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-top: 20px; border-top: 1px solid rgba(181,166,125,0.25);
+  }
+  #ap-srcwrap[hidden] { display: none; }
+  #ap-src { display: flex; flex-direction: column; gap: 8px; }
+  #ap-src a {
+    font-size: 13px; line-height: 1.9; letter-spacing: 0.04em; color: var(--ink);
+    text-decoration: none; padding: 10px 14px;
+    border: 1px solid rgba(209,209,199,0.2); transition: border-color .3s, color .3s;
+  }
+  #ap-src a:hover { border-color: var(--gold); color: #fff; }
+  #ap-close {
+    position: fixed; top: 20px; right: 22px; width: 38px; height: 38px; cursor: pointer;
+    background: rgba(13,15,24,0.8); border: 1px solid rgba(209,209,199,0.3); border-radius: 50%;
+    color: var(--ink); font-size: 15px; line-height: 1; transition: border-color .3s;
+  }
+  #ap-close:hover { border-color: var(--gold); }
+
+  /* 絞り込み中だけ出す案内（気づかないと解除できないため） */
+  #backhint {
+    position: fixed; top: 66px; left: 50%; transform: translateX(-50%); z-index: 6;
+    font-size: 10.5px; letter-spacing: 0.16em; white-space: nowrap;
+    color: rgba(181,166,125,0.85); background: rgba(6,7,12,0.72);
+    border: 1px solid rgba(181,166,125,0.25); border-radius: 999px;
+    padding: 5px 14px; opacity: 0; transition: opacity .45s; pointer-events: none;
+  }
+  #backhint.on { opacity: 1; }
+
+  #hint {
+    position: fixed; right: 22px; bottom: 16px; z-index: 5;
+    font-size: 10.5px; letter-spacing: 0.2em; color: rgba(91,143,168,0.8);
+    text-align: right; line-height: 2; pointer-events: none;
+  }
+  /* 検索窓と龍管ボタンに押されてタイトルが折り返すので、英字の冠は先に畳む */
+  @media (max-width: 860px) {
+    #hud h1 { white-space: nowrap; }
+    #hud h1 .en { display: none; }
+  }
+  @media (max-width: 640px) {
+    /* 星座チップは画面最下部の横スクロール帯にして、銀河の視界を最大限空ける */
+    #legend {
+      left: 0; right: 0; bottom: 0; max-width: none;
+      flex-wrap: nowrap; overflow-x: auto; gap: 6px;
+      padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(6,7,12,0.94), rgba(6,7,12,0));
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      /* 横スワイプをこの帯の中で完結させる。これが無いとスクロールが親へ連鎖し、
+         画面ごと横に動いてチップの続きを出せない */
+      touch-action: pan-x;
+      overscroll-behavior: contain;
+    }
+    #legend::-webkit-scrollbar { display: none; }
+    #legend button { flex: none; }
+    #hint { display: none; }
+    /* 記事パネルは全画面に。横に銀河が覗くと読みづらい */
+    #panel { width: 100%; padding: 74px 22px 26px; border-left: none; }
+    #hud { padding: 14px 16px; gap: 10px; }
+    #hud h1 { font-size: 12px; letter-spacing: 0.2em; }
+    #hud h1 .en, #hud .count { display: none; }
+    #hud-right { gap: 8px; }
+    #search input, #search input:focus { width: 140px; }
+    /* 狭幅では検索結果に隠れないよう、龍のマークだけの丸ボタンにする */
+    #dragon { padding: 0; width: 36px; height: 36px; justify-content: center; border-radius: 50%; }
+    #dragon .label { display: none; }
+    #dragon .mark { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="boot">
+  <div class="en">RIAT KNOWLEDGE GALAXY</div>
+  <div class="line"></div>
+  <div class="ja">ブログ銀河</div>
+  <div class="status">STELLAR CARTOGRAPHY LOADING…</div>
+</div>
+
+<header id="hud">
+  <div>
+    <h1><span class="en">RIAT KNOWLEDGE GALAXY</span>ブログ銀河</h1>
+    <span class="count" id="count"></span>
+  </div>
+  <div id="hud-right">
+    <div id="search">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12a8.5 8.5 0 0 1-11.9 7.8L3 21l1.3-5.8A8.5 8.5 0 1 1 21 12z"/>
+      </svg>
+      <input id="q" type="text" placeholder="質問する" autocomplete="off"
+             maxlength="300" aria-label="質問する">
+    </div>
+    <a id="dragon" href="https://dragon-shrine-checker.vercel.app/" target="_blank" rel="noopener"
+       title="全国龍管マップを開く">
+      <span class="mark">龍</span><span class="label">全国龍管マップ</span>
+    </a>
+  </div>
+</header>
+
+<div id="tip"></div>
+<div id="backhint">何もない所をタップすると全体に戻ります</div>
+<nav id="legend"></nav>
+
+<aside id="panel">
+  <button id="close" aria-label="閉じる">✕</button>
+  <div class="constellation" id="p-const"></div>
+
+  <nav id="tabs">
+    <button data-tab="article" class="on">記事</button>
+    <button data-tab="quiz">クイズ</button>
+    <button data-tab="ask">この記事の要約</button>
+  </nav>
+
+  <section class="tabbody on" id="tab-article">
+    <div class="no" id="p-no"></div>
+    <h2 id="p-title"></h2>
+    <p class="summary" id="p-summary"></p>
+    <a class="read" id="p-link" href="#" target="_blank" rel="noopener">原文を読む</a>
+  </section>
+
+  <section class="tabbody" id="tab-quiz">
+    <div class="qsrc" id="q-src"></div>
+    <p id="q-text"></p>
+    <div id="q-choices"></div>
+    <div id="q-exp" hidden></div>
+    <button class="qbtn" id="q-next" hidden>次へ</button>
+    <div id="q-result" hidden>
+      <div class="score" id="q-score"></div>
+      <div class="msg" id="q-msg"></div>
+      <button class="qbtn" id="q-again">もう一度挑む</button>
+    </div>
+  </section>
+
+  <section class="tabbody" id="tab-ask">
+    <div id="a-log"></div>
+  </section>
+</aside>
+
+<div id="hint">ドラッグで回転 / スクロールで接近<br>星やタイトル・星座名をクリックできます</div>
+
+<div id="askpage" hidden>
+  <div class="inner">
+    <button id="ap-close" aria-label="閉じる">✕</button>
+    <div class="label">あなたの質問</div>
+    <h2 id="ap-question"></h2>
+    <div id="ap-body"></div>
+    <div id="ap-srcwrap" hidden>
+      <div class="label">出典（ブログ記事）</div>
+      <div id="ap-src"></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+/* 星団の色（和の天体パレット・12色） */
+const CLUSTER_COLORS = [
+  "#8fb8d9", "#d9b98f", "#a9d98f", "#d98fa9", "#b39ddb", "#8fd9cf",
+  "#e6c979", "#9fa8da", "#d9a08f", "#c5e1a5", "#90caf9", "#f0e2b6",
+];
+
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x06070c, 0.0016);
+const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 4000);
+camera.position.set(0, 118, 168); // やや俯瞰気味に。渦巻き全体の形が最初から見えるように
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 1.6; // 星ひとつまで寄れるように（12だと近づききれなかった）
+controls.maxDistance = 600;
+
+function resize() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+resize();
+
+/* 円形の柔らかい星テクスチャを動的生成 */
+function starTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,1)");
+  grad.addColorStop(0.35, "rgba(255,255,255,0.8)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const TEX = starTexture();
+
+/* 背景の遠景星 */
+function makeBackdrop() {
+  const n = 2600, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const r = 900 + Math.random() * 1600;
+    const t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1);
+    pos[i*3]   = r * Math.sin(p) * Math.cos(t);
+    pos[i*3+1] = r * Math.cos(p) * 0.6;
+    pos[i*3+2] = r * Math.sin(p) * Math.sin(t);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 2.2, map: TEX, transparent: true, opacity: 0.5,
+    color: 0x9aa8c0, depthWrite: false, fog: false,
+  });
+  scene.add(new THREE.Points(geo, mat));
+}
+makeBackdrop();
+
+/* ---- データ読み込みと銀河構築 ---- */
+const res = await fetch("./galaxy_data.json");
+const DATA = await res.json();
+const stars = DATA.stars;
+document.getElementById("count").textContent =
+  `${stars.length} STARS / ${DATA.constellations.length} CONSTELLATIONS`;
+
+const N = stars.length;
+const positions = new Float32Array(N * 3);
+const colors = new Float32Array(N * 3);
+const sizes = new Float32Array(N);
+const phases = new Float32Array(N);
+const dims = new Float32Array(N).fill(1); // 検索時に非該当の星を落とすための係数
+const SCALE = 1.35; // Python側は対数螺旋で座標を確定済み。表示スケールのみ調整
+
+stars.forEach((s, i) => {
+  positions[i*3]   = s.pos[0] * SCALE;
+  positions[i*3+1] = s.pos[1] * SCALE;
+  positions[i*3+2] = s.pos[2] * SCALE;
+  const c = new THREE.Color(CLUSTER_COLORS[s.cluster % CLUSTER_COLORS.length]);
+  colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+  sizes[i] = s.size;
+  phases[i] = Math.random() * Math.PI * 2;
+});
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+geo.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+geo.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+geo.setAttribute("aDim", new THREE.BufferAttribute(dims, 1));
+
+/* 瞬き＋登場アニメ用のシェーダ */
+const uniforms = { uTime: { value: 0 }, uReveal: { value: 0 }, uTex: { value: TEX }, uSearch: { value: 0 } };
+const mat = new THREE.ShaderMaterial({
+  uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `
+    attribute float aSize; attribute float aPhase; attribute float aDim;
+    uniform float uTime; uniform float uReveal; uniform float uSearch;
+    varying vec3 vColor; varying float vTw; varying float vDim;
+    void main() {
+      vColor = color;
+      float tw = 0.75 + 0.25 * sin(uTime * 1.6 + aPhase);
+      vTw = tw;
+      vDim = aDim;
+      // 登場: 原点から本来の位置へ展開
+      vec3 p = position * uReveal;
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      // 検索中は非該当の星を落とし、該当の星は遠景でも見つかるよう大きく灯す
+      float hit = step(0.5, aDim) * uSearch;
+      // 至近距離まで寄れるようにしたので、点が画面を覆い尽くさないよう上限を設ける
+      gl_PointSize = min(120.0, aSize * tw * uReveal * 900.0 / -mv.z
+                     * (0.6 + 0.4 * aDim) * (1.0 + 1.1 * hit));
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: `
+    uniform sampler2D uTex;
+    varying vec3 vColor; varying float vTw; varying float vDim;
+    void main() {
+      vec4 t = texture2D(uTex, gl_PointCoord);
+      gl_FragColor = vec4(vColor, t.a * vTw * vDim);
+    }`,
+  vertexColors: true,
+});
+const points = new THREE.Points(geo, mat);
+scene.add(points);
+
+/* 星座ラベルと凡例 */
+function textSprite(text, color) {
+  const c = document.createElement("canvas");
+  const g = c.getContext("2d");
+  const font = `500 44px "Shippori Mincho", serif`;
+  g.font = font;
+  const w = Math.ceil(g.measureText(text).width) + 40;
+  c.width = w; c.height = 76;
+  g.font = font;
+  g.textBaseline = "middle";
+  g.shadowColor = "rgba(0,0,0,0.9)"; g.shadowBlur = 10;
+  g.fillStyle = color;
+  g.fillText(text, 20, 40);
+  const tex = new THREE.CanvasTexture(c);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.85, depthWrite: false }));
+  sp.scale.set(w / 5.2, 76 / 5.2, 1);
+  return sp;
+}
+
+/* 星団ごとの淡い星雲グロー */
+function nebulaTexture(colorHex) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grad.addColorStop(0, colorHex + "55");
+  grad.addColorStop(0.5, colorHex + "22");
+  grad.addColorStop(1, colorHex + "00");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+// 星団ごとの中心と広がり（渦の腕に沿って伸びた形なので、単純な平均に加えて
+// 実際の広がり半径も求め、グローが腕の形に合った大きさになるようにする）
+const centroids = {};
+stars.forEach((s, i) => {
+  const cid = s.cluster;
+  (centroids[cid] ||= { x: 0, y: 0, z: 0, n: 0, pts: [] });
+  centroids[cid].x += positions[i*3]; centroids[cid].y += positions[i*3+1];
+  centroids[cid].z += positions[i*3+2]; centroids[cid].n++;
+  centroids[cid].pts.push(i);
+});
+Object.values(centroids).forEach((ct) => {
+  const cx = ct.x / ct.n, cy = ct.y / ct.n, cz = ct.z / ct.n;
+  let maxD = 0;
+  ct.pts.forEach((i) => {
+    const dx = positions[i*3] - cx, dz = positions[i*3+2] - cz;
+    maxD = Math.max(maxD, Math.sqrt(dx*dx + dz*dz));
+  });
+  ct.extent = maxD;
+});
+
+const legend = document.getElementById("legend");
+const labelGroup = new THREE.Group();
+scene.add(labelGroup);
+const conMeta = new Map();       // 星座id -> { p, sp, glow, extent }
+const conLabels = [];            // 銀河内に浮かぶ星座名スプライト（クリック判定用）
+const clusterMembers = {};       // 星座id -> 所属する星の index 配列
+stars.forEach((s, i) => (clusterMembers[s.cluster] ||= []).push(i));
+DATA.constellations.forEach((con) => {
+  const ct = centroids[con.id];
+  if (!ct) return;
+  const p = new THREE.Vector3(ct.x / ct.n, ct.y / ct.n + 9, ct.z / ct.n);
+  const color = CLUSTER_COLORS[con.id % CLUSTER_COLORS.length];
+  const sp = textSprite(con.name, color);
+  sp.position.copy(p);
+  sp.scale.multiplyScalar(0.62);
+  sp.userData.baseScale = sp.scale.clone(); // 画面上の大きさに上限を掛けるときの基準
+  sp.material.opacity = 0;
+  sp.userData.targetOpacity = 0.62;
+  sp.userData.clusterId = con.id; // 星座名そのものを押してその領域へ飛べるようにする
+  conLabels.push(sp);
+  labelGroup.add(sp);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: nebulaTexture(color), transparent: true, opacity: 0,
+    depthWrite: false, blending: THREE.AdditiveBlending,
+  }));
+  glow.position.set(p.x, p.y - 9, p.z);
+  const spread = Math.max(16, ct.extent * 1.35);
+  glow.scale.set(spread, spread, 1);
+  glow.userData.targetOpacity = 0.15;
+  labelGroup.add(glow);
+  conMeta.set(con.id, { p, sp, glow, extent: ct.extent });
+  const btn = document.createElement("button");
+  btn.dataset.cluster = con.id;
+  btn.innerHTML = `<span class="dot" style="background:${color}"></span>${con.name}`;
+  btn.title = con.desc + "（もう一度押すと全体表示に戻ります）";
+  btn.addEventListener("click", () => toggleCluster(con.id));
+  legend.appendChild(btn);
+});
+
+/* 個々の星のタイトルラベル。
+   星の真上に浮かせると、どの札がどの星のものか分からなくなるので、
+   札の左下隅を星に接させて（center(0,0)）、画面上で必ず右上へ伸びる形にしている。
+   先頭の星団色のドットが「この札の起点＝この星」を示す。 */
+function starLabelTexture(text, color) {
+  const c = document.createElement("canvas");
+  const g = c.getContext("2d");
+  const font = `500 28px "Shippori Mincho", serif`;
+  const PAD_L = 30, PAD_R = 30;
+  g.font = font;
+  const w = Math.min(LABEL_MAXW, Math.ceil(g.measureText(text).width) + PAD_L + PAD_R);
+  c.width = w; c.height = 40;
+  g.font = font;
+  g.textBaseline = "middle";
+  // 起点のドット（星団色）。画面右端では札を左へ折り返すので、両端に置いて
+  // どちら向きでも星に接する側にドットが来るようにする
+  g.shadowColor = "rgba(0,0,0,0.95)"; g.shadowBlur = 6;
+  g.fillStyle = color;
+  g.beginPath(); g.arc(13, 26, 5, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(w - 13, 26, 5, 0, Math.PI * 2); g.fill();
+  g.shadowBlur = 8;
+  g.fillStyle = "#ece7d8";
+  g.fillText(text, PAD_L, 22, w - PAD_L - PAD_R);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, opacity: 0, depthWrite: false,
+  }));
+  const s = 0.052;
+  sp.scale.set(w * s, 40 * s, 1);
+  sp.center.set(0, 0);            // 左下を基準に＝星から右上へ伸びる
+  sp.userData.aspect = w / 40;    // 画面上で一定の高さに保つときに使う
+  return sp;
+}
+
+const LABEL_NEAR = 16;  // これより近いと完全表示
+const LABEL_FAR = 52;         // 全体表示ではこれより遠い札は出さない
+const LABEL_FAR_FOCUS = 260;  // 星座に寄っている間は距離で切らず、読める大きさかどうかで決める
+// 狭い画面では札が幅を食って数が絞られすぎるので、小さめ・短めにする
+const NARROW = innerWidth < 640;
+// 札の画面上の高さ（距離によらず一定）。文字の高さは札の約7割なので、
+// ここを小さくすると実機で読めなくなる。14pxだと文字が10px相当で潰れた
+const LABEL_PX = NARROW ? 22 : 24;
+const LABEL_MAXW = NARROW ? 300 : 380;
+const LABEL_CHARS = NARROW ? 14 : 22;
+const MAX_LABELS = 16;               // 一度に出す札の上限（出しすぎると読めない）
+const starLabelGroup = new THREE.Group();
+scene.add(starLabelGroup);
+const starLabels = stars.map((s, i) => {
+  const text = s.title.length > LABEL_CHARS ? s.title.slice(0, LABEL_CHARS) + "…" : s.title;
+  const sp = starLabelTexture(text, CLUSTER_COLORS[s.cluster % CLUSTER_COLORS.length]);
+  sp.position.set(positions[i*3], positions[i*3+1], positions[i*3+2]);
+  sp.userData.starIndex = i; // 札そのものをタップして記事を開けるようにする
+  starLabelGroup.add(sp);
+  return sp;
+});
+
+/* ---- インタラクション ---- */
+const ray = new THREE.Raycaster();
+const mouse = new THREE.Vector2(-2, -2);
+const tip = document.getElementById("tip");
+let hovered = -1;
+// 指はマウスほど正確に狙えないので、タッチ環境では当たり判定を広げる
+const COARSE = matchMedia("(pointer: coarse)").matches;
+
+addEventListener("pointermove", (e) => {
+  // タッチはホバーが無く、タップ前に pointermove が来ないこともある。
+  // 指の操作は pointerup でその場で判定するので、ここはマウスだけ相手にする
+  if (e.pointerType !== "mouse") return;
+  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  tip.style.left = e.clientX + 16 + "px";
+  tip.style.top = e.clientY + 12 + "px";
+});
+
+// 画面上の一点から星を1つ引く。絞り込み中は対象外の星を無視する
+// （手前に被っていても狙った星を掴める）
+function indexAt(ndc) {
+  if (uniforms.uReveal.value < 0.98) return -1;
+  // 引きの絵ほど星が小さく見えるので、当たり判定もカメラ距離に合わせて広げる
+  const camDist = camera.position.distanceTo(controls.target);
+  ray.params.Points.threshold =
+    Math.min(4.5, Math.max(1.4, camDist * 0.03)) * (COARSE ? 2 : 1);
+  ray.setFromCamera(ndc, camera);
+  for (const h of ray.intersectObject(points)) {
+    if (!allowed || allowed.has(h.index)) return h.index;
+  }
+  return -1;
+}
+
+function ndcOf(clientX, clientY) {
+  return new THREE.Vector2(
+    (clientX / innerWidth) * 2 - 1,
+    -(clientY / innerHeight) * 2 + 1
+  );
+}
+
+// タイトル札そのものの当たり判定。押した札の星 index を返す
+// （小さな点を正確に突くのは難しいので、読める札は全部タップ先になる）
+function starLabelAt(ndc) {
+  if (uniforms.uReveal.value < 0.98) return -1;
+  ray.setFromCamera(ndc, camera);
+  for (const h of ray.intersectObjects(starLabels, false)) {
+    const sp = h.object;
+    if (!sp.visible || sp.material.opacity < 0.25) continue; // 消えている札は拾わない
+    const i = sp.userData.starIndex;
+    if (!allowed || allowed.has(i)) return i;
+  }
+  return -1;
+}
+
+// 読めるタイトル札を優先する。札は「押せばこの記事」と分かる明示的な目印なので、
+// 近くの別の星に横取りされると「押した記事と違うものが開く」ことになる
+function starAt(ndc) {
+  const i = starLabelAt(ndc);
+  return i >= 0 ? i : indexAt(ndc);
+}
+
+// 銀河に浮かぶ星座名スプライトの当たり判定。押した星座の id を返す
+function constellationAt(ndc) {
+  if (uniforms.uReveal.value < 0.98) return -1;
+  ray.setFromCamera(ndc, camera);
+  for (const h of ray.intersectObjects(conLabels, false)) {
+    if (!h.object.visible || h.object.material.opacity < 0.05) continue;
+    return h.object.userData.clusterId;
+  }
+  return -1;
+}
+
+let hoveredCon = -1;
+function pick() {
+  const idx = starAt(mouse);
+  // 星が最優先。星に当たっていない時だけ星座名を見る
+  const cid = idx >= 0 ? -1 : constellationAt(mouse);
+  if (idx === hovered && cid === hoveredCon) return;
+  hovered = idx;
+  hoveredCon = cid;
+  if (idx >= 0) {
+    const s = stars[idx];
+    const con = DATA.constellations.find((c) => c.id === s.cluster);
+    tip.innerHTML = `<span class="c">${con ? con.name : ""}</span>${s.title}`;
+    tip.style.display = "block";
+    document.body.style.cursor = "pointer";
+  } else if (cid >= 0) {
+    const con = DATA.constellations.find((c) => c.id === cid);
+    tip.innerHTML = `<span class="c">${con.name}</span>${con.desc}`;
+    tip.style.display = "block";
+    document.body.style.cursor = "pointer";
+  } else {
+    tip.style.display = "none";
+    document.body.style.cursor = "";
+  }
+}
+
+/* スマホのピンチは常に注視点（初期は銀河中心）へ寄るため、奥の星を狙っても
+   中心に吸い寄せられて近づけない。2本指を置いた瞬間に、指の中点が指している先へ
+   注視点を移してから寄せる。カメラ自体は動かさないので画面は跳ねない。
+   （three の zoomToCursor はホイール専用でピンチには効かないため自前で行う） */
+function aimAt(clientX, clientY) {
+  if (uniforms.uReveal.value < 0.98) return;
+  const ndc = ndcOf(clientX, clientY);
+  const dist = camera.position.distanceTo(controls.target);
+  const i = starAt(ndc);
+  if (i >= 0) {
+    // 指先に星があればその星を注視点にする＝そのままピンチで寄れる
+    controls.target.copy(
+      scene.localToWorld(
+        new THREE.Vector3(positions[i*3], positions[i*3+1], positions[i*3+2])
+      )
+    );
+    return;
+  }
+  ray.setFromCamera(ndc, camera);
+  controls.target.copy(ray.ray.at(dist, new THREE.Vector3()));
+}
+
+canvas.addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 2 || flight) return;
+  aimAt(
+    (e.touches[0].clientX + e.touches[1].clientX) / 2,
+    (e.touches[0].clientY + e.touches[1].clientY) / 2
+  );
+}, { passive: true });
+
+/* カメラ航行（イージング付き） */
+let flight = null;
+function flyTo(target, dist) {
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+  flight = {
+    t: 0,
+    fromPos: camera.position.clone(),
+    fromTgt: controls.target.clone(),
+    toTgt: target.clone(),
+    toPos: target.clone().add(dir.multiplyScalar(dist)),
+  };
+}
+const ease = (t) => 1 - Math.pow(1 - t, 3);
+
+/* クリック → パネル表示（ドラッグと区別する） */
+const panel = document.getElementById("panel");
+let downAt = null;
+addEventListener("pointerdown", (e) => (downAt = [e.clientX, e.clientY]));
+addEventListener("pointerup", (e) => {
+  if (!downAt) return;
+  const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]);
+  downAt = null;
+  if (moved > (COARSE ? 12 : 6) || e.target.closest("#panel,#legend,#close,#hud")) return;
+  // タップはホバーを経由しないので、離した位置でその場で当たり判定を取る
+  const ndc = ndcOf(e.clientX, e.clientY);
+  const idx = starAt(ndc);
+  if (idx >= 0) { openStar(idx); return; }
+  // 銀河に書かれた星座名を押したら、その領域へ飛ぶ
+  const cid = constellationAt(ndc);
+  if (cid >= 0) { goToCluster(cid); return; }
+  // 何もない所をタップ: パネルを閉じる → それも無ければ全体表示へ戻す。
+  // （スマホでは星座チップが横スクロールで隠れ、押し直して解除するのが難しいため）
+  if (panel.classList.contains("open")) { panel.classList.remove("open"); return; }
+  if (filterActive) resetView();
+});
+document.getElementById("close").addEventListener("click", () => panel.classList.remove("open"));
+
+let currentStar = -1;
+
+function openStar(i) {
+  const s = stars[i];
+  currentStar = i;
+  const con = DATA.constellations.find((c) => c.id === s.cluster);
+  document.getElementById("p-const").innerHTML =
+    `${con ? con.name : ""}<span class="desc">${con ? con.desc : ""}</span>`;
+  document.getElementById("p-no").textContent = s.no ? `ARTICLE No. ${s.no}` : "";
+  document.getElementById("p-title").textContent = s.title;
+  document.getElementById("p-summary").textContent = s.summary;
+  document.getElementById("p-link").href = s.url;
+  resetQuiz();
+  resetAsk();
+  showTab("article");
+  panel.classList.add("open");
+  const wp = scene.localToWorld(
+    new THREE.Vector3(positions[i*3], positions[i*3+1], positions[i*3+2])
+  );
+  flyTo(wp, 15); // 星ひとつをしっかり見られる距離まで寄る
+}
+
+/* ---- パネル内タブ ---- */
+const tabButtons = [...document.querySelectorAll("#tabs button")];
+function showTab(name) {
+  tabButtons.forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+  ["article", "quiz", "ask"].forEach((n) =>
+    document.getElementById("tab-" + n).classList.toggle("on", n === name)
+  );
+  if (name === "quiz") startQuiz();
+  // 要約は事前生成なので、ここではサーバーを起こさない（保険の生成時だけ起こす）
+  if (name === "ask") showSummary();
+}
+tabButtons.forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+/* ---- クイズ ---- */
+const normUrl = (u) => (u || "").trim().replace(/\/+$/, "") + "/";
+const starByUrl = new Map(stars.map((s, i) => [normUrl(s.url), i]));
+
+const QUIZ_LEN = 5;
+let quizData = null;      // quiz_by_star.json（初回タブ表示時に遅延取得）
+let quizLoading = null;
+let quiz = null;          // { items, at, score, answered }
+
+const qSrc = document.getElementById("q-src");
+const qText = document.getElementById("q-text");
+const qChoices = document.getElementById("q-choices");
+const qExp = document.getElementById("q-exp");
+const qNext = document.getElementById("q-next");
+const qResult = document.getElementById("q-result");
+
+function resetQuiz() {
+  quiz = null;
+  qResult.hidden = true;
+  qExp.hidden = true;
+  qNext.hidden = true;
+  qChoices.innerHTML = "";
+  qText.textContent = "";
+  qSrc.textContent = "";
+}
+
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+async function startQuiz() {
+  if (currentStar < 0 || quiz) return;
+  if (!quizData) {
+    qSrc.textContent = "問題を読み込んでいます…";
+    quizLoading ||= fetch("./quiz_by_star.json").then((r) => r.json());
+    try {
+      quizData = await quizLoading;
+    } catch {
+      quizLoading = null;
+      qSrc.textContent = "問題の読み込みに失敗しました。";
+      return;
+    }
+  }
+  const s = stars[currentStar];
+  // quizPool.js と同じ方針: 記事に直結する問題 → 無ければ同じ星座の問題
+  let ids = quizData.byUrl[normUrl(s.url)];
+  let origin;
+  if (ids && ids.length) {
+    origin = "この記事から";
+  } else {
+    ids = quizData.byCluster[String(s.cluster)] || [];
+    const con = DATA.constellations.find((c) => c.id === s.cluster);
+    origin = `${con ? con.name : "この星座"}から`;
+  }
+  if (!ids.length) {
+    qSrc.textContent = "この星に紐づく問題はまだありません。";
+    return;
+  }
+  quiz = {
+    items: shuffle(ids).slice(0, QUIZ_LEN).map((id) => quizData.questions[id]),
+    at: 0, score: 0, origin, answered: false,
+  };
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { items, at, origin } = quiz;
+  const q = items[at];
+  quiz.answered = false;
+  qResult.hidden = true;
+  qExp.hidden = true;
+  qNext.hidden = true;
+  qSrc.innerHTML = `${origin}<span class="prog">${at + 1} / ${items.length}</span>`;
+  qText.textContent = q.q;
+  qChoices.innerHTML = "";
+  q.c.forEach((choice, ci) => {
+    const b = document.createElement("button");
+    b.textContent = choice;
+    b.addEventListener("click", () => answer(ci));
+    qChoices.appendChild(b);
+  });
+}
+
+function answer(ci) {
+  if (quiz.answered) return;
+  quiz.answered = true;
+  const q = quiz.items[quiz.at];
+  const ok = ci === q.a;
+  if (ok) quiz.score++;
+  [...qChoices.children].forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.a) b.classList.add("correct");
+    else if (i === ci) b.classList.add("wrong");
+  });
+  // 出典表示は出さない（解説の下に出典が続くと読み終わりが分かりにくいため）
+  qExp.innerHTML =
+    `<span class="verdict ${ok ? "ok" : "ng"}">${ok ? "正答" : "誤答"}</span>${q.e}`;
+  qExp.hidden = false;
+  qNext.textContent = quiz.at === quiz.items.length - 1 ? "結果を見る" : "次へ";
+  qNext.hidden = false;
+}
+
+qNext.addEventListener("click", () => {
+  if (quiz.at < quiz.items.length - 1) {
+    quiz.at++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+});
+
+function showResult() {
+  const total = quiz.items.length;
+  qSrc.textContent = quiz.origin;
+  qText.textContent = "";
+  qChoices.innerHTML = "";
+  qExp.hidden = true;
+  qNext.hidden = true;
+  document.getElementById("q-score").textContent = `${quiz.score} / ${total}`;
+  const rate = quiz.score / total;
+  document.getElementById("q-msg").textContent =
+    rate === 1 ? "全ての星を捉えた" : rate >= 0.6 ? "航路は確かだ" : "もう一度、光をたどろう";
+  qResult.hidden = false;
+}
+
+document.getElementById("q-again").addEventListener("click", () => {
+  resetQuiz();
+  startQuiz();
+});
+
+/* ---- 星座による絞り込み ---- */
+const qInput = document.getElementById("q");
+const backhint = document.getElementById("backhint");
+
+let filterActive = false;  // 星座で絞り込み中か（自転を止める判定に使う）
+let allowed = null;        // 絞り込み中に「クリックできる星」の集合。null なら全部
+let focusedCluster = -1;
+
+// 対象外の星を落として、該当する星だけを銀河の中で光らせる。
+// 見た目だけでなく、対象外は当たり判定からも外して狙いやすくする
+function applyFilter(list) {
+  if (list) {
+    dims.fill(0.12);
+    list.forEach((i) => (dims[i] = 1));
+  } else {
+    dims.fill(1);
+  }
+  allowed = list ? new Set(list) : null;
+  filterActive = !!list;
+  backhint.classList.toggle("on", filterActive);
+  uniforms.uSearch.value = list ? 1 : 0;
+  geo.attributes.aDim.needsUpdate = true;
+  starLabels.forEach((sp, i) => (sp.userData.dim = dims[i]));
+  // 星座名と星雲の見え方は updateConstellationLabels() が毎フレーム決める
+  // （選択中以外を消す・手前で巨大化させない・近づいたら星雲を薄くする）
+}
+
+function resetSearchInput() {
+  qInput.value = "";
+}
+
+// id < 0 で解除
+function setFocus(id) {
+  focusedCluster = id;
+  legend.querySelectorAll("button").forEach((b) =>
+    b.classList.toggle("on", Number(b.dataset.cluster) === id)
+  );
+  applyFilter(id >= 0 ? clusterMembers[id] : null);
+}
+
+// その星座だけを残して、星座の領域まで飛ぶ
+function goToCluster(id) {
+  resetSearchInput();
+  setFocus(id);
+  const m = conMeta.get(id);
+  if (!m) return;
+  // 星座の広がりに合わせた距離で寄る（一律だと大きい星座がはみ出し、小さい星座は遠すぎた）
+  const dist = Math.min(150, Math.max(46, m.extent * 1.9));
+  // シーンは待機中に自転するため、行き先はワールド座標に変換してから飛ぶ
+  flyTo(scene.localToWorld(m.p.clone()), dist);
+}
+
+// 凡例チップ: 押すとその星座へ飛ぶ。選択中のチップをもう一度押すと全体に戻る
+// （銀河内の星座名を押した場合は goToCluster 直行＝解除にはならない）
+function toggleCluster(id) {
+  if (focusedCluster === id) { resetSearchInput(); setFocus(-1); return; }
+  goToCluster(id);
+}
+
+function clearSearch() {
+  resetSearchInput();
+  setFocus(-1);
+}
+
+// 絞り込みを解除して、俯瞰の初期位置まで引く（向きは今の角度のまま）
+const HOME_DIST = 205; // 初期カメラ (0,118,168) の原点からの距離
+function resetView() {
+  if (!filterActive) return;
+  clearSearch();
+  flyTo(new THREE.Vector3(0, 0, 0), HOME_DIST);
+}
+
+/* HUD の入力欄は「銀河への質問」。Enter で回答ページを開く。
+   以前はキーワードで星を絞り込んでいたが、ブログ辞典と同じ問答形式に置き換えた */
+qInput.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { qInput.value = ""; qInput.blur(); return; }
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const text = qInput.value.trim();
+  if (!text) return;
+  qInput.blur();
+  wakeServer();
+  askQuestion(text);
+});
+qInput.addEventListener("focus", wakeServer);
+
+/* ---- ブログ辞典の RAG（要約タブと質問ページで共用） ---- */
+const API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? "http://localhost:5000"
+  : "https://riat-blog-jiten-2.onrender.com";
+
+let warmed = false;
+// Render 無料枠はスピンダウンするので、使いそうな時点で起こしておく
+function wakeServer() {
+  if (warmed) return;
+  warmed = true;
+  // 応答が返らないまま接続を抱え込まないよう、起こす試みにも上限を置く
+  // （AbortSignal.timeout は iOS 16 未満に無いので、無ければ素のまま投げる）
+  const opts = typeof AbortSignal !== "undefined" && AbortSignal.timeout
+    ? { signal: AbortSignal.timeout(WAKE_TIMEOUT_MS) }
+    : {};
+  fetch(API_BASE + "/warmup", opts).catch(() => {});
+}
+
+/* サーバーが「無応答のまま切れもしない」状態になることが実際にあり
+   （Render のインスタンス異常。エッジは接続を受けるが応答を返さない）、
+   タイムアウトが無いと画面が永久に「交信中…」で固まる。上限を必ず設ける。 */
+const WAKE_TIMEOUT_MS    = 60000;  // /warmup を待つ上限
+const CONNECT_TIMEOUT_MS = 75000;  // 応答が返り始めるまでの上限（コールドスタート約50秒を見込む）
+const IDLE_TIMEOUT_MS    = 45000;  // answer が流れ始めた後、次の断片が来るまでの上限
+
+const DOWN_MESSAGE =
+  "観測所が応答しません。しばらく経ってからお試しください。（記事とクイズと要約はそのままご覧いただけます）";
+
+function httpMessage(status) {
+  return status === 429 ? "交信が集中しています。少し時間をおいてからお試しください。"
+       : status === 403 ? "この場所からは交信できません。"
+       : status === 401 || status === 503 ? DOWN_MESSAGE
+       : "観測所に届きませんでした。時間をおいてお試しください。";
+}
+
+// LLM 出力は innerHTML に流さない。Markdown は解釈せず、記号だけ落として体裁を整える
+const plain = (s) =>
+  s.replace(/\*\*/g, "")
+   .replace(/^#{1,6}\s+/gm, "")
+   .replace(/^\s*[*•]\s+/gm, "・")   // 箇条書きの記号は「・」に寄せる
+   .replace(/^\s*-\s+/gm, "・");
+
+/* /ask を叩いて SSE を読む共通処理。
+   only: true を渡すと、サーバーはベクトル検索をせずその記事だけで答える */
+async function streamAsk({ message, url, only }, { onDelta, onSources, onError }) {
+  // 応答が来ないときに固まらないよう、こちらから打ち切れるようにしておく
+  const ctl = new AbortController();
+  let timedOut = false;
+  let timer = null;
+  const armTimeout = (ms) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { timedOut = true; ctl.abort(); }, ms);
+  };
+
+  let res;
+  armTimeout(CONNECT_TIMEOUT_MS);
+  try {
+    res = await fetch(API_BASE + "/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, url, only }),
+      signal: ctl.signal,
+    });
+  } catch {
+    clearTimeout(timer);
+    onError(timedOut ? DOWN_MESSAGE : "通信に失敗しました。接続を確認してお試しください。");
+    return;
+  }
+  if (!res.ok) { clearTimeout(timer); onError(httpMessage(res.status)); return; }
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", raw = "", got = false;
+  try {
+    while (true) {
+      // 応答が始まった後は、断片が届くたびに待ち時間を測り直す
+      armTimeout(IDLE_TIMEOUT_MS);
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const chunks = buf.split("\n\n");
+      buf = chunks.pop();
+      for (const chunk of chunks) {
+        const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+        if (!line) continue;
+        const msg = JSON.parse(line.slice(6));
+        if (msg.type === "delta") {
+          raw += msg.text;
+          got = true;
+          onDelta(plain(raw));
+        } else if (msg.type === "sources") {
+          onSources(msg.sources || []);
+        } else if (msg.type === "error") {
+          onError(msg.message);
+        }
+      }
+    }
+  } catch {
+    clearTimeout(timer);
+    // 途中まで届いていれば、それは残したまま「途切れた」とだけ伝える
+    onError(timedOut && !got ? DOWN_MESSAGE : "通信が途切れました。時間をおいてお試しください。");
+    return;
+  }
+  clearTimeout(timer);
+  if (!got) onError("回答を受け取れませんでした。時間をおいてお試しください。");
+}
+
+/* ---- この記事の要約（パネルのタブ） ----
+   要約は事前生成した summaries.json（galaxy/tools/build_summaries.py）から読む。
+   毎回 AI に投げていると閲覧者の数だけ API を消費し、1日の上限も同時利用も詰まるため、
+   クイズと同じく生成は1回きりのバッチにして実行時の呼び出しをゼロにしている。
+   ここに無い記事だけ、保険としてその場で生成する。 */
+const aLog = document.getElementById("a-log");
+let summaryData = null;     // summaries.json（初回タブ表示時に遅延取得）
+let summaryLoading = null;
+const summaryCache = new Map(); // 事前生成に無かった記事のぶんだけ、その場の生成結果を持つ
+let summarizing = false;
+
+// 事前生成に無い記事のための保険。書式は summaries.json 側と揃える
+const SUMMARY_PROMPT = [
+  "この記事の内容を、はじめて読む人にも分かるように日本語でまとめてください。",
+  "出力は下の形式そのままにしてください。前置き・挨拶・感想・出典・締めの言葉は一切書かないでください。",
+  "見出しは「要約」と「要点」だけを使い、* や # や ** などの記号は使わないでください。",
+  "",
+  "要約",
+  "記事全体の要旨を2〜3文で書く。",
+  "",
+  "要点",
+  "・重要な点を1行で書く（4つ程度、各行を「・」で始める）",
+].join("\n");
+
+function loadSummaries() {
+  if (summaryData) return Promise.resolve(summaryData);
+  if (!summaryLoading) {
+    summaryLoading = fetch("./summaries.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d) => (summaryData = d))
+      .catch(() => (summaryData = {}));
+  }
+  return summaryLoading;
+}
+
+function resetAsk() {
+  aLog.innerHTML = "";
+}
+
+function renderSummaryText(text) {
+  aLog.innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "a";
+  el.textContent = text;
+  aLog.appendChild(el);
+}
+
+// 事前生成データ {s: 要約, p: [要点]} を、画面に出す一続きの文章に組み立てる
+function formatSummary(entry) {
+  const points = (entry.p || []).map((p) => "・" + p).join("\n");
+  return "要約\n" + (entry.s || "") + (points ? "\n\n要点\n" + points : "");
+}
+
+async function showSummary() {
+  if (currentStar < 0 || summarizing) return;
+  const star = stars[currentStar];
+  const at = currentStar; // 途中で別の星に移っても、書き込み先を取り違えないように
+
+  aLog.innerHTML = "";
+  const data = await loadSummaries();
+  if (currentStar !== at) return;
+
+  const entry = data[star.url] || data[normUrl(star.url)];
+  if (entry) { renderSummaryText(formatSummary(entry)); return; }
+
+  const cached = summaryCache.get(at);
+  if (cached) { renderSummaryText(cached); return; }
+
+  // ここに来るのは事前生成がまだ無い記事だけ（記事を増やしたら build_summaries.py を回す）
+  summarizing = true;
+  wakeServer();
+  const statusEl = document.createElement("div");
+  statusEl.className = "status";
+  statusEl.textContent = "記事を読み解いています…（初回は最大50秒）";
+  const aEl = document.createElement("div");
+  aEl.className = "a";
+  aLog.append(statusEl, aEl);
+
+  await streamAsk(
+    { message: SUMMARY_PROMPT, url: star.url, only: true },
+    {
+      onDelta: (text) => {
+        if (currentStar !== at) return;
+        statusEl.remove();
+        aEl.textContent = text;
+        summaryCache.set(at, text);
+      },
+      onSources: () => {},
+      onError: (m) => {
+        if (currentStar !== at) return;
+        statusEl.classList.add("err");
+        statusEl.textContent = m;
+      },
+    }
+  );
+  summarizing = false;
+}
+
+
+/* ---- 質問ページ（HUD の入力欄から開く別画面） ---- */
+const askPage = document.getElementById("askpage");
+const apQuestion = document.getElementById("ap-question");
+const apBody = document.getElementById("ap-body");
+const apSrc = document.getElementById("ap-src");
+const apSrcWrap = document.getElementById("ap-srcwrap");
+let asking = false;
+
+function closeAskPage() {
+  askPage.hidden = true;
+}
+document.getElementById("ap-close").addEventListener("click", closeAskPage);
+
+async function askQuestion(text) {
+  if (asking) return;
+  asking = true;
+  askPage.hidden = false;
+  askPage.scrollTop = 0;
+  apQuestion.textContent = text;
+  apSrc.innerHTML = "";
+  apSrcWrap.hidden = true;
+  apBody.innerHTML = "";
+  const statusEl = document.createElement("div");
+  statusEl.className = "status";
+  statusEl.textContent = "観測所と交信中…（初回は最大50秒）";
+  const aEl = document.createElement("div");
+  aEl.className = "a";
+  apBody.append(statusEl, aEl);
+
+  await streamAsk(
+    { message: text },
+    {
+      onDelta: (t) => { statusEl.remove(); aEl.textContent = t; },
+      onSources: (sources) => renderAskSources(sources),
+      onError: (m) => { statusEl.classList.add("err"); statusEl.textContent = m; },
+    }
+  );
+  asking = false;
+}
+
+// 回答の根拠になったブログ記事へのリンク（ページ末尾）
+function renderAskSources(sources) {
+  apSrc.innerHTML = "";
+  if (!sources.length) return;
+  sources.forEach((s) => {
+    const a = document.createElement("a");
+    a.href = s.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = s.title;
+    apSrc.appendChild(a);
+  });
+  apSrcWrap.hidden = false;
+}
+
+
+/* ---- ブート → 展開 ---- */
+const boot = document.getElementById("boot");
+let revealStart = null;
+setTimeout(() => {
+  boot.classList.add("hidden");
+  revealStart = performance.now();
+}, 2600);
+
+/* 星座名と星雲グローの表示制御。
+   スプライトは世界座標で固定サイズなので、寄ると手前の星座名が画面を覆うほど
+   巨大化していた。画面上の高さに上限を掛けて、近づいても大きくならないようにする。 */
+const CON_MAX_PX = NARROW ? 30 : 40;
+const _conPos = new THREE.Vector3();
+function updateConstellationLabels() {
+  const reveal = uniforms.uReveal.value;
+  const halfFov = Math.tan((camera.fov * Math.PI) / 360);
+  conMeta.forEach((m, id) => {
+    // 星座を選んでいる間は、その星座の名前と星雲だけを残して他は完全に消す
+    const on = focusedCluster < 0 || focusedCluster === id;
+    m.sp.visible = on && reveal > 0.02;   // 消えている星座名はタップ対象からも外す
+    m.glow.visible = m.sp.visible;
+    if (!m.sp.visible) return;
+
+    m.sp.getWorldPosition(_conPos);
+    const d = camera.position.distanceTo(_conPos);
+    const pxPerWorld = innerHeight / (2 * d * halfFov);
+    const base = m.sp.userData.baseScale;
+    const k = Math.min(1, CON_MAX_PX / (base.y * pxPerWorld));
+    m.sp.scale.set(base.x * k, base.y * k, 1);
+    m.sp.material.opacity = m.sp.userData.targetOpacity * reveal;
+
+    // 星雲の内側まで入ると画面全体が色で覆われるので、近づくほど薄くする
+    m.glow.getWorldPosition(_conPos);
+    const gd = camera.position.distanceTo(_conPos);
+    const fade = Math.min(1, gd / (m.glow.scale.x * 0.6));
+    m.glow.material.opacity = m.glow.userData.targetOpacity * reveal * fade;
+  });
+}
+
+/* 星タイトルラベルの表示制御。
+   近い順に採用し、画面上で先に置いた札と重なるものは捨てる。
+   以前は全部を距離だけでフェードしていたため、札が団子になって
+   どのタイトルがどの星のものか読み取れなかった。 */
+const _camLocal = new THREE.Vector3();
+const _proj = new THREE.Vector3();
+const labelCands = [];
+const labelRects = [];
+function updateStarLabels() {
+  const reveal = uniforms.uReveal.value;
+  _camLocal.copy(camera.position);
+  scene.worldToLocal(_camLocal); // シーンの自転を打ち消してローカル距離で判定
+
+  labelCands.length = 0;
+  for (let i = 0; i < starLabels.length; i++) {
+    const sp = starLabels[i];
+    // 絞り込み中は対象外の星の札を出さない（注目中の星座だけが読める状態にする）
+    if ((sp.userData.dim ?? 1) < 0.5) { sp.visible = false; continue; }
+    const dx = _camLocal.x - positions[i*3];
+    const dy = _camLocal.y - positions[i*3+1];
+    const dz = _camLocal.z - positions[i*3+2];
+    const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    // 絞り込み中は、寄った直後でもその星座のタイトルが読めるよう距離制限を外す
+    // （読めない大きさの札は下の画面サイズ判定で落とす）
+    if (d > (filterActive ? LABEL_FAR_FOCUS : LABEL_FAR) || reveal < 0.98) {
+      sp.visible = false; continue;
+    }
+    labelCands.push(i, d);
+  }
+  // 近い順（labelCands は [index, 距離] の並び）
+  const order = [];
+  for (let k = 0; k < labelCands.length; k += 2) order.push(k);
+  order.sort((a, b) => labelCands[a+1] - labelCands[b+1]);
+
+  labelRects.length = 0;
+  const halfFov = Math.tan((camera.fov * Math.PI) / 360);
+  for (const k of order) {
+    const i = labelCands[k], d = labelCands[k+1];
+    const sp = starLabels[i];
+
+    sp.getWorldPosition(_proj).project(camera);
+    if (_proj.z > 1) { sp.visible = false; continue; } // カメラの背後
+    const sx = (_proj.x * 0.5 + 0.5) * innerWidth;
+    const sy = (-_proj.y * 0.5 + 0.5) * innerHeight;
+    // 札は星から右上へ伸びる。画面上での大きさに直して重なりを見る
+    // 遠い星の札ほど小さく潰れて読めなくなるので、画面上の高さを一定に保つ
+    const pxPerWorld = innerHeight / (2 * d * halfFov);
+    const hWorld = LABEL_PX / pxPerWorld;
+    sp.scale.set(hWorld * sp.userData.aspect, hWorld, 1);
+    const h = LABEL_PX, w = LABEL_PX * sp.userData.aspect;
+    // 右端からはみ出すなら星の左側へ折り返す（切れて読めなくなるのを防ぐ）
+    const flipped = sx + w > innerWidth && sx - w >= 0;
+    sp.center.set(flipped ? 1 : 0, 0);
+    const x = flipped ? sx - w : sx, y = sy - h;
+
+    // 画面外の札は出さない。ここで枠を消費させると、見えない札に表示枠を取られて
+    // 画面内に1枚しか出ない状態になる（実機で発生した）
+    if (x > innerWidth || x + w < 0 || y > innerHeight || y + h < 0) {
+      sp.visible = false; continue;
+    }
+    if (labelRects.length >= MAX_LABELS) { sp.visible = false; continue; }
+
+    let clash = false;
+    for (let r = 0; r < labelRects.length; r += 4) {
+      if (x < labelRects[r] + labelRects[r+2] && x + w > labelRects[r] &&
+          y < labelRects[r+1] + labelRects[r+3] && y + h > labelRects[r+1]) {
+        clash = true; break;
+      }
+    }
+    if (clash) { sp.visible = false; continue; }
+    labelRects.push(x, y, w, h);
+
+    // 絞り込み中は「読める札しか出していない」ので、薄くしすぎず下限を持たせる
+    let op = 1 - (d - LABEL_NEAR) / (LABEL_FAR - LABEL_NEAR);
+    op = Math.max(filterActive ? 0.55 : 0, Math.min(1, op)) * reveal;
+    sp.material.opacity = op;
+    sp.visible = op > 0.02;
+  }
+}
+
+/* ---- メインループ ---- */
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const t = clock.getElapsedTime();
+  uniforms.uTime.value = t;
+  if (revealStart !== null && uniforms.uReveal.value < 1) {
+    const k = Math.min(1, (performance.now() - revealStart) / 2800);
+    uniforms.uReveal.value = ease(k);
+  }
+  if (flight) {
+    flight.t = Math.min(1, flight.t + 1 / 90);
+    const k = ease(flight.t);
+    camera.position.lerpVectors(flight.fromPos, flight.toPos, k);
+    controls.target.lerpVectors(flight.fromTgt, flight.toTgt, k);
+    if (flight.t >= 1) flight = null;
+  } else if (!panel.classList.contains("open") && hovered < 0 && hoveredCon < 0 && !filterActive) {
+    scene.rotation.y += 0.0004; // 待機中はゆっくり自転（星を狙う間と絞り込み中は止める）
+  }
+  pick();
+
+  updateConstellationLabels();
+  updateStarLabels();
+
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
