@@ -56,24 +56,29 @@ const MOBILE: Spec = {
   tip: [484, 984],
   elbow: [566, 984],
   tail: [676, 878],
-  stroke: 4,
-  r: 15,
-  font: 0.016,
+  stroke: 3.2,
+  r: 13,
+  font: 0.0135,
   align: "middle",
-  lift: 0.05,
+  lift: 0.045,
 };
 
+/**
+ * PC は引き出しを短くして、絵の左寄りで完結させている。
+ * 長く伸ばすとページ末尾のロゴ（画面中央）に文字の頭が触れるため。
+ * 絵の 50% は画面の中央に一致するので、文字の右端が 45% を超えないようにしてある。
+ */
 const DESKTOP: Spec = {
   w: 1672,
   h: 942,
   tip: [244, 796],
-  elbow: [435, 796],
-  tail: [568, 716],
-  stroke: 3.4,
-  r: 13,
-  font: 0.026,
+  elbow: [356, 796],
+  tail: [452, 706],
+  stroke: 2.8,
+  r: 11,
+  font: 0.018,
   align: "start",
-  lift: 0.035,
+  lift: 0.03,
 };
 
 export default function FinaleBookLink() {
@@ -135,7 +140,7 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
     >
       <defs>
         <filter id={`hud-glow-${w}`} x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="0" stdDeviation={stroke * 1.6} floodColor="#fceabb" floodOpacity="0.85" />
+          <feDropShadow dx="0" dy="0" stdDeviation={stroke * 1.1} floodColor="#fceabb" floodOpacity="0.4" />
         </filter>
       </defs>
 
@@ -151,7 +156,14 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
         className="pointer-events-auto cursor-pointer"
       />
 
-      <g filter={`url(#hud-glow-${w})`}>
+      {/*
+        全体を薄めに置く。絵の主役は本と人物なので、案内は気づける最小限にとどめる。
+        カーソルを載せたときだけはっきりさせて、押せることを確かめられるようにする。
+      */}
+      <g
+        filter={`url(#hud-glow-${w})`}
+        className="opacity-[0.62] transition-opacity duration-500 group-hover:opacity-100"
+      >
         {/* 引き出し線 */}
         <path
           d={line}
@@ -219,7 +231,7 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
         className="overflow-visible"
       >
         <span
-          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 whitespace-nowrap uppercase tracking-[0.2em] text-aurum-100 transition-all duration-300 group-hover:tracking-[0.28em] group-hover:text-white ${
+          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 whitespace-nowrap uppercase tracking-[0.2em] text-aurum-200/75 transition-all duration-300 group-hover:tracking-[0.26em] group-hover:text-aurum-100 ${
             align === "middle" ? "w-full justify-center" : ""
           }`}
           style={{

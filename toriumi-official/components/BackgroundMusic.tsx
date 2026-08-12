@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { subscribeDuck } from "@/lib/mediaBus";
 import { subscribeSound, getSoundOn } from "@/lib/soundStore";
+import { isHeroRevealed, subscribeHeroReveal } from "@/lib/heroReveal";
 
 /**
  * サイト全体の BGM。
@@ -96,14 +97,26 @@ export default function BackgroundMusic() {
       window.addEventListener("keydown", retry, { once: true });
     }
 
-    // ── 1. サウンドボタン → 点火待ち。実際に鳴るのはスクロールが動いてから ──
-    let waitingForScroll = false;
-    const onFirstScroll = () => {
-      if (!waitingForScroll) return;
-      waitingForScroll = false;
+    /**
+     * ── 1. 鳴り始めの条件 ──
+     * ①サウンドボタンが押されている ②最初の画面に名前とロゴが立ち現れた
+     * ③スクロールが動いた——の三つが揃ってから音量を上げる。
+     *
+     * ②を入れているのは、ブート明けすぐに鳴らすと UFO のワープ音と
+     * 顕現の一撃に重なって濁るため。順番はどちらが先でもよいので、
+     * それぞれの合図で「揃ったか」を見にいく形にしてある。
+     */
+    let scrolled = window.scrollY > 4;
+    const tryStart = () => {
+      if (!armedRef.current || !scrolled || !isHeroRevealed()) return;
       window.removeEventListener("scroll", onFirstScroll);
       start();
     };
+    const onFirstScroll = () => {
+      scrolled = true;
+      tryStart();
+    };
+    const unsubReveal = subscribeHeroReveal(tryStart);
 
     function arm() {
       armedRef.current = true;
@@ -129,18 +142,12 @@ export default function BackgroundMusic() {
         if (p && typeof p.catch === "function") p.catch(() => armRetryOnGesture());
       }
 
-      if (window.scrollY > 4) {
-        // すでにスクロール済みならすぐ入る
-        start();
-      } else {
-        waitingForScroll = true;
-        window.addEventListener("scroll", onFirstScroll, { passive: true });
-      }
+      window.addEventListener("scroll", onFirstScroll, { passive: true });
+      tryStart(); // ロゴもスクロールも済んでいれば、この場で入る
     }
 
     function disarm() {
       armedRef.current = false;
-      waitingForScroll = false;
       window.removeEventListener("scroll", onFirstScroll);
       try {
         sessionStorage.removeItem(ARM_KEY);
@@ -163,12 +170,14 @@ export default function BackgroundMusic() {
     } catch {
       /* noop */
     }
-    if (restored) {
-      armedRef.current = true;
-      start(); // 弾かれたら armRetryOnGesture が拾う
-    } else if (getSoundOn()) {
-      arm();
-    }
+    /**
+     * 再訪時も arm() を通す。
+     * 以前は armedRef を直接立てて start() を呼んでいたが、それだと
+     * スクロールの監視が登録されないうえ、armedRef が先に true になるせいで
+     * あとからサウンドボタンが押されても「変化なし」と見なされて arm() が
+     * 呼ばれず、鳴らないままになっていた（実機の再訪で発生）。
+     */
+    if (restored || getSoundOn()) arm();
 
     // ── 3. 別タブへ出ている間は止め、戻ってきたら鳴らし直す ──
     const onVisibility = () => {
@@ -196,6 +205,7 @@ export default function BackgroundMusic() {
     return () => {
       unsubSound();
       unsubDuck();
+      unsubReveal();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pageshow", onPageShow);
       window.removeEventListener("scroll", onFirstScroll);

@@ -17,6 +17,7 @@ import {
 } from "@/lib/heroAudio";
 import { useSoundOn, setSoundOn } from "@/lib/soundStore";
 import { useBootDone } from "@/lib/bootGate";
+import { markHeroRevealed } from "@/lib/heroReveal";
 
 /** UFO が画面左へ抜けきる頃合い（UFO動画尺 8s のうち）。ここでテキストが宿る。 */
 const REVEAL_AT = 4.8;
@@ -30,6 +31,15 @@ export default function Hero() {
   const [ufoGone, setUfoGone] = useState(false); // UFO動画が退場し、蠢く宇宙が前面へ
   const soundOn = useSoundOn(); // グローバル共有（SFX等が参照）。書き込みは setSoundOn（store）
   const bootDone = useBootDone(); // ブート演出明けに UFO 動画を始動
+
+  /**
+   * 名前とロゴが立ち現れたことを外へ知らせる。
+   * BGM はこの合図とスクロール開始の両方が揃ってから鳴り始める。
+   * revealed を立てる場所が複数あるので、状態を見て一度だけ通知する。
+   */
+  useEffect(() => {
+    if (revealed) markHeroRevealed();
+  }, [revealed]);
 
   const { scrollYProgress } = useScroll({
     target: ref,
