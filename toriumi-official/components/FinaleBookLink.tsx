@@ -6,8 +6,10 @@ import { ArrowUpRight } from "lucide-react";
 /**
  * 終章の絵の中の本を指し示す HUD。
  *
- * 本そのものを押させるのではなく、SF の計器表示のような引き出し線を絵の上に引き、
- * その線と先端の照準・文字がリンクになっている。
+ * SF の計器表示のような引き出し線を絵の上に引き、その線と先端の照準・文字がリンクになる。
+ * 見せ方は矢印が主役だが、押せるのは「本・引き出し線・文字」の三つ。
+ * 指し示された本を押しにいくのは自然な動きなので、そこも受け止める。
+ * 枠線などは出さない（以前それを出して「ダサい」という判断になった）。
  *
  * 座標は絵のピクセルそのまま。
  * .finale-frame（globals.css）が「絵の比率のまま画面を覆う最小の箱」なので、
@@ -28,6 +30,8 @@ type Spec = {
   h: number;
   /** 終端（本の紋章の中心） */
   tip: [number, number];
+  /** 本そのものの矩形 [x, y, 幅, 高さ]。ここも押せるようにする */
+  book: [number, number, number, number];
   /** 水平に走る部分の折れ点 */
   elbow: [number, number];
   /** 斜めの線の先 */
@@ -54,6 +58,7 @@ const MOBILE: Spec = {
   w: 1100,
   h: 1310,
   tip: [484, 984],
+  book: [404, 828, 226, 320],
   elbow: [566, 984],
   tail: [676, 878],
   stroke: 3.2,
@@ -72,6 +77,7 @@ const DESKTOP: Spec = {
   w: 1672,
   h: 942,
   tip: [244, 796],
+  book: [136, 666, 204, 256],
   elbow: [356, 796],
   tail: [452, 706],
   stroke: 2.8,
@@ -108,7 +114,7 @@ export default function FinaleBookLink() {
 }
 
 function Pointer({ spec, className }: { spec: Spec; className: string }) {
-  const { w, h, tip, elbow, tail, stroke, r, font, align, lift } = spec;
+  const { w, h, tip, book, elbow, tail, stroke, r, font, align, lift } = spec;
   /** 斜め → 水平 → 照準。参考にした計器表示と同じ運び */
   const line = `M ${tail[0]} ${tail[1]} L ${elbow[0]} ${elbow[1]} L ${tip[0] + r} ${tip[1]}`;
   /** 斜めに沿わせる細い相棒の線（計器表示によくある二重線） */
@@ -128,8 +134,21 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
   const tx = tail[0] + (dx / len) * -tick * 3.2;
   const ty = tail[1] + (dy / len) * -tick * 3.2;
 
-  /** 文字を入れる箱の幅。8 文字＋矢印＋字間ぶんを見込む */
-  const widthBox = h * font * 9.2;
+  /**
+   * 文字まわりの寸法。
+   *
+   * 実測すると「Travel Guide ↗」は字間込みで文字サイズの約 12.7 倍の幅になる。
+   * 以前は foreignObject の箱を 9.2 倍しか取っていなかったので、文字は
+   * overflow-visible で見えてはいるものの、箱からはみ出した部分は当たり判定を
+   * 持てず、端を押しても反応しなかった（文字が押せない原因はこれ）。
+   * 箱は余裕をもって広く取り、押せる範囲は下の透明な矩形で明示する。
+   */
+  const em = h * font;
+  const textW = em * 13.6;
+  const widthBox = em * 18;
+  /** 文字の左端。align に合わせて、箱の中の寄せ方と揃える */
+  const textX = align === "middle" ? tail[0] - textW / 2 : tail[0] - stroke * 2;
+  const foY = tail[1] - h * lift - em * 1.9;
 
   return (
     <svg
@@ -145,14 +164,32 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
       </defs>
 
       {/*
-        当たり判定。細い線のままだと押しにくいので、透明な太い線を重ねる。
-        これと文字だけが pointer-events を持つ（絵の他の場所は押せない）。
+        当たり判定。押せるのは「本・引き出し線・文字」の三つで、絵の他の場所は押せない。
+        判定はすべて透明な図形で持つ。SVG の図形は当たり判定が素直なので、
+        foreignObject の中身に頼るより確実（文字が端で反応しない問題の対策）。
       */}
+      <rect
+        x={book[0]}
+        y={book[1]}
+        width={book[2]}
+        height={book[3]}
+        rx={stroke * 2}
+        fill="transparent"
+        className="pointer-events-auto cursor-pointer"
+      />
       <path
         d={line}
         stroke="transparent"
         strokeWidth={stroke * 9}
         strokeLinecap="round"
+        className="pointer-events-auto cursor-pointer"
+      />
+      <rect
+        x={textX - em * 0.4}
+        y={foY - em * 0.25}
+        width={textW + em * 0.8}
+        height={em * 1.9}
+        fill="transparent"
         className="pointer-events-auto cursor-pointer"
       />
 
@@ -219,31 +256,30 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
       </g>
 
       {/*
-        文字。線の先に付けて、矢印の一部として押せるようにする。
-        foreignObject の箱は widthBox ぶん取り、中身を寄せて位置を決める
-        （中央寄せのときに箱を中心に置くと、はみ出しの計算が単純になる）。
+        文字そのもの。押す役目は上の透明な矩形が持つので、ここは見た目だけ。
+        箱は文字より広く取り、中身を align に合わせて寄せて位置を決める。
       */}
       <foreignObject
         x={align === "middle" ? tail[0] - widthBox / 2 : tail[0] - stroke * 2}
-        y={tail[1] - h * lift - h * font * 1.9}
+        y={foY}
         width={widthBox}
-        height={h * font * 2.4}
-        className="overflow-visible"
+        height={em * 2.4}
+        className="pointer-events-none overflow-visible"
       >
         <span
-          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 whitespace-nowrap uppercase tracking-[0.2em] text-aurum-200/75 transition-all duration-300 group-hover:tracking-[0.26em] group-hover:text-aurum-100 ${
+          className={`pointer-events-none inline-flex items-center gap-2 whitespace-nowrap uppercase tracking-[0.2em] text-aurum-200/75 transition-all duration-300 group-hover:tracking-[0.26em] group-hover:text-aurum-100 ${
             align === "middle" ? "w-full justify-center" : ""
           }`}
           style={{
             // 計器表示らしい幾何学的な書体。読み込み前は等幅で代用する
             fontFamily: "var(--font-hud), var(--font-mono), ui-monospace, monospace",
-            fontSize: `${h * font}px`,
+            fontSize: `${em}px`,
             textShadow: "0 1px 8px rgba(3,2,10,1), 0 0 22px rgba(3,2,10,0.95)",
           }}
         >
           Travel Guide
           <ArrowUpRight
-            size={h * font * 1.15}
+            size={em * 1.15}
             className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
           />
         </span>
