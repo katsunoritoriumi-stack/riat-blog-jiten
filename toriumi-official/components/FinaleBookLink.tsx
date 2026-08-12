@@ -219,15 +219,17 @@ function Pointer({ spec, className }: { spec: Spec; className: string }) {
         className="overflow-visible"
       >
         <span
-          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap font-mono uppercase tracking-[0.22em] text-aurum-100 transition-all duration-300 group-hover:tracking-[0.3em] group-hover:text-white ${
+          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-2 whitespace-nowrap uppercase tracking-[0.2em] text-aurum-100 transition-all duration-300 group-hover:tracking-[0.28em] group-hover:text-white ${
             align === "middle" ? "w-full justify-center" : ""
           }`}
           style={{
+            // 計器表示らしい幾何学的な書体。読み込み前は等幅で代用する
+            fontFamily: "var(--font-hud), var(--font-mono), ui-monospace, monospace",
             fontSize: `${h * font}px`,
             textShadow: "0 1px 8px rgba(3,2,10,1), 0 0 22px rgba(3,2,10,0.95)",
           }}
         >
-          宇宙生命論を読む
+          Travel Guide
           <ArrowUpRight
             size={h * font * 1.15}
             className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

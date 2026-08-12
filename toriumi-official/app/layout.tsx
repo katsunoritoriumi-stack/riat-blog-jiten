@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sora, Space_Mono, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
+import { Sora, Space_Mono, Noto_Sans_JP, Noto_Serif_JP, Orbitron } from "next/font/google";
 import JsonLd from "@/components/JsonLd";
 import { siteLd } from "@/lib/jsonLd";
 import { GOOGLE_SITE_VERIFICATION, SITE_URL } from "@/lib/site";
@@ -24,6 +24,18 @@ const notoSans = Noto_Sans_JP({
   variable: "--font-sans",
   display: "swap",
   weight: ["300", "400", "500", "700"],
+});
+
+/**
+ * 終章の HUD（本を指す矢印）の文字だけに使う。
+ * 計器表示らしさを出したいので、幾何学的で字面の広い書体を当てる。
+ * 使うのは短い英字ひとつだけなので latin・1 ウェイトに絞って軽くしてある。
+ */
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-hud",
+  display: "swap",
+  weight: ["500"],
 });
 
 const notoSerif = Noto_Serif_JP({
@@ -92,7 +104,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${sora.variable} ${spaceMono.variable} ${notoSans.variable} ${notoSerif.variable}`}
+      className={`${sora.variable} ${spaceMono.variable} ${notoSans.variable} ${notoSerif.variable} ${orbitron.variable}`}
     >
       <body className="font-sans antialiased">
         {/* 誰が・どんなサイトで・何を請け負うか（全ページ共通） */}
