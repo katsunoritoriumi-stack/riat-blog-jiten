@@ -63,24 +63,12 @@ function scheduleAmbience(ctx: BaseAudioContext, durationSec: number, lockAtSec:
     lfo.stop(durationSec + 0.3);
   });
 
-  // ── テレメトリのブリップ（データ受信音）：ランダムな間隔で短いクリック ──
-  let t = 0.15;
-  while (t < durationSec - 0.3) {
-    const click = ctx.createBufferSource();
-    click.buffer = makeNoise(ctx, 0.02);
-    const bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.Q.value = 5;
-    bp.frequency.value = 1800 + Math.random() * 1600;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.16, t + 0.006);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
-    click.connect(bp).connect(g).connect(master);
-    click.start(t);
-    click.stop(t + 0.06);
-    t += 0.22 + Math.random() * 0.22;
-  }
+  /*
+    以前ここに「テレメトリのブリップ」（0.22〜0.44 秒おきの短いクリック）を
+    敷いていたが、UFO のワープ音に重なって「ちゃちゃちゃちゃ」と聞こえ、
+    肝心のワープの音を濁していたので取り除いた。
+    深宇宙の"間"はドローンだけで足りている。
+  */
 
   // ── 信号ロック：2音の確認チャイム（最終行が表示される瞬間に合わせる） ──
   [

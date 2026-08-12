@@ -26,8 +26,9 @@ import { subscribeSound, getSoundOn } from "@/lib/soundStore";
  */
 
 const SRC = "/bgm-neon-horizon.mp3";
-const MAX_VOL = 0.18; // 主張しすぎない
-const DUCK_VOL = 0.02; // 作品が鳴っている間
+/** 主張しすぎない。0.18 では大きいという判断で 3/5 に落とした */
+const MAX_VOL = 0.108;
+const DUCK_VOL = 0.012; // 作品が鳴っている間
 const FADE_MS = 2200;
 const ARM_KEY = "toriumi.bgm.armed";
 
@@ -70,13 +71,16 @@ export default function BackgroundMusic() {
     function start() {
       const a = ref.current;
       if (!a || !armedRef.current || document.hidden) return;
-      if (!a.paused) return;
-      const p = a.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          // 自動再生を拒否された。次のユーザー操作で鳴らす
-          armRetryOnGesture();
-        });
+      // arm() の時点で音量 0 のまま鳴らし始めている場合がある。
+      // そのときは play() を呼び直さず、音量を上げるだけでよい
+      if (a.paused) {
+        const p = a.play();
+        if (p && typeof p.catch === "function") {
+          p.catch(() => {
+            // 自動再生を拒否された。次のユーザー操作で鳴らす
+            armRetryOnGesture();
+          });
+        }
       }
       fadeTo(target(), FADE_MS);
     }
@@ -108,6 +112,23 @@ export default function BackgroundMusic() {
       } catch {
         /* プライベートモード等。鳴らせなくても致命的ではない */
       }
+      /**
+       * ここで「音量 0 のまま再生を始めて」おく。
+       *
+       * スクロールを待ってから play() すると、そこで初めて 5MB の取得が始まり、
+       * 回線の細いスマホでは音が出るまで数秒空いてしまう（実機で発生）。
+       * ボタンを押した瞬間はユーザー操作の最中なので、ここなら確実に再生を
+       * 始められる。音量 0 なのでイントロの効果音とは重ならない。
+       * スクロールが動いたら、あとは音量を上げるだけ＝待たずに鳴る。
+       */
+      const a = ref.current;
+      if (a && a.paused && !document.hidden) {
+        a.preload = "auto";
+        a.volume = 0;
+        const p = a.play();
+        if (p && typeof p.catch === "function") p.catch(() => armRetryOnGesture());
+      }
+
       if (window.scrollY > 4) {
         // すでにスクロール済みならすぐ入る
         start();

@@ -35,7 +35,7 @@ const SRC = INDEX >= 0 ? STATIONS[INDEX].caption!.memoryVideo! : null;
  * 文字の真後ろは予告編カード側の暗幕（このレイヤーより手前）が守るので、
  * ここを濃くしてもカウンターの可読性は落ちない。合成して見比べて 0.45 にした。
  */
-const PEAK = 0.45;
+const PEAK = 0.62;
 
 export default function MemoryFlashback() {
   const { scrollYProgress } = useScroll();

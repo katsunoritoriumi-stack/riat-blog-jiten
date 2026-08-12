@@ -4,23 +4,77 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
 /**
- * 終章の絵の中にある「宇宙生命論」の本を、そのままリンクにする。
+ * 終章の絵の中の本を指し示す HUD。
  *
- * 絵（FinaleBackdrop）とは別レイヤーにしてある。絵は文字の下に敷きたいが、
- * このリンクは文字の上に出さないと押せないため。
- * 位置がずれないよう、寄りの動きは両者とも同じ CSS アニメーション
- * （.finale-zoom）で動かしている。framer で別々に動かすと同期しない。
+ * 本そのものを押させるのではなく、SF の計器表示のような引き出し線を絵の上に引き、
+ * その線と先端の照準・文字がリンクになっている。
  *
- * 座標は globals.css の .finale-frame / .finale-book が持つ。
- * 絵を差し替えたらそこの数字だけ直せばよい。
+ * 座標は絵のピクセルそのまま。
+ * .finale-frame（globals.css）が「絵の比率のまま画面を覆う最小の箱」なので、
+ * その中に絵と同じ viewBox の SVG を敷けば、線の端は絵の狙った場所に必ず載る。
+ * 絵とこの層は同じ CSS アニメーション（.finale-zoom）で動くのでズレない。
  *
  * 外側の overflow は hidden ではなく clip。hidden はスクロール可能な箱を作るので、
- * リンクを Tab でフォーカスしたりブラウザが scrollIntoView したりすると
- * この層だけが縦にずれ、リンクが本から外れる（実測で 48px ずれた）。
- * clip なら切り取るだけでスクロールしない。
+ * リンクを Tab でフォーカスすると層だけがずれて指し示す先が狂う（実測で 48px ずれた）。
+ *
+ * 絵を差し替えたら、下の SPEC の数字（本の紋章＝終端の位置など）を測り直す。
  */
 
 const HREF = "https://seimeiron.com/riat-blog/";
+
+type Spec = {
+  /** 絵の実寸。SVG の viewBox にそのまま使う */
+  w: number;
+  h: number;
+  /** 終端（本の紋章の中心） */
+  tip: [number, number];
+  /** 水平に走る部分の折れ点 */
+  elbow: [number, number];
+  /** 斜めの線の先 */
+  tail: [number, number];
+  /** 線の太さ・照準の大きさ（絵の実寸に対して決める） */
+  stroke: number;
+  r: number;
+  /** 文字の大きさ（絵の高さに対する比） */
+  font: number;
+  /** 文字を線の先にどう付けるか。中央寄せは横幅が足りない画面用 */
+  align: "start" | "middle";
+  /** 文字を線の先からどれだけ上へ逃がすか（絵の高さに対する比） */
+  lift: number;
+};
+
+/**
+ * スマホ：本は画面のやや左。絵自体も左へずらしてある（globals.css の --ox）。
+ *   文字は線の先の真上に中央寄せで置く。左寄せだと画面右にはみ出し、
+ *   下げすぎるとページ末尾のロゴと重なるため、この位置に逃がしている。
+ * PC：本は左下。右側が宇宙で空いているので、そちらへ引き出して左寄せ。
+ * どちらも「斜め → 水平 → 照準」で、参考にした計器表示と同じ運びにしてある。
+ */
+const MOBILE: Spec = {
+  w: 1100,
+  h: 1310,
+  tip: [484, 984],
+  elbow: [566, 984],
+  tail: [676, 878],
+  stroke: 4,
+  r: 15,
+  font: 0.016,
+  align: "middle",
+  lift: 0.05,
+};
+
+const DESKTOP: Spec = {
+  w: 1672,
+  h: 942,
+  tip: [244, 796],
+  elbow: [435, 796],
+  tail: [568, 716],
+  stroke: 3.4,
+  r: 13,
+  font: 0.026,
+  align: "start",
+  lift: 0.035,
+};
 
 export default function FinaleBookLink() {
   return (
@@ -36,57 +90,150 @@ export default function FinaleBookLink() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.4, delay: 0.6 }}
+          transition={{ duration: 1, delay: 0.4 }}
           aria-label="宇宙生命論のブログを別のタブで開く"
-          className="finale-book group pointer-events-auto absolute block"
-          style={{ left: "var(--bx)", top: "var(--by)", width: "var(--bw)", height: "var(--bh)" }}
+          className="group pointer-events-none absolute inset-0 block"
         >
-          {/* ホバーで表紙に光が差す。角の出ない楕円なので、絵の中で紙が起きるように見える */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 40%, rgba(252,234,187,0.3), rgba(252,234,187,0.08) 55%, transparent 78%)",
-            }}
-          />
-
-          {/*
-            押せる一点を示す目印。本の右上に置く（表題や紋章を隠さない位置）。
-            静止した絵の中では、光の強弱より「動き」のほうが確実に気づかれる。
-            波紋を 2 つ、半周ずらして出し続ける。
-          */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-[7%] top-[6%] block h-3 w-3 sm:h-3.5 sm:w-3.5"
-          >
-            <span className="hotspot-ping absolute inset-0 rounded-full border border-aurum-200/90" />
-            <span className="hotspot-ping hotspot-ping-2 absolute inset-0 rounded-full border border-aurum-200/90" />
-            <span className="hotspot-core absolute inset-[22%] rounded-full bg-aurum-200 transition-transform duration-300 group-hover:scale-125" />
-          </span>
-
-          {/* 目印から文字へ、細い線を一本だけ引く */}
-          <span
-            aria-hidden="true"
-            className="book-thread pointer-events-none absolute left-1/2 top-full h-4 w-px -translate-x-1/2 bg-gradient-to-b from-aurum-200/90 to-transparent sm:h-6"
-          />
-
-          {/*
-            文字。枠も背景も付けない代わりに、影を濃くして絵の上でも読めるようにする。
-            「読む」と動詞で書いて、押した先に何があるかを明示する。
-          */}
-          <span
-            className="absolute left-1/2 top-full mt-4 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.24em] text-aurum-100 transition-all duration-300 group-hover:tracking-[0.32em] sm:mt-6 sm:text-[11px]"
-            style={{ textShadow: "0 1px 8px rgba(3,2,10,1), 0 0 22px rgba(3,2,10,0.95)" }}
-          >
-            宇宙生命論を読む
-            <ArrowUpRight
-              size={12}
-              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </span>
+          <Pointer spec={MOBILE} className="md:hidden" />
+          <Pointer spec={DESKTOP} className="hidden md:block" />
         </motion.a>
       </div>
     </div>
+  );
+}
+
+function Pointer({ spec, className }: { spec: Spec; className: string }) {
+  const { w, h, tip, elbow, tail, stroke, r, font, align, lift } = spec;
+  /** 斜め → 水平 → 照準。参考にした計器表示と同じ運び */
+  const line = `M ${tail[0]} ${tail[1]} L ${elbow[0]} ${elbow[1]} L ${tip[0] + r} ${tip[1]}`;
+  /** 斜めに沿わせる細い相棒の線（計器表示によくある二重線） */
+  const dx = elbow[0] - tail[0];
+  const dy = elbow[1] - tail[1];
+  const len = Math.hypot(dx, dy);
+  const off = stroke * 2.6;
+  const nx = (-dy / len) * off;
+  const ny = (dx / len) * off;
+  const line2 = `M ${tail[0] + nx + dx * 0.06} ${tail[1] + ny + dy * 0.06} L ${
+    elbow[0] + nx - dx * 0.34
+  } ${elbow[1] + ny - dy * 0.34}`;
+
+  /** 目盛りの四角。文字と反対側（線の外）へ並べる */
+  const tick = stroke * 2.1;
+  const gap = tick * 1.9;
+  const tx = tail[0] + (dx / len) * -tick * 3.2;
+  const ty = tail[1] + (dy / len) * -tick * 3.2;
+
+  /** 文字を入れる箱の幅。8 文字＋矢印＋字間ぶんを見込む */
+  const widthBox = h * font * 9.2;
+
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className={`absolute inset-0 h-full w-full ${className}`}
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <filter id={`hud-glow-${w}`} x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="0" stdDeviation={stroke * 1.6} floodColor="#fceabb" floodOpacity="0.85" />
+        </filter>
+      </defs>
+
+      {/*
+        当たり判定。細い線のままだと押しにくいので、透明な太い線を重ねる。
+        これと文字だけが pointer-events を持つ（絵の他の場所は押せない）。
+      */}
+      <path
+        d={line}
+        stroke="transparent"
+        strokeWidth={stroke * 9}
+        strokeLinecap="round"
+        className="pointer-events-auto cursor-pointer"
+      />
+
+      <g filter={`url(#hud-glow-${w})`}>
+        {/* 引き出し線 */}
+        <path
+          d={line}
+          pathLength={100}
+          stroke="#fceabb"
+          strokeWidth={stroke}
+          strokeLinecap="square"
+          className="hud-line transition-[stroke] duration-300 group-hover:stroke-white"
+        />
+        {/* 斜めに沿う二重線 */}
+        <path
+          d={line2}
+          pathLength={100}
+          stroke="#fceabb"
+          strokeWidth={stroke * 0.6}
+          strokeLinecap="square"
+          opacity={0.7}
+          className="hud-line hud-line-2"
+        />
+
+        {/* 終端の照準：芯・回るアーク・広がる波紋 */}
+        <circle cx={tip[0]} cy={tip[1]} r={stroke * 1.5} fill="#fceabb" />
+        <circle
+          cx={tip[0]}
+          cy={tip[1]}
+          r={r}
+          stroke="#fceabb"
+          strokeWidth={stroke * 0.8}
+          strokeDasharray={`${r * 2.6} ${r * 1.5}`}
+          className="hud-arc"
+        />
+        <circle
+          cx={tip[0]}
+          cy={tip[1]}
+          r={r}
+          stroke="#fceabb"
+          strokeWidth={stroke * 0.7}
+          className="hud-ping"
+        />
+
+        {/* 目盛りの四角 3 つ */}
+        {[0, 1, 2].map((i) => (
+          <rect
+            key={i}
+            x={tx - (dx / len) * gap * i - tick / 2}
+            y={ty - (dy / len) * gap * i - tick / 2}
+            width={tick}
+            height={tick}
+            fill="#fceabb"
+            className={`hud-tick ${i === 1 ? "hud-tick-2" : i === 2 ? "hud-tick-3" : ""}`}
+          />
+        ))}
+      </g>
+
+      {/*
+        文字。線の先に付けて、矢印の一部として押せるようにする。
+        foreignObject の箱は widthBox ぶん取り、中身を寄せて位置を決める
+        （中央寄せのときに箱を中心に置くと、はみ出しの計算が単純になる）。
+      */}
+      <foreignObject
+        x={align === "middle" ? tail[0] - widthBox / 2 : tail[0] - stroke * 2}
+        y={tail[1] - h * lift - h * font * 1.9}
+        width={widthBox}
+        height={h * font * 2.4}
+        className="overflow-visible"
+      >
+        <span
+          className={`pointer-events-auto inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap font-mono uppercase tracking-[0.22em] text-aurum-100 transition-all duration-300 group-hover:tracking-[0.3em] group-hover:text-white ${
+            align === "middle" ? "w-full justify-center" : ""
+          }`}
+          style={{
+            fontSize: `${h * font}px`,
+            textShadow: "0 1px 8px rgba(3,2,10,1), 0 0 22px rgba(3,2,10,0.95)",
+          }}
+        >
+          宇宙生命論を読む
+          <ArrowUpRight
+            size={h * font * 1.15}
+            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
+        </span>
+      </foreignObject>
+    </svg>
   );
 }

@@ -305,23 +305,21 @@
    ずれないよう、寄りの動きは framer ではなく同一の CSS アニメーションにして、
    2 つの枠が必ず同じ進行で動くようにしている。 */
 .finale-frame {
-  /* スマホの絵 1100x1310 / object-position: 50% 42% */
+  /* スマホの絵 1100x1310 */
   --arw: 1100;
   --arh: 1310;
+  /*
+    object-position 相当。縦長の画面では横がはみ出すので --ox で切り取り位置を決める。
+    0.5 だと本がページ下部のロゴと近くなり、指し示す矢印の文字も画面右端に当たる。
+    0.68 にして絵を左へずらし、本とロゴの間に距離を作っている。
+  */
+  --ox: 0.72;
   --oy: 0.42;
   position: absolute;
   width: max(100cqw, calc(100cqh * var(--arw) / var(--arh)));
   height: max(100cqh, calc(100cqw * var(--arh) / var(--arw)));
-  left: calc((100cqw - max(100cqw, calc(100cqh * var(--arw) / var(--arh)))) * 0.5);
+  left: calc((100cqw - max(100cqw, calc(100cqh * var(--arw) / var(--arh)))) * var(--ox));
   top: calc((100cqh - max(100cqh, calc(100cqw * var(--arh) / var(--arw)))) * var(--oy));
-}
-
-/* 絵の中の本の位置（絵に対する割合。実測値） */
-.finale-book {
-  --bx: 29.5%;
-  --by: 62.5%;
-  --bw: 28%;
-  --bh: 30%;
 }
 
 @media (min-width: 768px) {
@@ -329,13 +327,8 @@
     /* PC の絵 1672x942 */
     --arw: 1672;
     --arh: 942;
+    --ox: 0.5;
     --oy: 0.5;
-  }
-  .finale-book {
-    --bx: 7.4%;
-    --by: 66%;
-    --bw: 13%;
-    --bh: 30%;
   }
 }
 
@@ -351,69 +344,96 @@
   }
 }
 
-/* 本が押せることの知らせ。
-   枠線で囲むと「絵の上に貼った UI」に見え、
-   ぼんやり光らせるだけだと何が起きるのか伝わらない。
-   そこで「押せる一点」を示す目印を置く。動きがあるので静止画の中でも必ず気づく。 */
-@keyframes hotspot-ping {
+/* ─── 本を指し示す HUD の引き出し線 ───
+   本そのものを押させるのではなく、SF の計器表示のような矢印を絵の上に引き、
+   その矢印自体をリンクにする。線・終端の円・目盛りの四角で構成する。 */
+
+/* 線が引かれていく。pathLength=100 を使うので、実際の長さに関係なく同じ速さで描ける */
+@keyframes hud-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.hud-line {
+  stroke-dasharray: 100;
+  animation: hud-draw 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+.hud-line-2 {
+  animation-delay: 0.62s;
+  animation-duration: 1.2s;
+}
+
+/* 終端の円をゆっくり回るアーク（照準が回っている感じ） */
+@keyframes hud-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.hud-arc {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hud-spin 9s linear infinite;
+}
+
+/* 終端から広がる波紋 */
+@keyframes hud-ping {
   0% {
-    transform: scale(0.65);
-    opacity: 0.85;
+    transform: scale(0.5);
+    opacity: 0.9;
   }
   70% {
     opacity: 0;
   }
   100% {
-    transform: scale(2.9);
+    transform: scale(2.4);
     opacity: 0;
   }
 }
-.hotspot-ping {
-  animation: hotspot-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-.hotspot-ping-2 {
-  animation-delay: 1.3s;
-}
-
-@keyframes hotspot-core {
-  0%,
-  100% {
-    box-shadow: 0 0 8px 2px rgba(246, 211, 101, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 15px 5px rgba(246, 211, 101, 0.85);
-  }
-}
-.hotspot-core {
-  animation: hotspot-core 2.6s ease-in-out infinite;
+.hud-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hud-ping 2.8s cubic-bezier(0, 0, 0.2, 1) 1.6s infinite;
 }
 
-/* 目印から文字へ伸びる細い線 */
-@keyframes book-thread {
+/* 目盛りの四角が順に灯る */
+@keyframes hud-tick {
   0%,
   100% {
-    opacity: 0.5;
+    opacity: 0.25;
   }
   50% {
-    opacity: 0.95;
+    opacity: 1;
   }
 }
-.book-thread {
-  animation: book-thread 2.6s ease-in-out infinite;
+.hud-tick {
+  animation: hud-tick 2.4s ease-in-out infinite;
+}
+.hud-tick-2 {
+  animation-delay: 0.2s;
+}
+.hud-tick-3 {
+  animation-delay: 0.4s;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .finale-zoom {
     animation: none;
   }
-  .hotspot-ping {
+  .hud-line,
+  .hud-line-2 {
     animation: none;
-    opacity: 0.5;
-    transform: scale(1.9);
+    stroke-dasharray: none;
   }
-  .hotspot-core,
-  .book-thread {
+  .hud-arc,
+  .hud-ping,
+  .hud-tick {
     animation: none;
+  }
+  .hud-ping {
+    opacity: 0.35;
   }
 }
 
