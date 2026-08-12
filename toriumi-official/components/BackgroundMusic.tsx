@@ -54,6 +54,9 @@ export default function BackgroundMusic() {
   const armedRef = useRef(false);
   /** 実際に音量を上げて鳴り出したか。復帰時に鳴らし直してよいかの判断に使う */
   const startedRef = useRef(false);
+  /** 音量つまみ。iOS 対策で Web Audio を通す（下の ensureGraph 参照） */
+  const ctxRef = useRef<AudioContext | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -62,19 +65,79 @@ export default function BackgroundMusic() {
     el.volume = 0;
 
     const target = () => (duckedRef.current ? DUCK_VOL : MAX_VOL);
+    const clamp = (v: number) => Math.max(0, Math.min(1, v));
+
+    /**
+     * 音量つまみを Web Audio 側に用意する。
+     *
+     * iOS Safari は <audio> の volume の書き換えを黙って無視する
+     * （音量は本体のボタンだけが決める仕様）。そのため PC で 0.054 まで
+     * 落としても、iPhone では常に最大音量で鳴っていた。何度下げても
+     * 「スマホだけ大きい」と言われ続けたのはこれが理由。
+     * GainNode を通せば、どの端末でも同じつまみが効く。
+     *
+     * 引き換えに、iOS では消音スイッチが入っていると鳴らなくなる。
+     * 敷き物の音楽なので、消音にしている人には鳴らないほうが素直と判断した。
+     * オープニングの効果音は別の <audio> なので、これまでどおり鳴る。
+     */
+    function ensureGraph() {
+      const a = ref.current;
+      if (!a || gainRef.current) return;
+      const AC =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AC) return; // 作れない環境では element の volume に任せる
+      try {
+        const ctx = new AC();
+        const g = ctx.createGain();
+        g.gain.value = 0;
+        ctx.createMediaElementSource(a).connect(g).connect(ctx.destination);
+        ctxRef.current = ctx;
+        gainRef.current = g;
+        a.volume = 1; // 実際の音量は g が決める
+      } catch {
+        ctxRef.current = null;
+        gainRef.current = null;
+      }
+    }
+
+    /**
+     * 止まっている AudioContext を起こす。
+     * 操作前に作った場合は suspended のままなので、放っておくと
+     * 再生はできているのに何も聞こえない状態になる。
+     */
+    function resumeGraph() {
+      const ctx = ctxRef.current;
+      if (!ctx || ctx.state !== "suspended") return;
+      void ctx.resume().catch(() => {});
+      const wake = () => {
+        window.removeEventListener("pointerdown", wake);
+        window.removeEventListener("keydown", wake);
+        void ctxRef.current?.resume().catch(() => {});
+      };
+      window.addEventListener("pointerdown", wake, { once: true, passive: true });
+      window.addEventListener("keydown", wake, { once: true });
+    }
+
+    const setVol = (v: number) => {
+      if (gainRef.current) gainRef.current.gain.value = clamp(v);
+      else if (ref.current) ref.current.volume = clamp(v);
+    };
+    const getVol = () =>
+      gainRef.current ? gainRef.current.gain.value : (ref.current?.volume ?? 0);
 
     /** 音量をなめらかに寄せる。ぶつ切りで鳴らさない */
     function fadeTo(to: number, ms: number) {
       if (fadeRef.current) window.clearInterval(fadeRef.current);
-      const a = ref.current;
-      if (!a) return;
-      const from = a.volume;
+      if (!ref.current) return;
+      const from = getVol();
       const t0 = performance.now();
       fadeRef.current = window.setInterval(() => {
         const cur = ref.current;
         if (!cur) return;
         const k = Math.min(1, (performance.now() - t0) / ms);
-        cur.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+        setVol(from + (to - from) * k);
         if (k >= 1) {
           if (fadeRef.current) window.clearInterval(fadeRef.current);
           fadeRef.current = null;
@@ -92,9 +155,12 @@ export default function BackgroundMusic() {
      */
     function prime() {
       const a = ref.current;
-      if (!a || !armedRef.current || document.hidden || !a.paused) return;
+      if (!a || !armedRef.current || document.hidden) return;
+      ensureGraph();
+      resumeGraph();
+      setVol(0);
+      if (!a.paused) return;
       a.preload = "auto";
-      a.volume = 0;
       const p = a.play();
       if (p && typeof p.catch === "function") p.catch(() => retryOnGesture());
     }
@@ -122,6 +188,8 @@ export default function BackgroundMusic() {
       const a = ref.current;
       if (!a || !armedRef.current || document.hidden) return;
       startedRef.current = true;
+      ensureGraph();
+      resumeGraph();
       // prime() で音量 0 のまま鳴り始めている場合がある。
       // そのときは play() を呼び直さず、音量を上げるだけでよい
       if (a.paused) {
@@ -261,7 +329,7 @@ export default function BackgroundMusic() {
           if (fadeRef.current) window.clearInterval(fadeRef.current);
           fadeRef.current = null;
           a.pause();
-          a.volume = 0;
+          setVol(0);
         } else if (armedRef.current && startedRef.current && !document.hidden) {
           start(); // 曲が終わったら、また静かに敷き直す
         }
@@ -280,6 +348,9 @@ export default function BackgroundMusic() {
       stopWatching();
       if (fadeRef.current) window.clearInterval(fadeRef.current);
       ref.current?.pause();
+      void ctxRef.current?.close().catch(() => {});
+      ctxRef.current = null;
+      gainRef.current = null;
     };
   }, []);
 

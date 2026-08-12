@@ -71,12 +71,18 @@ const MASK_CENTER =
   "radial-gradient(ellipse 68% 58% at 50% 50%, #000 30%, rgba(0,0,0,0.55) 62%, transparent 88%)";
 /**
  * 外周：中央をくり抜いたリング。中央の層とぶつからない場所だけに出る。
- * 外側は自分の箱の縁（100%）までに必ず 0 まで落とすこと。
- * この層はずらして置いてあるので、縁が透明になりきらないと
- * 画面の中に四角い切れ目が出る（実際に出したことがある）。
+ *
+ * ⚠ 半径は 50%／50% から広げないこと。
+ * radial-gradient の「ellipse 66% 60%」は箱の縁までの割合ではなく、
+ * 中心からの半径が幅の 66%・高さの 60% という意味。中心は 50% にあるので、
+ * 半径が 50% を超えると、色止め 100% の透明が箱の外側に落ちてしまう。
+ * つまり箱の縁ではまだ濃度が残り、そこが直線の切れ目として見える。
+ * この層は translate でずらしてあるため、その切れ目が画面の中に入る。
+ * 実際に画面の右 90% の位置へ縦線が出た（66% のとき縁の濃度 0.87）。
+ * 50% なら左右も上下も、縁でちょうど 0 になる。
  */
 const MASK_RING =
-  "radial-gradient(ellipse 66% 60% at 50% 50%, transparent 14%, rgba(0,0,0,0.6) 40%, #000 72%, transparent 100%)";
+  "radial-gradient(ellipse 50% 50% at 50% 50%, transparent 16%, rgba(0,0,0,0.6) 42%, #000 74%, transparent 100%)";
 
 export default function MemoryFlashback() {
   const { scrollYProgress } = useScroll();
