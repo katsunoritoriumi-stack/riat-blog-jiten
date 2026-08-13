@@ -1076,34 +1076,18 @@ qInput.addEventListener("keydown", (e) => {
   const text = qInput.value.trim();
   if (!text) return;
   qInput.blur();
-  wakeServer();
   askQuestion(text);
 });
-qInput.addEventListener("focus", wakeServer);
 
-/* ---- ブログ辞典の RAG（要約タブと質問ページで共用） ---- */
-const API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? "http://localhost:5000"
-  : "https://riat-blog-jiten-2.onrender.com";
+/* ---- ブログ辞典の RAG（要約タブと質問ページで共用） ----
+   この銀河と同じ Vercel 上の関数（api/ask.mjs）を叩く。同一オリジンなので CORS は要らない。
+   以前は Render の Flask を呼んでいたが、無料インスタンスがスピンダウンからの復帰に失敗して
+   無応答になる事故が続いたため、経路ごと外した。 */
+const ASK_URL = "/api/ask";
 
-let warmed = false;
-// Render 無料枠はスピンダウンするので、使いそうな時点で起こしておく
-function wakeServer() {
-  if (warmed) return;
-  warmed = true;
-  // 応答が返らないまま接続を抱え込まないよう、起こす試みにも上限を置く
-  // （AbortSignal.timeout は iOS 16 未満に無いので、無ければ素のまま投げる）
-  const opts = typeof AbortSignal !== "undefined" && AbortSignal.timeout
-    ? { signal: AbortSignal.timeout(WAKE_TIMEOUT_MS) }
-    : {};
-  fetch(API_BASE + "/warmup", opts).catch(() => {});
-}
-
-/* サーバーが「無応答のまま切れもしない」状態になることが実際にあり
-   （Render のインスタンス異常。エッジは接続を受けるが応答を返さない）、
-   タイムアウトが無いと画面が永久に「交信中…」で固まる。上限を必ず設ける。 */
-const WAKE_TIMEOUT_MS    = 60000;  // /warmup を待つ上限
-const CONNECT_TIMEOUT_MS = 75000;  // 応答が返り始めるまでの上限（コールドスタート約50秒を見込む）
+/* サーバーが「無応答のまま切れもしない」状態になることが実際にあり、
+   タイムアウトが無いと画面が永久に「交信中…」で固まる。上限は必ず置いておく。 */
+const CONNECT_TIMEOUT_MS = 20000;  // 応答が返り始めるまでの上限
 const IDLE_TIMEOUT_MS    = 45000;  // answer が流れ始めた後、次の断片が来るまでの上限
 
 const DOWN_MESSAGE =
@@ -1138,7 +1122,7 @@ async function streamAsk({ message, url, only }, { onDelta, onSources, onError }
   let res;
   armTimeout(CONNECT_TIMEOUT_MS);
   try {
-    res = await fetch(API_BASE + "/ask", {
+    res = await fetch(ASK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, url, only }),
@@ -1258,10 +1242,9 @@ async function showSummary() {
 
   // ここに来るのは事前生成がまだ無い記事だけ（記事を増やしたら build_summaries.py を回す）
   summarizing = true;
-  wakeServer();
   const statusEl = document.createElement("div");
   statusEl.className = "status";
-  statusEl.textContent = "記事を読み解いています…（初回は最大50秒）";
+  statusEl.textContent = "記事を読み解いています…";
   const aEl = document.createElement("div");
   aEl.className = "a";
   aLog.append(statusEl, aEl);
@@ -1311,7 +1294,7 @@ async function askQuestion(text) {
   apBody.innerHTML = "";
   const statusEl = document.createElement("div");
   statusEl.className = "status";
-  statusEl.textContent = "ソースと交信中…（初回は最大50秒）";
+  statusEl.textContent = "ソースと交信中…";
   const aEl = document.createElement("div");
   aEl.className = "a";
   apBody.append(statusEl, aEl);
